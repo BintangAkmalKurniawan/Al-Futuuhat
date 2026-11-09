@@ -1,0 +1,64 @@
+# Menjalankan seluruh sistem sekaligus untuk demo/sidang — PRD §13.2.
+# Pengembangan sehari-hari TIDAK memakai berkas ini (pakai postgres-umum + artisan serve).
+#
+# Sebelum `docker compose up -d --build`:
+#   1. cp backend/.env.docker.example backend/.env.docker
+#   2. docker compose up -d --build
+#   3. docker compose exec -u www-data backend php artisan migrate --seed --force
+
+x-backend: &backend
+  build: ./backend
+  # Nama image yang sama dipakai layanan `backend` dan `reverb`
+  image: al-futuuhat-backend:local
+  env_file: ./backend/.env.docker
+  volumes:
+    # Unggahan (foto anggota, gambar materi, gambar komentar) disimpan di volume
+    - storage:/var/www/html/storage/app/public
+  depends_on:
+    db:
+      condition: service_healthy
+
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: alfutuuhat
+      POSTGRES_USER: alfutuuhat
+      POSTGRES_PASSWORD: rahasia
+      TZ: Asia/Jakarta
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U alfutuuhat -d alfutuuhat"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    <<: *backend
+    ports:
+      - "8000:80"
+
+  reverb:
+    <<: *backend
+    command: php artisan reverb:start --host=0.0.0.0 --port=8080
+    ports:
+      - "8080:8080"
+
+  frontend:
+    build: ./frontend
+    environment:
+      # Nilai yang dibaca peramban tetap memakai localhost (PRD §13.2)
+      NUXT_PUBLIC_API_BASE: http://localhost:8000/api
+      NUXT_PUBLIC_REVERB_KEY: ${REVERB_APP_KEY:-kunci-demo-alfutuuhat}
+      NUXT_PUBLIC_REVERB_HOST: localhost
+      NUXT_PUBLIC_REVERB_PORT: "8080"
+      NUXT_PUBLIC_REVERB_SCHEME: http
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+
+volumes:
+  pgdata:
+  storage:

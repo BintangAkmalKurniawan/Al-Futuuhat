@@ -1,0 +1,42 @@
+<?php
+
+namespace App\Models;
+
+use Database\Factories\KepengurusanFactory;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+
+/**
+ * Susunan pengurus: satu anggota pada satu periode, dengan divisi dan jabatan — PRD §10.
+ */
+class Kepengurusan extends Model
+{
+    /** @use HasFactory<KepengurusanFactory> */
+    use HasFactory;
+
+    protected $table = 'kepengurusan';
+
+    protected $fillable = ['anggota_id', 'periode_id', 'divisi_id', 'jabatan_id'];
+
+    public function anggota(): BelongsTo
+    {
+        return $this->belongsTo(Anggota::class);
+    }
+
+    public function periode(): BelongsTo
+    {
+        return $this->belongsTo(PeriodeKepengurusan::class, 'periode_id');
+    }
+
+    /** Kosong berarti pengurus inti (mis. Ketua). */
+    public function divisi(): BelongsTo
+    {
+        return $this->belongsTo(Divisi::class);
+    }
+
+    public function jabatan(): BelongsTo
+    {
+        return $this->belongsTo(Jabatan::class);
+    }
+}

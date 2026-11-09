@@ -1,0 +1,14 @@
+# Hasil pengembangan lokal tidak boleh masuk image
+node_modules/
+.nuxt/
+.output/
+.data/
+.nitro/
+.cache/
+dist/
+.env
+.env.*
+!.env.example
+.git/
+.idea/
+.vscode/
