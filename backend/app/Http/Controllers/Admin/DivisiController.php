@@ -48,7 +48,7 @@ class DivisiController extends Controller
     {
         if ($divisi->kepengurusan()->exists()) {
             throw ValidationException::withMessages([
-                'divisi' => 'Divisi masih dipakai pada susunan pengurus.',
+                'divisi' => 'Divisi ini masih dipakai pada susunan pengurus sehingga belum dapat dihapus.',
             ]);
         }
 

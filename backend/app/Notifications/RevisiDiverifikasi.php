@@ -31,11 +31,12 @@ class RevisiDiverifikasi extends Notification
      */
     public function toArray(object $notifiable): array
     {
-        $pesan = 'Materi "'.$this->materi->judul.'" versi '.$this->revisi->nomor_versi
-            .' '.$this->keputusan.' oleh admin.';
+        $pesan = $this->keputusan === 'disetujui'
+            ? 'Materi "'.$this->materi->judul.'" sudah tayang untuk umum. Selamat!'
+            : 'Materi "'.$this->materi->judul.'" belum disetujui admin. Cek catatannya, perbaiki, lalu ajukan lagi ya.';
 
         if ($this->catatan !== null && $this->catatan !== '') {
-            $pesan .= ' Catatan: '.$this->catatan;
+            $pesan .= ' Catatan dari admin: '.$this->catatan;
         }
 
         return [

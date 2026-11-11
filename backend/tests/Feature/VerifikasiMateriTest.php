@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\Kategori;
 use App\Models\Materi;
 use App\Models\RevisiMateri;
 use App\Models\User;
@@ -21,6 +22,12 @@ class VerifikasiMateriTest extends TestCase
     private function token(User $user): string
     {
         return $user->createToken('api')->plainTextToken;
+    }
+
+    /** Satu kategori contoh untuk muatan PUT /materi (KF-19, KP-19.2). */
+    private function idKategori(string $nama = 'Fiqih'): int
+    {
+        return Kategori::firstOrCreate(['nama' => $nama], ['slug' => strtolower($nama)])->id;
     }
 
     /**
@@ -91,6 +98,7 @@ class VerifikasiMateriTest extends TestCase
         // KP-10.4
         $this->withToken($this->token($penulis))->putJson("/api/materi/{$materi->id}", [
             'judul' => 'Diubah Saat Diajukan',
+            'kategori' => [$this->idKategori()],
             'konten' => ['ops' => [['insert' => "x\n"]]],
             'konten_html' => '<p>x</p>',
         ])->assertStatus(422);

@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\Kategori;
 use App\Models\Materi;
 use App\Models\RevisiMateri;
 use App\Models\User;
@@ -32,9 +33,17 @@ class MateriTest extends TestCase
         return array_merge([
             'judul' => 'Fiqih Puasa Ramadhan',
             'ringkasan' => 'Ringkasan materi puasa.',
+            // Kategori wajib diisi minimal satu (KF-19, KP-19.2).
+            'kategori' => [$this->idKategori()],
             'konten' => ['ops' => [['insert' => "Isi materi puasa.\n"]]],
             'konten_html' => '<p>Isi materi puasa.</p>',
         ], $ubah);
+    }
+
+    /** Satu kategori contoh, dipakai berulang dalam satu tes. */
+    private function idKategori(string $nama = 'Fiqih'): int
+    {
+        return Kategori::firstOrCreate(['nama' => $nama], ['slug' => strtolower($nama)])->id;
     }
 
     public function test_menyimpan_materi_baru_membuat_materi_dan_revisi_versi_satu(): void

@@ -31,6 +31,7 @@ class AnggotaAdminTest extends TestCase
             ->assertOk()
             ->assertJsonCount(1, 'data')
             ->assertJsonPath('data.0.nama', 'Budi Santoso')
+            ->assertJsonPath('data.0.anggota.id', $budi->anggota()->first()->id)
             ->assertJsonPath('data.0.anggota.no_hp', $budi->anggota()->first()->no_hp);
 
         // KP-06.1: cari berdasarkan email

@@ -58,7 +58,7 @@ class JabatanController extends Controller
     {
         if ($jabatan->kepengurusan()->exists()) {
             throw ValidationException::withMessages([
-                'jabatan' => 'Jabatan masih dipakai pada susunan pengurus.',
+                'jabatan' => 'Jabatan ini masih dipakai pada susunan pengurus sehingga belum dapat dihapus.',
             ]);
         }
 

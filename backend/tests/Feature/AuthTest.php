@@ -68,7 +68,7 @@ class AuthTest extends TestCase
         $this->postJson('/api/register', $this->dataPendaftaran(['email' => 'sama@alfutuuhat.test']))
             ->assertStatus(422)
             ->assertJsonValidationErrors('email')
-            ->assertJsonPath('errors.email.0', 'Email sudah terdaftar.');
+            ->assertJsonPath('errors.email.0', 'Email ini sudah terdaftar. Coba masuk saja, atau pakai email lain.');
     }
 
     public function test_kata_sandi_kurang_delapan_karakter_ditolak(): void
@@ -80,7 +80,7 @@ class AuthTest extends TestCase
         ]))
             ->assertStatus(422)
             ->assertJsonValidationErrors('password')
-            ->assertJsonPath('errors.password.0', 'Kata sandi minimal 8 karakter.');
+            ->assertJsonPath('errors.password.0', 'Kata sandinya minimal 8 karakter ya.');
     }
 
     public function test_konfirmasi_kata_sandi_berbeda_ditolak(): void
@@ -91,7 +91,7 @@ class AuthTest extends TestCase
         ]))
             ->assertStatus(422)
             ->assertJsonValidationErrors('password')
-            ->assertJsonPath('errors.password.0', 'Konfirmasi kata sandi tidak sama.');
+            ->assertJsonPath('errors.password.0', 'Kata sandinya belum sama. Coba ketik ulang ya.');
     }
 
     public function test_foto_selain_jpg_png_dan_lebih_dari_2mb_ditolak(): void
@@ -132,11 +132,11 @@ class AuthTest extends TestCase
         // KP-04.1: pesan tidak membedakan email salah atau kata sandi salah
         $this->postJson('/api/login', ['email' => 'aktif@alfutuuhat.test', 'password' => 'salah-sekali'])
             ->assertStatus(422)
-            ->assertJsonPath('errors.email.0', 'Email atau kata sandi tidak sesuai.');
+            ->assertJsonPath('errors.email.0', 'Email atau kata sandinya belum cocok. Coba cek lagi ya.');
 
         $this->postJson('/api/login', ['email' => 'tidak-terdaftar@alfutuuhat.test', 'password' => 'password'])
             ->assertStatus(422)
-            ->assertJsonPath('errors.email.0', 'Email atau kata sandi tidak sesuai.');
+            ->assertJsonPath('errors.email.0', 'Email atau kata sandinya belum cocok. Coba cek lagi ya.');
     }
 
     public function test_login_akun_menunggu_ditolak(): void
@@ -147,7 +147,7 @@ class AuthTest extends TestCase
         // KP-03.3
         $this->postJson('/api/login', ['email' => $user->email, 'password' => 'password'])
             ->assertStatus(403)
-            ->assertJsonPath('message', 'Pendaftaran Anda masih menunggu verifikasi admin.')
+            ->assertJsonPath('message', 'Kamu belum bisa masuk dulu. Tunggu kabar dari admin ya, biasanya tidak lama.')
             ->assertJsonPath('status_akun', 'menunggu');
     }
 
@@ -164,9 +164,10 @@ class AuthTest extends TestCase
 
         $respons->assertStatus(403)
             ->assertJsonPath('status_akun', 'ditolak')
-            ->assertJsonPath('catatan', 'Alamat tidak jelas, mohon lengkapi.');
-
-        $this->assertStringContainsString('Alamat tidak jelas, mohon lengkapi.', $respons->json('message'));
+            ->assertJsonPath('catatan', 'Alamat tidak jelas, mohon lengkapi.')
+            // Alasan dikirim lewat `catatan` dan ditampilkan terpisah oleh halaman Masuk,
+            // jadi tidak diulang di dalam kalimat pesan (Panduan Bahasa UI).
+            ->assertJsonPath('message', 'Admin belum menyetujui pendaftaranmu. Kalau ada pertanyaan, hubungi pengurus ya.');
     }
 
     public function test_login_akun_nonaktif_ditolak(): void
@@ -176,7 +177,7 @@ class AuthTest extends TestCase
         // KP-04.3
         $this->postJson('/api/login', ['email' => $user->email, 'password' => 'password'])
             ->assertStatus(403)
-            ->assertJsonPath('message', 'Akun Anda dinonaktifkan. Hubungi pengurus.')
+            ->assertJsonPath('message', 'Kamu belum bisa masuk dulu. Hubungi pengurus untuk mengaktifkannya lagi ya.')
             ->assertJsonPath('status_akun', 'nonaktif');
     }
 

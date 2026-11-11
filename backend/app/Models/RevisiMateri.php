@@ -6,6 +6,7 @@ use Database\Factories\RevisiMateriFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
@@ -27,7 +28,11 @@ class RevisiMateri extends Model
 
     protected $table = 'revisi_materi';
 
-    protected $fillable = ['materi_id', 'nomor_versi', 'konten', 'konten_html', 'catatan_revisi', 'status'];
+    // Draf 2.3: judul, ringkasan, dan sampul ikut disimpan per versi (KP-12.4).
+    protected $fillable = [
+        'materi_id', 'nomor_versi', 'judul', 'ringkasan', 'sampul',
+        'konten', 'konten_html', 'catatan_revisi', 'status',
+    ];
 
     /**
      * @return array<string, string>
@@ -47,5 +52,11 @@ class RevisiMateri extends Model
     public function verifikasi(): HasMany
     {
         return $this->hasMany(VerifikasiMateri::class, 'revisi_id');
+    }
+
+    /** Kategori versi ini, minimal satu (KP-19.3). */
+    public function kategori(): BelongsToMany
+    {
+        return $this->belongsToMany(Kategori::class, 'kategori_revisi', 'revisi_id', 'kategori_id')->withTimestamps();
     }
 }

@@ -39,4 +39,36 @@ class Kepengurusan extends Model
     {
         return $this->belongsTo(Jabatan::class);
     }
+
+    /**
+     * Potret baris ini saat ini: nama, jabatan, dan divisi (KP-07.7).
+     * Disimpan di riwayat sebagai data sebelum/sesudah.
+     *
+     * @return array{nama: string|null, jabatan: string|null, divisi: string|null}
+     */
+    public function ringkasan(): array
+    {
+        $this->loadMissing(['anggota.user', 'jabatan', 'divisi']);
+
+        return [
+            'nama' => $this->anggota?->user?->nama,
+            'jabatan' => $this->jabatan?->nama_jabatan,
+            'divisi' => $this->divisi?->nama_divisi,
+        ];
+    }
+
+    /**
+     * Teks posisi dari sebuah ringkasan, mis. "Koordinator Divisi Media"
+     * atau "Ketua (pengurus inti)".
+     *
+     * @param  array{jabatan?: string|null, divisi?: string|null}  $ringkasan
+     */
+    public static function teksPosisi(array $ringkasan): string
+    {
+        $jabatan = $ringkasan['jabatan'] ?? 'Pengurus';
+
+        return ! empty($ringkasan['divisi'])
+            ? "{$jabatan} Divisi {$ringkasan['divisi']}"
+            : "{$jabatan} (pengurus inti)";
+    }
 }

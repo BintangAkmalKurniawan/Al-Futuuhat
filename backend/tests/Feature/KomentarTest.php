@@ -75,6 +75,39 @@ class KomentarTest extends TestCase
             ->assertJsonValidationErrors('isi');
     }
 
+    public function test_komentar_rich_text_disaringkan_sebelum_disimpan(): void
+    {
+        $anggota = User::factory()->create();
+        $materi = $this->materiTerbit(User::factory()->create());
+
+        // Teks kaya dari Quill boleh, tetapi skrip dan atribut berbahaya dibuang.
+        $respons = $this->withToken($this->token($anggota))
+            ->postJson("/api/materi/{$materi->id}/komentar", [
+                'isi' => '<p>Contoh <strong>tebal</strong> dan <em>miring</em>.</p>'
+                    .'<script>alert(1)</script><img src="x" onerror="alert(2)">',
+            ])
+            ->assertCreated();
+
+        $tersimpan = $respons->json('data.isi');
+
+        $this->assertStringContainsString('<strong>tebal</strong>', $tersimpan);
+        $this->assertStringContainsString('<em>miring</em>', $tersimpan);
+        $this->assertStringNotContainsString('<script', $tersimpan);
+        $this->assertStringNotContainsString('onerror', $tersimpan);
+    }
+
+    public function test_komentar_dengan_html_kosong_ditolak(): void
+    {
+        $anggota = User::factory()->create();
+        $materi = $this->materiTerbit(User::factory()->create());
+
+        // Quill mengirim <p><br></p> saat editor kosong; tanpa gambar harus ditolak.
+        $this->withToken($this->token($anggota))
+            ->postJson("/api/materi/{$materi->id}/komentar", ['isi' => '<p><br></p>'])
+            ->assertStatus(422)
+            ->assertJsonValidationErrors('isi');
+    }
+
     public function test_komentar_dapat_berupa_gambar_saja(): void
     {
         Storage::fake('public');
@@ -136,20 +169,60 @@ class KomentarTest extends TestCase
             ->assertJsonValidationErrors('parent_id');
     }
 
-    public function test_daftar_komentar_menampilkan_induk_beserta_balasannya(): void
+    public function test_daftar_komentar_hanya_memuat_induk_dan_jumlah_balasan(): void
     {
         $materi = $this->materiTerbit(User::factory()->create());
         $induk = Komentar::factory()->create(['materi_id' => $materi->id, 'isi' => 'Pertanyaan.']);
         Komentar::factory()->balasan($induk)->create(['isi' => 'Jawaban.']);
+        Komentar::factory()->balasan($induk)->create(['isi' => 'Jawaban kedua.']);
 
-        // KP-14.1
+        // KP-14.1 + KP-14.5: daftar utama hanya induk; balasan tidak ikut diunduh.
         $this->withToken($this->token(User::factory()->create()))
             ->getJson("/api/materi/{$materi->id}/komentar")
             ->assertOk()
             ->assertJsonCount(1, 'data') // hanya induk di daftar utama
             ->assertJsonPath('data.0.isi', 'Pertanyaan.')
-            ->assertJsonCount(1, 'data.0.balasan')
-            ->assertJsonPath('data.0.balasan.0.isi', 'Jawaban.');
+            ->assertJsonPath('data.0.jumlah_balasan', 2)
+            ->assertJsonMissingPath('data.0.balasan');
+    }
+
+    public function test_balasan_satu_induk_diambil_terpisah(): void
+    {
+        $materi = $this->materiTerbit(User::factory()->create());
+        $induk = Komentar::factory()->create(['materi_id' => $materi->id]);
+        $lain = Komentar::factory()->create(['materi_id' => $materi->id]);
+
+        Komentar::factory()->balasan($induk)->create(['isi' => 'Jawaban.']);
+        Komentar::factory()->balasan($lain)->create(['isi' => 'Bukan milik induk ini.']);
+
+        // KP-14.5
+        $this->withToken($this->token(User::factory()->create()))
+            ->getJson("/api/komentar/{$induk->id}/balasan")
+            ->assertOk()
+            ->assertJsonCount(1, 'data')
+            ->assertJsonPath('data.0.isi', 'Jawaban.')
+            ->assertJsonPath('data.0.parent_id', $induk->id);
+    }
+
+    public function test_balasan_dari_sebuah_balasan_tidak_ada(): void
+    {
+        $materi = $this->materiTerbit(User::factory()->create());
+        $induk = Komentar::factory()->create(['materi_id' => $materi->id]);
+        $balasan = Komentar::factory()->balasan($induk)->create();
+
+        // Balasan hanya satu tingkat (KP-14.3), jadi balasan tidak punya balasan.
+        $this->withToken($this->token(User::factory()->create()))
+            ->getJson("/api/komentar/{$balasan->id}/balasan")
+            ->assertNotFound();
+    }
+
+    public function test_balasan_perlu_login(): void
+    {
+        $materi = $this->materiTerbit(User::factory()->create());
+        $induk = Komentar::factory()->create(['materi_id' => $materi->id]);
+
+        // KP-14.1: forum hanya untuk anggota aktif.
+        $this->getJson("/api/komentar/{$induk->id}/balasan")->assertUnauthorized();
     }
 
     public function test_pemilik_menghapus_komentar_dan_balasannya_ikut_terhapus(): void
@@ -186,18 +259,20 @@ class KomentarTest extends TestCase
         $this->assertDatabaseHas('komentar', ['id' => $komentar->id]);
     }
 
-    public function test_forum_tidak_tersedia_untuk_materi_yang_belum_terbit(): void
+    public function test_forum_tersedia_untuk_materi_yang_belum_terbit(): void
     {
         $anggota = User::factory()->create();
         $materi = Materi::factory()->create(['status' => Materi::STATUS_DIAJUKAN]);
 
-        // KP-14.1
+        // KP-14.1 (revisi): diskusi boleh dimulai sejak materi masih draf.
         $this->withToken($this->token($anggota))
-            ->getJson("/api/materi/{$materi->id}/komentar")
-            ->assertStatus(404);
+            ->postJson("/api/materi/{$materi->id}/komentar", ['isi' => 'Bagian ini perlu contoh.'])
+            ->assertCreated();
 
         $this->withToken($this->token($anggota))
-            ->postJson("/api/materi/{$materi->id}/komentar", ['isi' => 'Halo.'])
-            ->assertStatus(404);
+            ->getJson("/api/materi/{$materi->id}/komentar")
+            ->assertOk()
+            ->assertJsonCount(1, 'data')
+            ->assertJsonPath('data.0.isi', 'Bagian ini perlu contoh.');
     }
 }

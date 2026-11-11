@@ -31,8 +31,8 @@ class VerifikasiPendaftaranRequest extends FormRequest
     {
         return [
             'keputusan.required' => 'Keputusan wajib dipilih.',
-            'keputusan.in' => 'Keputusan harus disetujui atau ditolak.',
-            'catatan.required_if' => 'Catatan wajib diisi saat menolak pendaftaran.',
+            'keputusan.in' => 'Pilih keputusan: setujui atau tolak.',
+            'catatan.required_if' => 'Mohon isi alasan penolakan.',
         ];
     }
 }

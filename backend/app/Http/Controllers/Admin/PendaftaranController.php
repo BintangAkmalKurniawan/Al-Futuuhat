@@ -82,8 +82,8 @@ class PendaftaranController extends Controller
 
         return response()->json([
             'message' => $data['keputusan'] === 'disetujui'
-                ? 'Pendaftar disetujui.'
-                : 'Pendaftar ditolak.',
+                ? 'Pendaftaran disetujui. Anggota kini dapat masuk.'
+                : 'Pendaftaran ditolak. Alasan penolakan akan terlihat saat pendaftar mencoba masuk.',
             'data' => new UserResource($user->load('anggota')),
         ]);
     }

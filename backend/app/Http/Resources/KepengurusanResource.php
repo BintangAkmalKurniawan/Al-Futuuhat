@@ -22,8 +22,8 @@ class KepengurusanResource extends JsonResource
             'divisi_id' => $this->divisi_id,
             'jabatan_id' => $this->jabatan_id,
             'nama' => $this->whenLoaded('anggota', fn () => $this->anggota->user?->nama),
-            'divisi' => $this->whenLoaded('divisi', fn () => new DivisiResource($this->divisi)),
-            'jabatan' => $this->whenLoaded('jabatan', fn () => new JabatanResource($this->jabatan)),
+            'divisi' => $this->whenLoaded('divisi', fn () => $this->divisi ? new DivisiResource($this->divisi) : null),
+            'jabatan' => $this->whenLoaded('jabatan', fn () => $this->jabatan ? new JabatanResource($this->jabatan) : null),
         ];
     }
 }

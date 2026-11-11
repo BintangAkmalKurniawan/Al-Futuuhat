@@ -8,27 +8,34 @@ use App\Http\Requests\Komentar\SimpanKomentarRequest;
 use App\Http\Resources\KomentarResource;
 use App\Models\Komentar;
 use App\Models\Materi;
+use App\Models\User;
+use App\Notifications\KomentarBaru;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Validation\ValidationException;
+use Mews\Purifier\Facades\Purifier;
 
 /**
- * Forum diskusi materi terbit (KF-14) dan penyiarannya secara real-time (KF-15).
+ * Forum diskusi materi (KF-14) dan penyiarannya secara real-time (KF-15).
+ *
+ * KP-14.1 (revisi): forum terbuka sejak materi masih draf. Verifikasi admin hanya
+ * diperlukan untuk menerbitkan materi ke pengunjung/tamu, bukan untuk berdiskusi.
  */
 class KomentarController extends Controller
 {
     /**
-     * GET /api/materi/{materi}/komentar — komentar induk beserta balasannya.
+     * GET /api/materi/{materi}/komentar — komentar induk beserta jumlah balasannya.
+     *
+     * Balasan tidak ikut dikirim: pembaca meminta balasan satu komentar saja lewat
+     * `balasan()` di bawah, jadi peramban tidak mengunduh seluruh balasan materi.
      */
-    public function index(Request $request, Materi $materi): AnonymousResourceCollection
+    public function index(Materi $materi): AnonymousResourceCollection
     {
-        // KP-14.1: forum hanya ada pada materi terbit.
-        abort_unless($materi->status === Materi::STATUS_TERBIT, 404, 'Materi tidak ditemukan.');
-
         $komentar = $materi->komentar()
             ->whereNull('parent_id')                  // balasan tampil di dalam induknya
-            ->with(['user', 'balasan.user'])          // KNF-09: eager loading
+            ->with('user')                            // KNF-09: eager loading
+            ->withCount('balasan')                    // untuk tombol "Lihat n balasan"
             ->oldest()
             ->paginate(10)
             ->withQueryString();
@@ -37,14 +44,34 @@ class KomentarController extends Controller
     }
 
     /**
+     * GET /api/komentar/{komentar}/balasan — seluruh balasan satu komentar induk (KP-14.3).
+     *
+     * Hanya komentar induk yang punya balasan; meminta balasan dari sebuah balasan
+     * dijawab 404 karena balasan hanya satu tingkat.
+     */
+    public function balasan(Komentar $komentar): AnonymousResourceCollection
+    {
+        abort_if(
+            $komentar->parent_id !== null,
+            404,
+            'Komentar ini tidak punya balasan.'
+        );
+
+        $balasan = $komentar->balasan()
+            ->with('user')                            // KNF-09: eager loading
+            ->get();
+
+        return KomentarResource::collection($balasan);
+    }
+
+    /**
      * POST /api/materi/{materi}/komentar — kirim komentar atau balasan (KP-14.2, KP-14.3).
      */
     public function store(SimpanKomentarRequest $request, Materi $materi): JsonResponse
     {
-        abort_unless($materi->status === Materi::STATUS_TERBIT, 404, 'Materi tidak ditemukan.');
-
         $data = $request->validated();
         $parentId = null;
+        $induk = null;
 
         if (! empty($data['parent_id'])) {
             $induk = Komentar::find($data['parent_id']);
@@ -52,7 +79,7 @@ class KomentarController extends Controller
             // Komentar induk harus berada pada materi yang sama.
             if ($induk === null || $induk->materi_id !== $materi->id) {
                 throw ValidationException::withMessages([
-                    'parent_id' => 'Komentar induk tidak ditemukan pada materi ini.',
+                    'parent_id' => 'Komentar yang mau kamu balas tidak ketemu. Mungkin sudah dihapus.',
                 ]);
             }
 
@@ -61,25 +88,61 @@ class KomentarController extends Controller
             $parentId = $induk->parent_id ?? $induk->id;
         }
 
+        // Komentar kini boleh berupa teks kaya (Quill), jadi HTML disaring dulu
+        // dengan profil yang sama seperti isi materi (buang <script>, onerror, dsb).
+        $isi = isset($data['isi']) ? Purifier::clean($data['isi'], 'materi') : null;
+
+        // Quill mengirim <p><br></p> ketika editor tampak kosong. Tanpa gambar,
+        // komentar seperti itu tidak punya isi dan harus ditolak.
+        if ($this->teksKosong($isi) && ! $request->hasFile('gambar')) {
+            throw ValidationException::withMessages([
+                'isi' => 'Tulis komentar atau lampirkan gambar dulu ya.',
+            ]);
+        }
+
         $komentar = Komentar::create([
             'materi_id' => $materi->id,
             'user_id' => $request->user()->id,
             'parent_id' => $parentId,
-            'isi' => $data['isi'] ?? null,
+            'isi' => $isi,
             'gambar' => $request->hasFile('gambar')
                 ? $request->file('gambar')->store('gambar-komentar', 'public')
                 : null,
         ]);
 
-        $komentar->load(['user', 'balasan.user']);
+        // Balasan tidak diambil: komentar yang baru dibuat belum punya balasan.
+        $komentar->load('user');
 
         // KP-15.1: siarkan ke anggota lain yang sedang membuka materi yang sama.
         broadcast(new KomentarDibuat($komentar))->toOthers();
 
+        $this->kirimNotifikasi($materi, $komentar, $induk, $request->user());
+
         return response()->json([
-            'message' => 'Komentar terkirim.',
+            'message' => 'Komentarmu sudah terkirim.',
             'data' => new KomentarResource($komentar),
         ], 201);
+    }
+
+    /**
+     * KF-23: beri tahu pemilik komentar yang dibalas, dan penulis materi bila ada
+     * komentar baru. Komentar sendiri tidak memicu notifikasi, dan satu orang
+     * hanya menerima satu notifikasi per komentar.
+     */
+    private function kirimNotifikasi(Materi $materi, Komentar $komentar, ?Komentar $induk, User $pengirim): void
+    {
+        $sudahDiberiTahu = null;
+
+        if ($induk !== null && $induk->user_id !== $pengirim->id) {
+            $induk->loadMissing('user');
+            $induk->user?->notify(new KomentarBaru($materi, $komentar, $pengirim->nama, KomentarBaru::JENIS_BALASAN));
+            $sudahDiberiTahu = $induk->user_id;
+        }
+
+        if ($materi->penulis_id !== $pengirim->id && $materi->penulis_id !== $sudahDiberiTahu) {
+            $materi->loadMissing('penulis');
+            $materi->penulis?->notify(new KomentarBaru($materi, $komentar, $pengirim->nama, KomentarBaru::JENIS_KOMENTAR));
+        }
     }
 
     /**
@@ -90,7 +153,7 @@ class KomentarController extends Controller
         abort_unless(
             $komentar->user_id === $request->user()->id,
             403,
-            'Anda hanya dapat menghapus komentar Anda sendiri.'
+            'Kamu hanya bisa menghapus komentarmu sendiri.'
         );
 
         $materiId = $komentar->materi_id;
@@ -103,6 +166,16 @@ class KomentarController extends Controller
         // KP-15.2: beri tahu peramban lain agar komentar ini hilang dari daftar.
         broadcast(new KomentarDihapus($materiId, $komentarId, $parentId))->toOthers();
 
-        return response()->json(['message' => 'Komentar dihapus.']);
+        return response()->json(['message' => 'Komentarnya sudah dihapus.']);
+    }
+
+    /**
+     * True bila HTML tidak menyisakan teks yang terlihat (mis. <p><br></p>).
+     */
+    private function teksKosong(?string $html): bool
+    {
+        $teks = html_entity_decode(strip_tags($html ?? ''), ENT_QUOTES | ENT_HTML5, 'UTF-8');
+
+        return trim(preg_replace('/\s+/u', ' ', $teks) ?? '') === '';
     }
 }

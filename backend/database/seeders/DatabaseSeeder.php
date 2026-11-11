@@ -18,6 +18,7 @@ class DatabaseSeeder extends Seeder
         $this->call([
             AdminSeeder::class,
             StrukturAwalSeeder::class,
+            KategoriSeeder::class,
             ContohDataSeeder::class,
         ]);
     }

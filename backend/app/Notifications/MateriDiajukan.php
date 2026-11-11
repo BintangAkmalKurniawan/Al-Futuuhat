@@ -39,8 +39,8 @@ class MateriDiajukan extends Notification
             'nomor_versi' => $this->revisi->nomor_versi,
             'materi_id' => $this->materi->id,
             'revisi_id' => $this->revisi->id,
-            'pesan' => 'Materi "'.$this->materi->judul.'" versi '.$this->revisi->nomor_versi
-                .' diajukan oleh '.$this->penulis->nama.'.',
+            'pesan' => 'Materi "'.$this->materi->judul.'" diajukan oleh '.$this->penulis->nama
+                .' untuk ditayangkan kepada umum. Mohon ditinjau.',
         ];
     }
 }

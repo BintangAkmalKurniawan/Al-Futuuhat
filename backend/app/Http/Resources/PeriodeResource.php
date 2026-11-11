@@ -21,6 +21,9 @@ class PeriodeResource extends JsonResource
             'tahun_mulai' => $this->tahun_mulai,
             'tahun_selesai' => $this->tahun_selesai,
             'is_aktif' => (bool) $this->is_aktif,
+            // Draf 2.5: true bila periode aktif dari tahun lalu, sehingga perubahan
+            // susunan berikutnya otomatis memulai periode tahun berjalan (KP-07.1).
+            'akan_berganti' => $this->resource->akanBerganti(),
         ];
     }
 }

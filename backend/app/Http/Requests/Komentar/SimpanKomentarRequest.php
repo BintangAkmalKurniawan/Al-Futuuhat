@@ -33,11 +33,11 @@ class SimpanKomentarRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'isi.required_without' => 'Komentar harus berisi teks atau gambar.',
-            'gambar.image' => 'Berkas harus berupa gambar.',
-            'gambar.mimes' => 'Gambar harus berformat JPG atau PNG.',
-            'gambar.max' => 'Ukuran gambar maksimal 2 MB.',
-            'parent_id.exists' => 'Komentar induk tidak ditemukan.',
+            'isi.required_without' => 'Tulis komentar atau lampirkan gambar dulu ya.',
+            'gambar.image' => 'Lampirannya harus berupa gambar ya.',
+            'gambar.mimes' => 'Gambarnya harus JPG atau PNG ya.',
+            'gambar.max' => 'Gambarnya kebesaran, maksimal 2 MB ya.',
+            'parent_id.exists' => 'Komentar yang mau kamu balas tidak ketemu. Mungkin sudah dihapus.',
         ];
     }
 }

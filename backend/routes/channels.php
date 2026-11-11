@@ -9,15 +9,14 @@ use Illuminate\Support\Facades\Broadcast;
 | Dipanggil lewat POST /api/broadcasting/auth dengan token Sanctum.
 */
 
-// Kanal privat forum materi: hanya anggota aktif dan hanya untuk materi terbit.
+// Kanal privat forum materi: hanya anggota aktif, untuk materi berstatus apa pun
+// karena diskusi berjalan sejak draf (KP-14.1 revisi).
 Broadcast::channel('materi.{materiId}', function (User $user, int $materiId) {
     if (! $user->isAktif()) {
         return false;
     }
 
-    return Materi::where('id', $materiId)
-        ->where('status', Materi::STATUS_TERBIT)
-        ->exists();
+    return Materi::where('id', $materiId)->exists();
 });
 
 // Kanal pribadi pengguna (dipakai bila nanti ada notifikasi real-time).

@@ -49,12 +49,14 @@ class BroadcastingTest extends TestCase
             ->assertJsonStructure(['auth']);
     }
 
-    public function test_kanal_materi_yang_belum_terbit_ditolak(): void
+    public function test_kanal_materi_yang_belum_terbit_diperbolehkan_untuk_anggota(): void
     {
         $materi = Materi::factory()->create(['status' => Materi::STATUS_DIAJUKAN]);
 
-        // KP-15.3
-        $this->mintaIzin(User::factory()->create(), $materi)->assertStatus(403);
+        // KP-15.3 (revisi): kanal forum mengikuti aturan diskusi, bukan status terbit.
+        $this->mintaIzin(User::factory()->create(), $materi)
+            ->assertOk()
+            ->assertJsonStructure(['auth']);
     }
 
     public function test_anggota_nonaktif_ditolak_walau_token_masih_ada(): void

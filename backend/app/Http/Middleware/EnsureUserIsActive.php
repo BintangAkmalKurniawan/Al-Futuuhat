@@ -14,7 +14,7 @@ class EnsureUserIsActive
     public function handle(Request $request, Closure $next): Response
     {
         if (! $request->user() || ! $request->user()->isAktif()) {
-            abort(403, 'Akun Anda tidak aktif. Hubungi pengurus.');
+            abort(403, 'Akunmu sedang tidak aktif. Hubungi pengurus untuk mengaktifkannya lagi ya.');
         }
 
         return $next($request);

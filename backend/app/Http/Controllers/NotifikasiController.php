@@ -30,14 +30,14 @@ class NotifikasiController extends Controller
         // Hanya boleh menandai notifikasi milik sendiri.
         $notifikasi = $request->user()->notifications()->find($id);
 
-        abort_if($notifikasi === null, 404, 'Notifikasi tidak ditemukan.');
+        abort_if($notifikasi === null, 404, 'Notifikasinya tidak ketemu.');
 
         if ($notifikasi->read_at === null) {
             $notifikasi->markAsRead();
         }
 
         return response()->json([
-            'message' => 'Notifikasi ditandai sudah dibaca.',
+            'message' => 'Notifikasi sudah ditandai dibaca.',
             'data' => new NotifikasiResource($notifikasi),
         ]);
     }
@@ -53,7 +53,7 @@ class NotifikasiController extends Controller
         ]);
 
         return response()->json([
-            'message' => 'Semua notifikasi ditandai sudah dibaca.',
+            'message' => 'Semua notifikasi sudah ditandai dibaca.',
             'jumlah' => $jumlah,
         ]);
     }

@@ -1,0 +1,101 @@
+<?php
+
+/*
+|--------------------------------------------------------------------------
+| Pesan validasi bawaan Laravel dalam bahasa Indonesia
+|--------------------------------------------------------------------------
+| Dipakai bila FormRequest tidak menulis pesan khusus lewat messages().
+| Gaya bahasanya netral (tanpa "kamu"/"Anda") karena dipakai anggota,
+| pengunjung, maupun admin — lihat "Panduan Bahasa UI" di CLAUDE.md.
+| Aturan yang tidak tercantum di sini kembali ke bahasa Inggris (fallback).
+*/
+
+return [
+    'accepted' => ':Attribute perlu disetujui.',
+    'array' => ':Attribute belum sesuai.',
+    'boolean' => ':Attribute harus dipilih ya atau tidak.',
+    'confirmed' => 'Konfirmasi :attribute belum sama.',
+    'date' => ':Attribute belum berupa tanggal yang benar.',
+    'different' => ':Attribute dan :other harus berbeda.',
+    'digits' => ':Attribute harus :digits angka.',
+    'digits_between' => ':Attribute harus antara :min sampai :max angka.',
+    'distinct' => ':Attribute tidak boleh dipilih dua kali.',
+    'email' => 'Format :attribute belum benar.',
+    'exists' => ':Attribute yang dipilih tidak ditemukan.',
+    'file' => ':Attribute harus berupa berkas.',
+    'filled' => ':Attribute belum diisi.',
+    'image' => ':Attribute harus berupa gambar.',
+    'in' => ':Attribute yang dipilih belum sesuai.',
+    'integer' => ':Attribute harus berupa angka bulat.',
+    'max' => [
+        'array' => ':Attribute maksimal :max pilihan.',
+        'file' => 'Ukuran :attribute terlalu besar. Maksimal :max KB.',
+        'numeric' => ':Attribute maksimal :max.',
+        'string' => ':Attribute terlalu panjang. Maksimal :max karakter.',
+    ],
+    'mimes' => ':Attribute harus berformat :values.',
+    'mimetypes' => ':Attribute harus berformat :values.',
+    'min' => [
+        'array' => 'Pilih minimal :min :attribute.',
+        'file' => 'Ukuran :attribute minimal :min KB.',
+        'numeric' => ':Attribute minimal :min.',
+        'string' => ':Attribute minimal :min karakter.',
+    ],
+    'numeric' => ':Attribute harus berupa angka.',
+    'present' => ':Attribute perlu ada.',
+    'required' => ':Attribute belum diisi.',
+    'required_if' => ':Attribute belum diisi.',
+    'required_with' => ':Attribute belum diisi.',
+    'same' => ':Attribute dan :other harus sama.',
+    'size' => [
+        'string' => ':Attribute harus :size karakter.',
+    ],
+    'string' => ':Attribute harus berupa teks.',
+    'unique' => ':Attribute ini sudah dipakai.',
+    'uploaded' => ':Attribute tidak berhasil diunggah. Kemungkinan ukurannya terlalu besar.',
+    'url' => 'Format :attribute belum benar.',
+
+    // Nama isian yang tampil di pesan (nama kolom basis data tidak boleh muncul).
+    'attributes' => [
+        'nama' => 'nama',
+        'email' => 'email',
+        'password' => 'kata sandi',
+        'password_confirmation' => 'konfirmasi kata sandi',
+        'no_hp' => 'nomor HP',
+        'alamat' => 'alamat',
+        'alasan_bergabung' => 'alasan bergabung',
+        'foto' => 'foto',
+        'role' => 'peran',
+        'status' => 'status',
+        'judul' => 'judul',
+        'ringkasan' => 'ringkasan',
+        'konten' => 'isi materi',
+        'konten_html' => 'isi materi',
+        'catatan_revisi' => 'catatan perubahan',
+        'catatan' => 'catatan',
+        'kategori' => 'kategori',
+        'sampul' => 'sampul',
+        'gambar' => 'gambar',
+        'isi' => 'komentar',
+        'parent_id' => 'komentar yang dibalas',
+        'alasan' => 'alasan',
+        'keputusan' => 'keputusan',
+        'nama_divisi' => 'nama divisi',
+        'deskripsi' => 'deskripsi',
+        'nama_jabatan' => 'nama jabatan',
+        'urutan' => 'urutan',
+        'anggota_id' => 'anggota',
+        'divisi_id' => 'divisi',
+        'jabatan_id' => 'jabatan',
+        'poster' => 'poster',
+        'cerita_judul' => 'judul cerita',
+        'cerita_isi' => 'isi cerita',
+        'jadwal' => 'jadwal',
+        'pic' => 'PIC',
+        'berkas' => 'berkas',
+        'tautan' => 'tautan',
+        'keterangan' => 'keterangan',
+        'jenis' => 'jenis',
+        'q' => 'kata kunci',
+    ],
+];

@@ -51,7 +51,7 @@ class AuthController extends Controller
         });
 
         return response()->json([
-            'message' => 'Pendaftaran terkirim. Akun Anda menunggu verifikasi admin.',
+            'message' => 'Pendaftaranmu sudah terkirim dan lagi dicek admin.',
             'data' => new UserResource($user->load('anggota')),
         ], 201);
     }
@@ -68,7 +68,7 @@ class AuthController extends Controller
         // KP-04.1: satu pesan yang sama, agar tidak membocorkan email mana yang terdaftar.
         if ($user === null || ! Hash::check($data['password'], $user->password)) {
             throw ValidationException::withMessages([
-                'email' => 'Email atau kata sandi tidak sesuai.',
+                'email' => 'Email atau kata sandinya belum cocok. Coba cek lagi ya.',
             ]);
         }
 
@@ -96,7 +96,7 @@ class AuthController extends Controller
     {
         $request->user()->currentAccessToken()->delete();
 
-        return response()->json(['message' => 'Anda telah keluar.']);
+        return response()->json(['message' => 'Kamu sudah keluar. Sampai jumpa lagi!']);
     }
 
     /**
@@ -115,11 +115,10 @@ class AuthController extends Controller
     private function pesanStatusTidakAktif(User $user): string
     {
         return match ($user->status) {
-            User::STATUS_MENUNGGU => 'Pendaftaran Anda masih menunggu verifikasi admin.',
-            User::STATUS_DITOLAK => 'Pendaftaran Anda ditolak. Alasan: '
-                .($user->anggota?->catatan_verifikasi ?: '-'),
-            User::STATUS_NONAKTIF => 'Akun Anda dinonaktifkan. Hubungi pengurus.',
-            default => 'Akun Anda tidak aktif. Hubungi pengurus.',
+            User::STATUS_MENUNGGU => 'Kamu belum bisa masuk dulu. Tunggu kabar dari admin ya, biasanya tidak lama.',
+            User::STATUS_DITOLAK => 'Admin belum menyetujui pendaftaranmu. Kalau ada pertanyaan, hubungi pengurus ya.',
+            User::STATUS_NONAKTIF => 'Kamu belum bisa masuk dulu. Hubungi pengurus untuk mengaktifkannya lagi ya.',
+            default => 'Kamu belum bisa masuk dulu. Hubungi pengurus untuk mengaktifkannya lagi ya.',
         };
     }
 }

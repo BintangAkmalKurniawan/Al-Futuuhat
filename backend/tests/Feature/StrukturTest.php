@@ -7,214 +7,340 @@ use App\Models\Divisi;
 use App\Models\Jabatan;
 use App\Models\Kepengurusan;
 use App\Models\PeriodeKepengurusan;
+use App\Models\RiwayatStruktur;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Carbon;
 use Tests\TestCase;
 
 /**
- * F4 — Struktur Organisasi: admin + beranda publik (KF-01, KF-07).
+ * F4 + Draf 2.5 — Struktur organisasi: periode otomatis per tahun, periode lama
+ * hanya-baca, riwayat perubahan, dan akses publik/anggota (KF-01, KF-07).
  */
 class StrukturTest extends TestCase
 {
     use RefreshDatabase;
 
-    private function tokenAdmin(): string
+    private User $admin;
+
+    protected function setUp(): void
     {
-        return User::factory()->admin()->create()->createToken('api')->plainTextToken;
+        parent::setUp();
+
+        // Semua tes berjalan di tahun 2026 kecuali dipindah dengan travelTo().
+        $this->travelTo(Carbon::create(2026, 6, 1, 9));
+        $this->admin = User::factory()->admin()->create(['nama' => 'Admin Ketua']);
     }
 
     /**
-     * Membuat anggota aktif dan mengembalikan baris `anggota`-nya.
+     * Kirim permintaan sebagai pengguna tertentu. Guard dilupakan dulu karena
+     * Sanctum mengingat pengguna dari permintaan sebelumnya dalam satu tes.
      */
+    private function sebagai(User $user): static
+    {
+        $this->app['auth']->forgetGuards();
+
+        return $this->withToken($user->createToken('api')->plainTextToken);
+    }
+
     private function anggotaAktif(string $nama): Anggota
     {
-        $user = User::factory()->create(['nama' => $nama]);
-
-        return Anggota::factory()->create(['user_id' => $user->id]);
+        return Anggota::factory()->create(['user_id' => User::factory()->create(['nama' => $nama])->id]);
     }
 
-    public function test_mengaktifkan_periode_lain_menonaktifkan_periode_sebelumnya(): void
+    private function periode(int $tahun, bool $aktif = false, ?string $nama = null): PeriodeKepengurusan
     {
-        $token = $this->tokenAdmin();
-        $lama = PeriodeKepengurusan::factory()->aktif()->create();
-        $baru = PeriodeKepengurusan::factory()->create();
-
-        // KP-07.1
-        $this->withToken($token)->patchJson("/api/admin/periode/{$baru->id}/aktifkan")->assertOk();
-
-        $this->assertFalse($lama->fresh()->is_aktif);
-        $this->assertTrue($baru->fresh()->is_aktif);
-        $this->assertSame(1, PeriodeKepengurusan::where('is_aktif', true)->count());
+        return PeriodeKepengurusan::factory()->create([
+            'nama_periode' => $nama ?? (string) $tahun,
+            'tahun_mulai' => $tahun,
+            'tahun_selesai' => $tahun,
+            'is_aktif' => $aktif,
+        ]);
     }
+
+    private function pengurus(PeriodeKepengurusan $periode, Anggota $anggota, Jabatan $jabatan, ?Divisi $divisi = null): Kepengurusan
+    {
+        return Kepengurusan::factory()->create([
+            'periode_id' => $periode->id,
+            'anggota_id' => $anggota->id,
+            'jabatan_id' => $jabatan->id,
+            'divisi_id' => $divisi?->id,
+        ]);
+    }
+
+    // ------------------------------------------------------------ KP-07.2, KP-07.5
 
     public function test_crud_divisi_dan_jabatan(): void
     {
-        $token = $this->tokenAdmin();
-
-        // KP-07.2: divisi
-        $divisi = $this->withToken($token)->postJson('/api/admin/divisi', [
+        $divisi = $this->sebagai($this->admin)->postJson('/api/admin/divisi', [
             'nama_divisi' => 'Kaderisasi',
             'deskripsi' => 'Pembinaan anggota baru.',
         ])->assertCreated()->json('data');
 
-        $this->withToken($token)->putJson("/api/admin/divisi/{$divisi['id']}", [
+        $this->sebagai($this->admin)->putJson("/api/admin/divisi/{$divisi['id']}", [
             'nama_divisi' => 'Kaderisasi & Pembinaan',
             'deskripsi' => 'Pembinaan anggota baru.',
         ])->assertOk();
 
-        // KP-07.2: jabatan dengan urutan
-        $jabatan = $this->withToken($token)->postJson('/api/admin/jabatan', [
+        $jabatan = $this->sebagai($this->admin)->postJson('/api/admin/jabatan', [
             'nama_jabatan' => 'Sekretaris',
             'urutan' => 2,
         ])->assertCreated()->json('data');
 
         $this->assertSame(2, $jabatan['urutan']);
 
-        $this->withToken($token)->getJson('/api/admin/jabatan')
-            ->assertOk()
-            ->assertJsonFragment(['nama_jabatan' => 'Sekretaris', 'urutan' => 2]);
-
-        $this->withToken($token)->deleteJson("/api/admin/jabatan/{$jabatan['id']}")->assertOk();
-        $this->assertDatabaseMissing('jabatan', ['id' => $jabatan['id']]);
-
-        $this->withToken($token)->deleteJson("/api/admin/divisi/{$divisi['id']}")->assertOk();
+        $this->sebagai($this->admin)->deleteJson("/api/admin/jabatan/{$jabatan['id']}")->assertOk();
+        $this->sebagai($this->admin)->deleteJson("/api/admin/divisi/{$divisi['id']}")->assertOk();
         $this->assertDatabaseMissing('divisi', ['id' => $divisi['id']]);
     }
 
-    public function test_menambah_pengurus_inti_dengan_divisi_kosong(): void
+    public function test_divisi_dan_jabatan_yang_masih_dipakai_tidak_dapat_dihapus(): void
     {
-        $token = $this->tokenAdmin();
-        $periode = PeriodeKepengurusan::factory()->create();
-        $jabatan = Jabatan::factory()->create(['nama_jabatan' => 'Ketua', 'urutan' => 1]);
-        $anggota = $this->anggotaAktif('Ketua Umum');
+        $kepengurusan = Kepengurusan::factory()->create();
 
-        // KP-07.3
-        $this->withToken($token)->postJson('/api/admin/kepengurusan', [
-            'periode_id' => $periode->id,
-            'jabatan_id' => $jabatan->id,
-            'anggota_id' => $anggota->id,
-            'divisi_id' => null,
-        ])->assertCreated()->assertJsonPath('data.nama', 'Ketua Umum');
+        $this->sebagai($this->admin)->deleteJson("/api/admin/divisi/{$kepengurusan->divisi_id}")
+            ->assertStatus(422)->assertJsonValidationErrors('divisi');
+
+        $this->sebagai($this->admin)->deleteJson("/api/admin/jabatan/{$kepengurusan->jabatan_id}")
+            ->assertStatus(422)->assertJsonValidationErrors('jabatan');
     }
+
+    public function test_rute_kelola_periode_manual_sudah_tidak_ada(): void
+    {
+        // KP-07.1 (Draf 2.5): periode tidak lagi dibuat atau diaktifkan manual.
+        $this->sebagai($this->admin)->postJson('/api/admin/periode', ['nama_periode' => '2030'])->assertNotFound();
+    }
+
+    // ------------------------------------------------------------ KP-07.1, KP-07.3
+
+    public function test_perubahan_pertama_tanpa_periode_membuat_periode_tahun_berjalan(): void
+    {
+        $jabatan = Jabatan::factory()->create(['nama_jabatan' => 'Ketua', 'urutan' => 1]);
+
+        $this->sebagai($this->admin)->postJson('/api/admin/kepengurusan', [
+            'anggota_id' => $this->anggotaAktif('Ahmad')->id,
+            'jabatan_id' => $jabatan->id,
+        ])->assertCreated();
+
+        $periode = PeriodeKepengurusan::sole();
+        $this->assertSame('2026', $periode->nama_periode);
+        $this->assertTrue($periode->is_aktif);
+
+        $this->assertSame(
+            [RiwayatStruktur::AKSI_PERIODE_BARU, RiwayatStruktur::AKSI_TAMBAH],
+            $periode->riwayat()->orderBy('id')->pluck('aksi')->all()
+        );
+        $this->assertSame('Periode 2026 dimulai otomatis.', $periode->riwayat()->orderBy('id')->first()->keterangan);
+    }
+
+    public function test_menambah_pengurus_inti_tercatat_pada_periode_aktif_dan_riwayat(): void
+    {
+        $aktif = $this->periode(2026, true, '2026/2027');
+        $jabatan = Jabatan::factory()->create(['nama_jabatan' => 'Ketua', 'urutan' => 1]);
+
+        $this->sebagai($this->admin)->postJson('/api/admin/kepengurusan', [
+            'anggota_id' => $this->anggotaAktif('Ketua Umum')->id,
+            'jabatan_id' => $jabatan->id,
+            'divisi_id' => null,
+        ])->assertCreated()
+            ->assertJsonPath('data.nama', 'Ketua Umum')
+            ->assertJsonPath('data.periode_id', $aktif->id);
+
+        $this->assertSame(1, PeriodeKepengurusan::count()); // tidak ada periode baru
+
+        $riwayat = $aktif->riwayat()->sole();
+        $this->assertSame(RiwayatStruktur::AKSI_TAMBAH, $riwayat->aksi);
+        $this->assertSame($this->admin->id, $riwayat->admin_id);
+        $this->assertSame('Menambahkan Ketua Umum sebagai Ketua (pengurus inti).', $riwayat->keterangan);
+        // assertEquals: JSONB PostgreSQL tidak menjaga urutan kunci objek.
+        $this->assertEquals(['nama' => 'Ketua Umum', 'jabatan' => 'Ketua', 'divisi' => null], $riwayat->data_sesudah);
+    }
+
+    public function test_pergantian_tahun_membuat_periode_baru_dan_menyalin_susunan(): void
+    {
+        $lama = $this->periode(2026, true, '2026/2027');
+        $ketua = Jabatan::factory()->create(['nama_jabatan' => 'Ketua', 'urutan' => 1]);
+        $koordinator = Jabatan::factory()->create(['nama_jabatan' => 'Koordinator', 'urutan' => 2]);
+        $media = Divisi::factory()->create(['nama_divisi' => 'Media']);
+
+        $this->pengurus($lama, $this->anggotaAktif('Ahmad'), $ketua);
+        $baris = $this->pengurus($lama, $this->anggotaAktif('Siti'), $koordinator, $media);
+
+        // Tahun berganti; admin mengubah baris yang masih milik periode lama.
+        $this->travelTo(Carbon::create(2027, 1, 5, 8));
+
+        $this->sebagai($this->admin)->putJson("/api/admin/kepengurusan/{$baris->id}", [
+            'anggota_id' => $baris->anggota_id,
+            'jabatan_id' => $ketua->id,
+            'divisi_id' => null,
+        ])->assertOk();
+
+        $baru = PeriodeKepengurusan::where('is_aktif', true)->sole();
+        $this->assertSame('2027', $baru->nama_periode);
+        $this->assertFalse($lama->fresh()->is_aktif);
+
+        // Susunan lama disalin; perubahan hanya mengenai salinan di periode baru.
+        $this->assertSame(2, $baru->kepengurusan()->count());
+        $this->assertSame($koordinator->id, $baris->fresh()->jabatan_id); // arsip utuh
+        $this->assertSame($ketua->id, $baru->kepengurusan()->where('anggota_id', $baris->anggota_id)->value('jabatan_id'));
+
+        $this->assertSame(
+            'Periode 2027 dimulai otomatis; 2 pengurus disalin dari periode 2026/2027.',
+            $baru->riwayat()->where('aksi', RiwayatStruktur::AKSI_PERIODE_BARU)->value('keterangan')
+        );
+        $this->assertSame(
+            'Mengubah jabatan Siti dari Koordinator Divisi Media menjadi Ketua (pengurus inti).',
+            $baru->riwayat()->where('aksi', RiwayatStruktur::AKSI_UBAH)->value('keterangan')
+        );
+    }
+
+    // ------------------------------------------------------------ KP-07.6
+
+    public function test_periode_lama_hanya_dapat_dibaca(): void
+    {
+        $this->periode(2026, true);
+        $lama = $this->periode(2025);
+        $jabatan = Jabatan::factory()->create();
+        $baris = $this->pengurus($lama, $this->anggotaAktif('Arsip'), $jabatan);
+
+        $this->sebagai($this->admin)->putJson("/api/admin/kepengurusan/{$baris->id}", [
+            'anggota_id' => $baris->anggota_id,
+            'jabatan_id' => $jabatan->id,
+        ])->assertStatus(422)->assertJsonPath('errors.periode.0', 'Susunan pengurus periode lama tidak dapat diubah.');
+
+        $this->sebagai($this->admin)->deleteJson("/api/admin/kepengurusan/{$baris->id}")
+            ->assertStatus(422)->assertJsonPath('errors.periode.0', 'Susunan pengurus periode lama tidak dapat diubah.');
+
+        $this->assertDatabaseHas('kepengurusan', ['id' => $baris->id]);
+    }
+
+    // ------------------------------------------------------------ KP-07.3, KP-07.4
 
     public function test_anggota_yang_sama_tidak_boleh_dua_kali_pada_periode_yang_sama(): void
     {
-        $token = $this->tokenAdmin();
-        $periode = PeriodeKepengurusan::factory()->create();
+        $aktif = $this->periode(2026, true);
         $jabatan = Jabatan::factory()->create();
         $anggota = $this->anggotaAktif('Anggota Ganda');
+        $this->pengurus($aktif, $anggota, $jabatan);
 
-        Kepengurusan::factory()->create([
-            'periode_id' => $periode->id,
-            'jabatan_id' => $jabatan->id,
+        $this->sebagai($this->admin)->postJson('/api/admin/kepengurusan', [
             'anggota_id' => $anggota->id,
-            'divisi_id' => null,
-        ]);
-
-        // KP-07.4
-        $this->withToken($token)->postJson('/api/admin/kepengurusan', [
-            'periode_id' => $periode->id,
             'jabatan_id' => $jabatan->id,
-            'anggota_id' => $anggota->id,
-            'divisi_id' => null,
-        ])->assertStatus(422)->assertJsonValidationErrors('anggota_id');
+        ])->assertStatus(422)->assertJsonPath('errors.anggota_id.0', 'Anggota ini sudah memiliki jabatan pada periode ini.');
     }
 
     public function test_pengurus_hanya_boleh_dipilih_dari_anggota_aktif(): void
     {
-        $token = $this->tokenAdmin();
-        $periode = PeriodeKepengurusan::factory()->create();
-        $jabatan = Jabatan::factory()->create();
-        $anggota = Anggota::factory()->create([
-            'user_id' => User::factory()->nonaktif()->create()->id,
-        ]);
+        $anggota = Anggota::factory()->create(['user_id' => User::factory()->nonaktif()->create()->id]);
 
-        // KP-07.3
-        $this->withToken($token)->postJson('/api/admin/kepengurusan', [
-            'periode_id' => $periode->id,
-            'jabatan_id' => $jabatan->id,
+        $this->sebagai($this->admin)->postJson('/api/admin/kepengurusan', [
             'anggota_id' => $anggota->id,
+            'jabatan_id' => Jabatan::factory()->create()->id,
         ])->assertStatus(422)->assertJsonValidationErrors('anggota_id');
+
+        // Permintaan yang gagal tidak meninggalkan periode baru.
+        $this->assertSame(0, PeriodeKepengurusan::count());
     }
 
-    public function test_data_yang_masih_dipakai_tidak_dapat_dihapus_dengan_pesan_jelas(): void
+    // ------------------------------------------------------------ KP-07.7
+
+    public function test_hapus_tercatat_dan_ubah_tanpa_perbedaan_tidak_dicatat(): void
     {
-        $token = $this->tokenAdmin();
-        $kepengurusan = Kepengurusan::factory()->create();
+        $aktif = $this->periode(2026, true);
+        $jabatan = Jabatan::factory()->create(['nama_jabatan' => 'Bendahara']);
+        $baris = $this->pengurus($aktif, $this->anggotaAktif('Budi'), $jabatan);
 
-        // KP-07.5: bukan error 500, tetapi 422 dengan pesan.
-        $this->withToken($token)->deleteJson("/api/admin/divisi/{$kepengurusan->divisi_id}")
-            ->assertStatus(422)
-            ->assertJsonValidationErrors('divisi');
+        $this->sebagai($this->admin)->putJson("/api/admin/kepengurusan/{$baris->id}", [
+            'anggota_id' => $baris->anggota_id,
+            'jabatan_id' => $jabatan->id,
+        ])->assertOk();
 
-        $this->withToken($token)->deleteJson("/api/admin/jabatan/{$kepengurusan->jabatan_id}")
-            ->assertStatus(422)
-            ->assertJsonValidationErrors('jabatan');
+        $this->assertSame(0, $aktif->riwayat()->count());
 
-        $this->withToken($token)->deleteJson("/api/admin/periode/{$kepengurusan->periode_id}")
-            ->assertStatus(422)
-            ->assertJsonValidationErrors('periode');
+        $this->sebagai($this->admin)->deleteJson("/api/admin/kepengurusan/{$baris->id}")->assertOk();
+
+        $this->assertSame(
+            'Menghapus Budi (Bendahara (pengurus inti)) dari susunan pengurus.',
+            $aktif->riwayat()->sole()->keterangan
+        );
     }
 
-    // ------------------------------------------------------- Tampilan publik
+    // ------------------------------------------------------------ Daftar admin
 
-    public function test_publik_dapat_melihat_divisi_dan_periode_tanpa_login(): void
+    public function test_admin_melihat_pengurus_periode_aktif_saja(): void
     {
-        $aktif = PeriodeKepengurusan::factory()->aktif()->create(['nama_periode' => '2026/2027']);
-        PeriodeKepengurusan::factory()->create(['nama_periode' => '2025/2026']);
-        Divisi::factory()->create(['nama_divisi' => 'Edukasi']);
-
-        // KP-01.1
-        $this->getJson('/api/divisi')->assertOk()->assertJsonFragment(['nama_divisi' => 'Edukasi']);
-
-        // KP-01.2: periode aktif tampil pertama
-        $this->getJson('/api/periode')
-            ->assertOk()
-            ->assertJsonPath('data.0.id', $aktif->id)
-            ->assertJsonPath('data.0.is_aktif', true);
-    }
-
-    public function test_struktur_public_mengelompokkan_pengurus_inti_dan_per_divisi_sesuai_urutan(): void
-    {
-        $periode = PeriodeKepengurusan::factory()->aktif()->create();
+        $aktif = $this->periode(2026, true, '2026/2027');
+        $lama = $this->periode(2025);
         $divisi = Divisi::factory()->create(['nama_divisi' => 'Edukasi']);
         $ketua = Jabatan::factory()->create(['nama_jabatan' => 'Ketua', 'urutan' => 1]);
         $koordinator = Jabatan::factory()->create(['nama_jabatan' => 'Koordinator', 'urutan' => 2]);
-        $anggotaDivisi = Jabatan::factory()->create(['nama_jabatan' => 'Anggota Divisi', 'urutan' => 3]);
 
-        // Sengaja dibuat tidak berurutan untuk menguji pengurutan.
-        Kepengurusan::factory()->create([
-            'periode_id' => $periode->id, 'divisi_id' => $divisi->id,
-            'jabatan_id' => $anggotaDivisi->id, 'anggota_id' => $this->anggotaAktif('Anggota Edukasi')->id,
-        ]);
-        Kepengurusan::factory()->create([
-            'periode_id' => $periode->id, 'divisi_id' => null,
-            'jabatan_id' => $ketua->id, 'anggota_id' => $this->anggotaAktif('Ketua Umum')->id,
-        ]);
-        Kepengurusan::factory()->create([
-            'periode_id' => $periode->id, 'divisi_id' => $divisi->id,
-            'jabatan_id' => $koordinator->id, 'anggota_id' => $this->anggotaAktif('Koordinator Edukasi')->id,
-        ]);
+        $this->pengurus($aktif, $this->anggotaAktif('Koordinator Edukasi'), $koordinator, $divisi);
+        $this->pengurus($aktif, $this->anggotaAktif('Ketua Umum'), $ketua);
+        $this->pengurus($lama, $this->anggotaAktif('Pengurus Lama'), $ketua);
 
-        // KP-01.3, KP-01.4
-        $respons = $this->getJson("/api/periode/{$periode->id}/struktur");
+        $this->sebagai($this->admin)->getJson('/api/admin/kepengurusan')
+            ->assertOk()
+            ->assertJsonCount(2, 'data')
+            ->assertJsonPath('data.0.nama', 'Ketua Umum') // pengurus inti lebih dulu
+            ->assertJsonPath('data.1.divisi.nama_divisi', 'Edukasi')
+            ->assertJsonPath('periode.nama_periode', '2026/2027')
+            ->assertJsonPath('periode.akan_berganti', false);
 
-        $respons->assertOk()
-            ->assertJsonPath('data.periode.id', $periode->id)
-            ->assertJsonCount(1, 'data.inti')
-            ->assertJsonPath('data.inti.0.nama', 'Ketua Umum')
-            ->assertJsonPath('data.inti.0.jabatan', 'Ketua')
-            ->assertJsonPath('data.inti.0.divisi', null)
-            // urutan jabatan 2 lebih dulu daripada 3
-            ->assertJsonPath('data.divisi.0.pengurus.0.nama', 'Koordinator Edukasi')
-            ->assertJsonPath('data.divisi.0.pengurus.1.nama', 'Anggota Edukasi');
+        $this->sebagai(User::factory()->create())->getJson('/api/admin/kepengurusan')->assertForbidden();
     }
 
-    public function test_respons_struktur_publik_tidak_memuat_data_pribadi(): void
+    // ------------------------------------------------------------ KP-01.2, KP-01.3
+
+    public function test_pengunjung_hanya_melihat_struktur_periode_saat_ini(): void
     {
-        $periode = PeriodeKepengurusan::factory()->create();
-        $divisi = Divisi::factory()->create();
-        $jabatan = Jabatan::factory()->create(['urutan' => 1]);
+        $this->getJson('/api/publik/struktur')->assertOk()->assertJsonPath('data', null);
+
+        $aktif = $this->periode(2026, true);
+        $lama = $this->periode(2025);
+
+        $this->getJson('/api/publik/struktur')
+            ->assertOk()
+            ->assertJsonPath('data.periode.id', $aktif->id);
+
+        // Daftar periode, struktur periode lama, dan riwayat butuh login.
+        $this->getJson('/api/periode')->assertUnauthorized();
+        $this->getJson("/api/periode/{$lama->id}/struktur")->assertUnauthorized();
+        $this->getJson("/api/periode/{$aktif->id}/riwayat")->assertUnauthorized();
+    }
+
+    public function test_anggota_melihat_semua_periode_dan_struktur_periode_lama(): void
+    {
+        $aktif = $this->periode(2026, true);
+        $lama = $this->periode(2025);
+        $divisi = Divisi::factory()->create(['nama_divisi' => 'Edukasi']);
+        $ketua = Jabatan::factory()->create(['nama_jabatan' => 'Ketua', 'urutan' => 1]);
+        $koordinator = Jabatan::factory()->create(['nama_jabatan' => 'Koordinator', 'urutan' => 2]);
+        $staf = Jabatan::factory()->create(['nama_jabatan' => 'Staf', 'urutan' => 3]);
+
+        $this->pengurus($lama, $this->anggotaAktif('Staf Edukasi'), $staf, $divisi);
+        $this->pengurus($lama, $this->anggotaAktif('Ketua Lama'), $ketua);
+        $this->pengurus($lama, $this->anggotaAktif('Koordinator Edukasi'), $koordinator, $divisi);
+
+        $anggota = User::factory()->create();
+
+        $this->sebagai($anggota)->getJson('/api/periode')
+            ->assertOk()
+            ->assertJsonCount(2, 'data')
+            ->assertJsonPath('data.0.id', $aktif->id);
+
+        // KP-01.4: inti di atas, lalu per divisi sesuai urutan jabatan.
+        $this->sebagai($anggota)->getJson("/api/periode/{$lama->id}/struktur")
+            ->assertOk()
+            ->assertJsonPath('data.periode.is_aktif', false)
+            ->assertJsonPath('data.inti.0.nama', 'Ketua Lama')
+            ->assertJsonPath('data.divisi.0.pengurus.0.nama', 'Koordinator Edukasi')
+            ->assertJsonPath('data.divisi.0.pengurus.1.nama', 'Staf Edukasi');
+    }
+
+    public function test_struktur_publik_tidak_memuat_data_pribadi(): void
+    {
+        $periode = $this->periode(2026, true);
         $anggota = Anggota::factory()->create([
             'user_id' => User::factory()->create(['email' => 'rahasia@alfutuuhat.test'])->id,
             'no_hp' => '081299998888',
@@ -222,19 +348,66 @@ class StrukturTest extends TestCase
             'alasan_bergabung' => 'Alasan pribadi.',
             'foto' => 'foto-anggota/rahasia.jpg',
         ]);
-
-        Kepengurusan::factory()->create([
-            'periode_id' => $periode->id,
-            'divisi_id' => $divisi->id,
-            'jabatan_id' => $jabatan->id,
-            'anggota_id' => $anggota->id,
-        ]);
+        $this->pengurus($periode, $anggota, Jabatan::factory()->create(), Divisi::factory()->create());
 
         // KP-01.5, KNF-02
-        $isi = $this->getJson("/api/periode/{$periode->id}/struktur")->assertOk()->getContent();
+        $isi = (string) $this->getJson('/api/publik/struktur')->assertOk()->getContent();
 
         foreach (['rahasia@alfutuuhat.test', '081299998888', 'Jl. Rahasia No. 9', 'Alasan pribadi.', 'foto-anggota'] as $terlarang) {
             $this->assertStringNotContainsString($terlarang, $isi);
         }
+    }
+
+    // ------------------------------------------------------------ KP-07.8
+
+    public function test_riwayat_berisi_perbandingan_dengan_periode_sebelumnya_dan_log(): void
+    {
+        $lama = $this->periode(2025, false, '2025');
+        $baru = $this->periode(2026, true, '2026');
+        $ketua = Jabatan::factory()->create(['nama_jabatan' => 'Ketua', 'urutan' => 1]);
+        $koordinator = Jabatan::factory()->create(['nama_jabatan' => 'Koordinator', 'urutan' => 2]);
+        $edukasi = Divisi::factory()->create(['nama_divisi' => 'Edukasi']);
+        $media = Divisi::factory()->create(['nama_divisi' => 'Media']);
+
+        $ahmad = $this->anggotaAktif('Ahmad');
+        $budi = $this->anggotaAktif('Budi');
+        $citra = $this->anggotaAktif('Citra');
+        $dewi = $this->anggotaAktif('Dewi');
+
+        // 2025: Ahmad ketua, Budi koordinator Edukasi, Citra koordinator Media.
+        $this->pengurus($lama, $ahmad, $ketua);
+        $this->pengurus($lama, $budi, $koordinator, $edukasi);
+        $this->pengurus($lama, $citra, $koordinator, $media);
+        // 2026: Ahmad tetap, Budi pindah ke Media, Citra keluar, Dewi masuk.
+        $this->pengurus($baru, $ahmad, $ketua);
+        $this->pengurus($baru, $budi, $koordinator, $media);
+        $this->pengurus($baru, $dewi, $koordinator, $edukasi);
+
+        $baru->riwayat()->create([
+            'admin_id' => $this->admin->id, 'aksi' => 'tambah', 'keterangan' => 'Catatan pertama.',
+        ]);
+        $this->travel(5)->minutes();
+        $baru->riwayat()->create([
+            'admin_id' => $this->admin->id, 'aksi' => 'hapus', 'keterangan' => 'Catatan kedua.',
+        ]);
+
+        $this->sebagai(User::factory()->create())->getJson("/api/periode/{$baru->id}/riwayat")
+            ->assertOk()
+            ->assertJsonPath('data.periode_sebelumnya.id', $lama->id)
+            ->assertJsonPath('data.perbandingan.masuk', [['nama' => 'Dewi', 'posisi' => 'Koordinator Divisi Edukasi']])
+            ->assertJsonPath('data.perbandingan.keluar', [['nama' => 'Citra', 'posisi' => 'Koordinator Divisi Media']])
+            ->assertJsonPath('data.perbandingan.pindah', [[
+                'nama' => 'Budi',
+                'dari' => 'Koordinator Divisi Edukasi',
+                'menjadi' => 'Koordinator Divisi Media',
+            ]])
+            ->assertJsonPath('data.log.0.keterangan', 'Catatan kedua.') // terbaru di atas
+            ->assertJsonPath('data.log.0.admin.nama', 'Admin Ketua');
+
+        // Periode pertama tidak punya pembanding.
+        $this->sebagai($this->admin)->getJson("/api/periode/{$lama->id}/riwayat")
+            ->assertOk()
+            ->assertJsonPath('data.periode_sebelumnya', null)
+            ->assertJsonPath('data.perbandingan', null);
     }
 }

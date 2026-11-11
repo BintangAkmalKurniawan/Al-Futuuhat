@@ -122,6 +122,6 @@ class AnggotaController extends Controller
         // Keamanan: paksa login ulang dengan kata sandi baru.
         $user->tokens()->delete();
 
-        return response()->json(['message' => 'Kata sandi berhasil diatur ulang.']);
+        return response()->json(['message' => 'Kata sandi baru telah disimpan. Sampaikan kata sandi tersebut kepada anggota.']);
     }
 }

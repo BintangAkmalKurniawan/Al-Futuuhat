@@ -30,10 +30,10 @@ class UnggahGambarRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'gambar.required' => 'Gambar wajib dipilih.',
+            'gambar.required' => 'Pilih gambarnya terlebih dahulu.',
             'gambar.image' => 'Berkas harus berupa gambar.',
             'gambar.mimes' => 'Gambar harus berformat JPG atau PNG.',
-            'gambar.max' => 'Ukuran gambar maksimal 2 MB.',
+            'gambar.max' => 'Gambar terlalu besar. Ukuran maksimal 2 MB.',
         ];
     }
 }

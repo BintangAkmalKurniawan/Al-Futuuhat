@@ -39,19 +39,19 @@ class RegisterRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'nama.required' => 'Nama wajib diisi.',
-            'email.required' => 'Email wajib diisi.',
-            'email.email' => 'Format email tidak valid.',
-            'email.unique' => 'Email sudah terdaftar.',
-            'password.required' => 'Kata sandi wajib diisi.',
-            'password.min' => 'Kata sandi minimal 8 karakter.',
-            'password.confirmed' => 'Konfirmasi kata sandi tidak sama.',
-            'no_hp.required' => 'Nomor HP wajib diisi.',
-            'alamat.required' => 'Alamat wajib diisi.',
-            'alasan_bergabung.required' => 'Alasan bergabung wajib diisi.',
-            'foto.image' => 'Foto harus berupa gambar.',
-            'foto.mimes' => 'Foto harus berformat JPG atau PNG.',
-            'foto.max' => 'Ukuran foto maksimal 2 MB.',
+            'nama.required' => 'Nama belum diisi.',
+            'email.required' => 'Email belum diisi.',
+            'email.email' => 'Format email-nya belum benar. Coba cek lagi ya.',
+            'email.unique' => 'Email ini sudah terdaftar. Coba masuk saja, atau pakai email lain.',
+            'password.required' => 'Kata sandi belum diisi.',
+            'password.min' => 'Kata sandinya minimal 8 karakter ya.',
+            'password.confirmed' => 'Kata sandinya belum sama. Coba ketik ulang ya.',
+            'no_hp.required' => 'Nomor HP belum diisi.',
+            'alamat.required' => 'Alamat belum diisi.',
+            'alasan_bergabung.required' => 'Ceritakan dulu alasanmu bergabung ya.',
+            'foto.image' => 'Fotonya harus berupa gambar ya.',
+            'foto.mimes' => 'Fotonya harus JPG atau PNG ya.',
+            'foto.max' => 'Fotonya kebesaran, maksimal 2 MB ya.',
         ];
     }
 }

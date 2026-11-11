@@ -1,0 +1,363 @@
+/* =====================================================================
+   Tema Al-Futuuhat — gelap, editorial (terinspirasi pola baca Medium)
+   Acuan lengkap: docs/DESIGN.md
+   Tailwind CSS v4. Paket font:
+     npm i @fontsource-variable/source-serif-4 @fontsource-variable/inter
+   ===================================================================== */
+
+@import "@fontsource-variable/source-serif-4/opsz.css";
+@import "@fontsource-variable/source-serif-4/opsz-italic.css";
+@import "@fontsource-variable/inter";
+@import "tailwindcss";
+
+@theme {
+  /* ---------- Warna (hanya pakai token ini, jangan tulis hex di komponen) ---------- */
+  --color-kanvas: #121212;        /* latar halaman */
+  --color-permukaan: #1a1a1a;     /* kotak cari, kartu, sidebar admin, composer */
+  --color-angkat: #222222;        /* menu tarik-turun, modal, item aktif */
+  --color-garis: #2a2a2a;         /* garis tipis pemisah (hairline) */
+  --color-garis-kuat: #3d3d3d;    /* tepi tombol sekunder, input, select */
+
+  --color-teks: #e6e6e6;          /* isi bacaan & teks umum */
+  --color-teks-kuat: #f5f5f5;     /* judul, nama penulis, item aktif */
+  --color-teks-lembut: #a3a3a3;   /* dek/ringkasan, meta, menu tidak aktif */
+  --color-teks-redup: #8a8a8a;    /* keterangan gambar, placeholder, petunjuk */
+
+  --color-aksen: #c9a96e;         /* sand/gold: tautan, fokus, lencana notifikasi — hemat */
+  --color-tombol: #f2f2f2;        /* tombol primer (pil terang) */
+  --color-tombol-teks: #121212;
+  --color-bahaya: #e07070;
+
+  --color-draf: #c7c7c7;
+  --color-diajukan: #e0b25c;
+  --color-ditolak: #e58a8a;
+  --color-terbit: #6fbf73;
+
+  /* Warna avatar inisial; dipilih dari user.id % 5 (DESIGN.md §3.1). */
+  --color-avatar-1: #c9a96e;
+  --color-avatar-2: #9fb4c7;
+  --color-avatar-3: #b7a3c9;
+  --color-avatar-4: #a9c49a;
+  --color-avatar-5: #d1a0a0;
+
+  /* ---------- Huruf ---------- */
+  --font-serif: "Source Serif 4 Variable", Charter, "Bitstream Charter", Georgia, serif;
+  --font-sans: "Inter Variable", Inter, system-ui, -apple-system, "Segoe UI", sans-serif;
+
+  /* ---------- Skala teks editorial ---------- */
+  --text-tampilan: 76px;   --text-tampilan--line-height: 0.95;  --text-tampilan--letter-spacing: -0.035em;
+  --text-judul: 42px;      --text-judul--line-height: 1.12;     --text-judul--letter-spacing: -0.022em;
+  --text-judul-hp: 30px;   --text-judul-hp--line-height: 1.15;  --text-judul-hp--letter-spacing: -0.02em;
+  --text-halaman: 28px;    --text-halaman--line-height: 1.2;    --text-halaman--letter-spacing: -0.02em;
+  --text-subjudul: 26px;   --text-subjudul--line-height: 1.25;  --text-subjudul--letter-spacing: -0.012em;
+  --text-kartu: 20px;      --text-kartu--line-height: 1.25;     --text-kartu--letter-spacing: -0.012em;
+  --text-dek: 19px;        --text-dek--line-height: 1.4;
+  /* Ukuran isi artikel (.prosa & editor). Ubah di sini untuk mengatur ukuran tulisan artikel. */
+  --text-badan: 20px;      --text-badan--line-height: 1.6;
+  --text-badan-hp: 18px;   --text-badan-hp--line-height: 1.58;
+
+  /* ---------- Lebar ---------- */
+  --container-baca: 728px;     /* 680px teks + 2 x 24px padding */
+  --container-halaman: 1192px;
+
+  /* ---------- Gerak ---------- */
+  --ease-halus: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ---------- Dasar ---------- */
+@layer base {
+  /* Ukuran dasar antarmuka 15px (bawaan 16px): teks & jarak berbasis rem ikut mengecil
+     supaya halaman tidak terlalu panjang. Isi artikel (.prosa) memakai px, jadi tidak terpengaruh. */
+  html { color-scheme: dark; font-size: 93.75%; }
+  body {
+    background: var(--color-kanvas);
+    color: var(--color-teks);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+  }
+  ::selection { background: rgba(201, 169, 110, 0.28); color: var(--color-teks-kuat); }
+  :focus-visible { outline: 2px solid var(--color-aksen); outline-offset: 2px; border-radius: 4px; }
+}
+
+/* ---------- Komponen dasar ---------- */
+@layer components {
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+    height: 36px; padding: 0 16px; border-radius: 9999px; border: 1px solid transparent;
+    font: 500 14px/1 var(--font-sans); white-space: nowrap; cursor: pointer;
+    transition: background-color 150ms var(--ease-halus), color 150ms var(--ease-halus), border-color 150ms var(--ease-halus);
+  }
+  .btn:disabled { opacity: .45; cursor: not-allowed; }
+  .btn-sm { height: 32px; padding: 0 14px; font-size: 13px; }
+  .btn-lg { height: 44px; padding: 0 22px; font-size: 16px; }
+  .btn-primer { background: var(--color-tombol); color: var(--color-tombol-teks); }
+  .btn-primer:hover:not(:disabled) { background: #ffffff; }
+  .btn-sekunder { background: transparent; color: var(--color-teks); border-color: var(--color-garis-kuat); }
+  .btn-sekunder:hover:not(:disabled) { border-color: var(--color-teks-lembut); color: var(--color-teks-kuat); }
+  .btn-hantu { background: transparent; color: var(--color-teks-lembut); }
+  .btn-hantu:hover:not(:disabled) { background: var(--color-permukaan); color: var(--color-teks-kuat); }
+  .btn-bahaya { background: transparent; color: var(--color-bahaya); border-color: rgba(224, 112, 112, .4); }
+  .btn-bahaya:hover:not(:disabled) { background: rgba(224, 112, 112, .1); }
+
+  .chip {
+    display: inline-flex; align-items: center; gap: 6px; height: 22px; padding: 0 10px;
+    border-radius: 9999px; font: 500 12px/1 var(--font-sans); white-space: nowrap;
+  }
+  .chip::before { content: ""; width: 6px; height: 6px; border-radius: 9999px; background: currentColor; }
+  .chip-draf     { color: var(--color-draf);     background: #262626; }
+  .chip-diajukan { color: var(--color-diajukan); background: rgba(224, 178, 92, .12); }
+  .chip-ditolak  { color: var(--color-ditolak);  background: rgba(229, 138, 138, .12); }
+  .chip-terbit   { color: var(--color-terbit);   background: rgba(111, 191, 115, .12); }
+
+  /* Filter segmen: beberapa pilihan status dalam satu pil (DESIGN.md §5, layar 18 & 20). */
+  .seg { display: inline-flex; gap: 4px; padding: 4px; border-radius: 9999px; background: var(--color-permukaan); }
+  .seg button {
+    display: inline-flex; align-items: center; height: 30px; padding: 0 14px; border-radius: 9999px;
+    font: 400 13px/1 var(--font-sans); color: var(--color-teks-lembut); cursor: pointer;
+    transition: background-color 150ms var(--ease-halus), color 150ms var(--ease-halus);
+  }
+  .seg button:hover { color: var(--color-teks-kuat); }
+  .seg button[aria-pressed="true"] { background: var(--color-angkat); color: var(--color-teks-kuat); font-weight: 500; }
+
+  .input {
+    width: 100%; height: 40px; padding: 0 14px; border-radius: 8px;
+    background: var(--color-permukaan); border: 1px solid var(--color-garis-kuat);
+    color: var(--color-teks); font: 400 15px/1.4 var(--font-sans);
+  }
+  .input::placeholder { color: var(--color-teks-redup); }
+  .input:focus { outline: none; border-color: var(--color-aksen); }
+  .input-galat { border-color: var(--color-bahaya); }
+  /* Isian terkunci: latar transparan dan garis putus-putus (DESIGN.md §6.3 no. 21). */
+  .input-ro { background: transparent; border-style: dashed; color: var(--color-teks-lembut); cursor: default; }
+  .pesan-galat { margin-top: 6px; font-size: 13px; color: var(--color-bahaya); }
+
+  /* ---------- Isi materi (konten_html) dan editor Quill memakai gaya yang sama ---------- */
+  .prosa, .prosa-editor .ql-editor {
+    font-family: var(--font-serif); font-size: var(--text-badan); line-height: 1.6; color: var(--color-teks);
+  }
+  /* Jaring aman untuk kata/tautan yang sangat panjang: editor Quill sudah
+     memakai word-wrap: break-word, tampilan baca harus sama agar tidak meluber. */
+  .prosa { overflow-wrap: break-word; }
+  .prosa p, .prosa-editor .ql-editor p { margin: 0 0 28px; }
+  .prosa h2, .prosa-editor .ql-editor h2 {
+    font-family: var(--font-serif); font-weight: 700; font-size: var(--text-subjudul); line-height: 1.25;
+    letter-spacing: -0.012em; color: var(--color-teks-kuat); margin: 44px 0 12px;
+  }
+  .prosa h3, .prosa-editor .ql-editor h3 {
+    font-family: var(--font-serif); font-weight: 700; font-size: 21px; line-height: 1.3;
+    color: var(--color-teks-kuat); margin: 32px 0 8px;
+  }
+  .prosa blockquote, .prosa-editor .ql-editor blockquote {
+    border-left: 3px solid var(--color-teks-kuat); padding-left: 22px; margin: 0 0 28px; font-style: italic;
+  }
+  .prosa a, .prosa-editor .ql-editor a {
+    color: inherit; text-decoration: underline; text-decoration-color: rgba(230, 230, 230, .4); text-underline-offset: 3px;
+  }
+  .prosa a:hover { text-decoration-color: var(--color-aksen); }
+  .prosa ul, .prosa ol { margin: 0 0 28px; padding-left: 28px; }
+  .prosa ul { list-style: disc; } .prosa ol { list-style: decimal; }
+  .prosa li { margin-bottom: 8px; padding-left: 4px; }
+  .prosa img, .prosa-editor .ql-editor img { display: block; max-width: 100%; height: auto; margin: 8px auto 36px; border-radius: 2px; }
+  .prosa pre, .prosa code { font-family: ui-monospace, "SFMono-Regular", Menlo, monospace; font-size: 15px; }
+  .prosa pre { background: var(--color-permukaan); padding: 16px 20px; border-radius: 6px; overflow-x: auto; margin: 0 0 28px; }
+  @media (max-width: 640px) {
+    .prosa, .prosa-editor .ql-editor { font-size: var(--text-badan-hp); line-height: 1.58; }
+    .prosa p { margin-bottom: 22px; }
+  }
+
+  /* ---------- Quill (tema snow) disesuaikan ke tema gelap ---------- */
+  .prosa-editor .ql-toolbar.ql-snow {
+    border: 0; border-radius: 9999px; background: var(--color-permukaan);
+    box-shadow: 0 0 0 1px var(--color-garis); padding: 6px 12px;
+    position: sticky; top: 64px; z-index: 10;
+  }
+  .prosa-editor .ql-container.ql-snow { border: 0; font-family: var(--font-serif); }
+  .prosa-editor .ql-editor { padding: 28px 0 80px; min-height: 50vh; }
+  .prosa-editor .ql-editor.ql-blank::before { left: 0; right: 0; color: var(--color-teks-redup); font-style: normal; }
+  .prosa-editor .ql-snow .ql-stroke { stroke: var(--color-teks-lembut); }
+  .prosa-editor .ql-snow .ql-fill { fill: var(--color-teks-lembut); }
+  .prosa-editor .ql-snow .ql-picker { color: var(--color-teks-lembut); }
+  .prosa-editor .ql-snow.ql-toolbar button:hover .ql-stroke,
+  .prosa-editor .ql-snow.ql-toolbar button.ql-active .ql-stroke { stroke: var(--color-teks-kuat); }
+  .prosa-editor .ql-snow.ql-toolbar button:hover .ql-fill,
+  .prosa-editor .ql-snow.ql-toolbar button.ql-active .ql-fill { fill: var(--color-teks-kuat); }
+  .prosa-editor .ql-snow .ql-picker-options { background: var(--color-angkat); border-color: var(--color-garis-kuat); }
+  .prosa-editor .ql-snow .ql-tooltip {
+    background: var(--color-angkat); color: var(--color-teks); border: 1px solid var(--color-garis-kuat);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, .5); border-radius: 8px;
+  }
+  .prosa-editor .ql-snow .ql-tooltip input[type=text] {
+    background: var(--color-permukaan); color: var(--color-teks); border-color: var(--color-garis-kuat);
+  }
+
+  /* ---------- Khusus proyek: komentar kaya dan editor komentar ringkas ---------- */
+  /* Isi komentar memakai sans agar ringkas di kolom forum yang sempit. */
+  .komentar-kaya { font: 400 15px/1.6 var(--font-sans); color: var(--color-teks); overflow-wrap: anywhere; }
+  .komentar-kaya p { margin: 0 0 6px; }
+  .komentar-kaya p:last-child { margin-bottom: 0; }
+  .komentar-kaya ul, .komentar-kaya ol { margin: 4px 0 8px 20px; }
+  .komentar-kaya ul { list-style: disc; }
+  .komentar-kaya ol { list-style: decimal; }
+  .komentar-kaya a { color: var(--color-teks); text-decoration: underline; text-decoration-color: rgba(230, 230, 230, .4); }
+  .komentar-kaya blockquote {
+    margin: 8px 0; border-left: 3px solid var(--color-garis-kuat); padding-left: 12px; color: var(--color-teks-lembut);
+  }
+  .komentar-kaya pre {
+    margin: 8px 0; overflow-x: auto; border: 1px solid var(--color-garis); border-radius: 6px;
+    background: var(--color-permukaan); padding: 8px 10px; font-size: 13px;
+  }
+  .komentar-kaya img { margin: 8px 0; max-width: 100%; height: auto; border-radius: 4px; }
+
+  /* ---------- Komposer komentar (DESIGN.md §6.2 no. 09) ---------- */
+  /* Kotak tulis bergaris; toolbar Quill pindah ke bilah bawah bersama tombol aksi. */
+  .prosa-editor.komentar .ql-container.ql-snow {
+    border: 1px solid var(--color-garis-kuat); border-radius: 8px;
+    background: var(--color-permukaan); font-family: var(--font-sans);
+  }
+  .prosa-editor.komentar .ql-container.ql-snow:focus-within { border-color: var(--color-aksen); }
+  .prosa-editor.komentar .ql-editor {
+    min-height: 4.5rem; padding: 12px 14px; font: 400 15px/1.6 var(--font-sans);
+  }
+  .prosa-editor.komentar .ql-editor.ql-blank::before {
+    top: 12px; left: 14px; right: 14px; color: var(--color-teks-redup); font-style: normal;
+  }
+
+  /* Bilah format di atas kotak tulis: tombol pemformatan di kiri, tombol aksi (slot)
+     di kanan. Quill menambahkan kelas .ql-toolbar/.ql-snow pada wadah ini dan
+     menyetel ukuran tombolnya (.ql-snow .ql-toolbar button = 28x24, float:left),
+     jadi selektor di bawah dibuat lebih spesifik agar ukurannya tetap 30x30.
+     Gaya pil dari editor materi (.ql-toolbar.ql-snow) juga dilepas di sini. */
+  .prosa-editor.komentar .ql-bilah {
+    display: flex; align-items: center; gap: 10px; margin-bottom: 8px;
+  }
+  .prosa-editor.komentar .ql-bilah-toolbar {
+    display: flex; align-items: center; gap: 2px;
+    position: static; padding: 0; border-radius: 0; background: none; box-shadow: none;
+  }
+  .prosa-editor.komentar .ql-bilah-toolbar button {
+    display: inline-flex; align-items: center; justify-content: center;
+    float: none; width: 30px; height: 30px; padding: 0; border-radius: 6px;
+    transition: background-color 150ms var(--ease-halus);
+  }
+  .prosa-editor.komentar .ql-bilah-toolbar button:hover { background: var(--color-angkat); }
+  .prosa-editor.komentar .ql-bilah-toolbar button svg { float: none; width: 16px; height: 16px; }
+
+  /* ---------- Tabel admin (DESIGN.md §5 DataTable) ---------- */
+  .tabel { width: 100%; border-collapse: collapse; }
+  .tabel th {
+    padding: 0 16px 10px; text-align: left; white-space: nowrap;
+    font: 500 12px/1 var(--font-sans); letter-spacing: .06em; text-transform: uppercase;
+    color: var(--color-teks-redup); border-bottom: 1px solid var(--color-garis);
+  }
+  .tabel td {
+    padding: 16px; vertical-align: middle; border-bottom: 1px solid var(--color-garis);
+    font-size: 14px; color: var(--color-teks-lembut);
+  }
+  .tabel tbody tr:hover { background: var(--color-permukaan); }
+  .tabel .kanan { text-align: right; }
+  /* Judul materi pada baris tabel: serif 17 px dengan subteks 13 px. */
+  .tabel .judul { font-family: var(--font-serif); font-weight: 600; font-size: 17px; color: var(--color-teks-kuat); }
+  .tabel .sub { display: block; margin-top: 2px; font-size: 13px; color: var(--color-teks-redup); }
+  .tabel .orang { display: inline-flex; align-items: center; gap: 8px; color: var(--color-teks-kuat); }
+
+  /* ---------- Remah jejak halaman admin (DESIGN.md §5) ---------- */
+  .crumb {
+    display: flex; align-items: center; gap: 8px; margin-bottom: 18px;
+    font: 400 13px/1.4 var(--font-sans); color: var(--color-teks-lembut);
+  }
+  .crumb:hover { color: var(--color-teks-kuat); }
+
+  /* ---------- Halaman detail admin: daftar data & kartu samping (DESIGN.md §6.3 no. 19, 21) ---------- */
+  /* Daftar definisi dua kolom: label selebar 180 px, isi mengisi sisanya. */
+  .dl { border-top: 1px solid var(--color-garis); }
+  .dl > div {
+    display: grid; grid-template-columns: 180px 1fr; gap: 16px;
+    padding: 14px 0; border-bottom: 1px solid var(--color-garis); font-size: 14px;
+  }
+  .dl dt { color: var(--color-teks-redup); }
+  .dl dd { color: var(--color-teks); }
+
+  /* Kotak persegi untuk foto pendaftar; dipakai juga saat foto tidak ada. */
+  .photo {
+    display: flex; align-items: center; justify-content: center;
+    width: 100%; aspect-ratio: 1 / 1; border: 1px solid var(--color-garis); border-radius: 8px;
+    background: linear-gradient(160deg, #2b2a28, #1a1918);
+    color: var(--color-teks-redup); font-size: 13px;
+  }
+  .help { margin-top: 6px; font-size: 13px; color: var(--color-teks-redup); }
+
+  /* Kartu aksi berisiko di kolom kanan: atur ulang kata sandi, nonaktifkan akun. */
+  .sidecard {
+    background: var(--color-permukaan); border: 1px solid var(--color-garis);
+    border-radius: 8px; padding: 20px;
+  }
+  .sidecard h4 { font: 600 15px/1.4 var(--font-sans); color: var(--color-teks-kuat); margin-bottom: 6px; }
+  .sidecard p { font-size: 13px; line-height: 1.5; color: var(--color-teks-lembut); margin-bottom: 16px; }
+  .sidecard + .sidecard { margin-top: 16px; }
+
+  /* Layar sempit: label daftar data ditumpuk di atas isinya. */
+  @media (max-width: 640px) {
+    .dl > div { grid-template-columns: 1fr; gap: 4px; }
+  }
+
+  /* Bilah keputusan yang menempel di bawah (DESIGN.md §6.3 no. 24). */
+  .decide {
+    position: sticky; bottom: 0; z-index: 10; display: flex; align-items: center; gap: 12px;
+    margin-top: 28px; padding: 16px 0; border-top: 1px solid var(--color-garis);
+    background: var(--color-kanvas);
+  }
+  .decide .tumbuh { flex: 1; }
+
+  /* Layar sempit: tombol bilah keputusan boleh turun ke baris berikutnya.
+     (Perbandingan versi kini memakai komponen PerbandinganVersi, Draf 2.3.) */
+  @media (max-width: 900px) {
+    .decide { flex-wrap: wrap; }
+  }
+}
+
+/* =====================================================================
+   PrimeVue OrganizationChart (v4.5.5, mode styled, preset Aura)
+   Ditulis di luar @layer agar menimpa token bawaan PrimeVue.
+   Hanya komponen ini yang memakai PrimeVue (lihat docs/DESIGN.md §9).
+   ===================================================================== */
+.p-organizationchart {
+  --p-organizationchart-gutter: 0.375rem;
+  --p-organizationchart-transition-duration: 150ms;
+  --p-organizationchart-node-background: var(--color-permukaan);
+  --p-organizationchart-node-hover-background: var(--color-angkat);
+  --p-organizationchart-node-selected-background: var(--color-angkat);
+  --p-organizationchart-node-border-color: var(--color-garis-kuat);
+  --p-organizationchart-node-color: var(--color-teks);
+  --p-organizationchart-node-hover-color: var(--color-teks-kuat);
+  --p-organizationchart-node-selected-color: var(--color-teks-kuat);
+  --p-organizationchart-node-padding: 0.75rem 0.875rem;
+  --p-organizationchart-node-toggleable-padding: 0.75rem 0.875rem 1.375rem;
+  --p-organizationchart-node-border-radius: 8px;
+  --p-organizationchart-node-toggle-button-background: var(--color-permukaan);
+  --p-organizationchart-node-toggle-button-hover-background: var(--color-angkat);
+  --p-organizationchart-node-toggle-button-border-color: var(--color-garis-kuat);
+  --p-organizationchart-node-toggle-button-color: var(--color-teks-lembut);
+  --p-organizationchart-node-toggle-button-hover-color: var(--color-teks-kuat);
+  --p-organizationchart-node-toggle-button-size: 1.5rem;
+  --p-organizationchart-node-toggle-button-focus-ring-color: var(--color-aksen);
+  --p-organizationchart-connector-color: var(--color-garis-kuat);
+  --p-organizationchart-connector-border-radius: 8px;
+  --p-organizationchart-connector-height: 28px;
+  font-family: var(--font-sans);
+}
+.p-organizationchart .p-organizationchart-node { text-align: left; }
+/* Kotak pengurus inti ditandai tepi aksen tipis (DESIGN.md §9.4). */
+.p-organizationchart .p-organizationchart-node.bagan-inti { border-color: rgba(201, 169, 110, .45); }
+/* Kotak daftar anggota divisi memakai latar lebih terang. */
+.p-organizationchart .p-organizationchart-node.bagan-anggota { background: var(--color-angkat); }
+
+/* Bingkai bagan + gulir mendatar (DESIGN.md §9.4). */
+.bagan-wrap { position: relative; border: 1px solid var(--color-garis); border-radius: 12px; background: #151515; padding: 28px 20px 36px; }
+.bagan-tools { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
+.bagan-hint { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--color-teks-redup); }
+.bagan-scroll { overflow-x: auto; padding: 4px 0 8px; }
+.bagan-scroll > .p-organizationchart { min-width: max-content; }
+.bagan-legend { display: flex; gap: 18px; margin-top: 18px; justify-content: center; font-size: 12px; color: var(--color-teks-redup); }
+@media (max-width: 640px) {
+  .bagan-wrap { border-radius: 0; border-left: 0; border-right: 0; padding: 20px 0 28px; }
+}

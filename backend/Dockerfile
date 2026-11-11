@@ -9,6 +9,10 @@ RUN apt-get update \
     && a2enmod rewrite \
     && rm -rf /var/lib/apt/lists/*
 
+# Batas unggahan PHP. Bawaan image hanya 2 MB, padahal video dokumentasi
+# program boleh sampai 50 MB per berkas (KF-21, KP-21.3).
+RUN printf "upload_max_filesize=55M\npost_max_size=60M\n" > /usr/local/etc/php/conf.d/unggahan.ini
+
 # Composer
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 

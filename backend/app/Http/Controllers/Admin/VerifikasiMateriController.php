@@ -38,7 +38,8 @@ class VerifikasiMateriController extends Controller
      */
     public function show(RevisiMateri $revisi): JsonResponse
     {
-        $revisi->load(['materi.penulis', 'materi.versiTerbit', 'verifikasi.admin']);
+        // Pembanding = versi publik terakhir, termasuk kategorinya (KP-11.2, KP-10.7).
+        $revisi->load(['materi.penulis', 'materi.versiTerbit.kategori', 'verifikasi.admin', 'kategori']);
 
         return response()->json([
             'data' => [
@@ -58,7 +59,7 @@ class VerifikasiMateriController extends Controller
         // KP-11.6: hanya revisi berstatus diajukan yang dapat diverifikasi.
         if ($revisi->status !== RevisiMateri::STATUS_DIAJUKAN) {
             throw ValidationException::withMessages([
-                'keputusan' => 'Hanya revisi yang sedang diajukan yang dapat diverifikasi.',
+                'keputusan' => 'Pengajuan ini sudah diputuskan sebelumnya.',
             ]);
         }
 
@@ -82,13 +83,18 @@ class VerifikasiMateriController extends Controller
                     'diterbitkan_pada' => $materi->diterbitkan_pada ?? now(),
                 ]);
 
+                // KP-11.3: data publik (judul, slug, ringkasan, sampul, kategori)
+                // disalin dari revisi yang disetujui.
+                $materi->samakanDenganRevisi($revisi);
+
                 return;
             }
 
             $revisi->update(['status' => RevisiMateri::STATUS_DITOLAK]);
 
-            // KP-11.4: bila sudah pernah terbit, materi tetap terbit dengan versi lama.
-            if ($materi->diterbitkan_pada === null) {
+            // KP-11.4: materi ditolak. Pemeriksaan `terbit` menjaga data lama
+            // (sebelum Draf 2.3) yang mengajukan revisi saat materinya masih terbit.
+            if ($materi->status !== Materi::STATUS_TERBIT) {
                 $materi->update(['status' => Materi::STATUS_DITOLAK]);
             }
         });
@@ -100,8 +106,8 @@ class VerifikasiMateriController extends Controller
 
         return response()->json([
             'message' => $data['keputusan'] === VerifikasiMateri::KEPUTUSAN_DISETUJUI
-                ? 'Materi disetujui dan diterbitkan.'
-                : 'Revisi ditolak.',
+                ? 'Materi disetujui dan kini tayang untuk umum.'
+                : 'Pengajuan ditolak. Catatan Anda telah dikirim kepada penulis.',
             'data' => new RevisiResource($revisi->load('verifikasi.admin')),
         ]);
     }

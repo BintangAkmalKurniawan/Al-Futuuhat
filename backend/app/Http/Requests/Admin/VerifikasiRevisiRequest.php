@@ -38,8 +38,8 @@ class VerifikasiRevisiRequest extends FormRequest
     {
         return [
             'keputusan.required' => 'Keputusan wajib dipilih.',
-            'keputusan.in' => 'Keputusan harus disetujui atau ditolak.',
-            'catatan.required_if' => 'Catatan wajib diisi saat menolak revisi.',
+            'keputusan.in' => 'Pilih keputusan: setujui atau tolak.',
+            'catatan.required_if' => 'Mohon isi catatan untuk penulis.',
         ];
     }
 }

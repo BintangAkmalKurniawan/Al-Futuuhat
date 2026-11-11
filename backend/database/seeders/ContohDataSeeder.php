@@ -4,11 +4,14 @@ namespace Database\Seeders;
 
 use App\Models\Anggota;
 use App\Models\Divisi;
+use App\Models\DokumentasiProgram;
 use App\Models\Jabatan;
+use App\Models\Kategori;
 use App\Models\Kepengurusan;
 use App\Models\Komentar;
 use App\Models\Materi;
 use App\Models\PeriodeKepengurusan;
+use App\Models\Program;
 use App\Models\RevisiMateri;
 use App\Models\User;
 use App\Models\VerifikasiMateri;
@@ -32,6 +35,7 @@ class ContohDataSeeder extends Seeder
         $this->buatPendaftar();
         $this->buatPeriode($anggota);
         $this->buatMateri($anggota, $admin);
+        $this->buatProgram($anggota);
     }
 
     /**
@@ -226,5 +230,90 @@ class ContohDataSeeder extends Seeder
             'nomor_versi' => 1,
             'catatan_revisi' => 'Mohon diperiksa bagian penutup.',
         ]);
+
+        // Kategori contoh untuk tiap materi (KF-19) supaya penyaring kategori
+        // di `/materi` dan `/publikasi` sudah ada isinya saat demo.
+        $this->pasangKategori([
+            $terbit->id => ['Akhlak'],
+            $denganRiwayat->id => ['Akhlak', 'Fiqih'],
+            $draf->id => ['Fiqih'],
+            $diajukan->id => ['Politik Islam'],
+        ]);
+    }
+
+    /**
+     * Menyambungkan materi dengan kategori contoh (tanpa galat bila kategori
+     * tidak ada, mis. saat seeder kategori belum dijalankan).
+     *
+     * @param  array<int, array<int, string>>  $peta  id materi => nama kategori
+     */
+    private function pasangKategori(array $peta): void
+    {
+        $kategori = Kategori::whereIn('nama', array_merge(...array_values($peta)))
+            ->pluck('id', 'nama');
+
+        foreach ($peta as $materiId => $nama) {
+            $id = collect($nama)->map(fn (string $item) => $kategori->get($item))->filter()->all();
+
+            if ($id !== []) {
+                Materi::find($materiId)?->kategori()->sync($id);
+
+                // Draf 2.3: kategori juga disimpan per versi (KP-19.3).
+                RevisiMateri::where('materi_id', $materiId)->get()
+                    ->each(fn (RevisiMateri $revisi) => $revisi->kategori()->sync($id));
+            }
+        }
+    }
+
+    /**
+     * Tiga program contoh (KF-21) dengan PIC dari anggota contoh. Dokumentasinya
+     * berupa tautan YouTube agar seeder tidak membutuhkan berkas foto/video.
+     *
+     * @param  \Illuminate\Support\Collection<int, Anggota>  $anggota
+     */
+    private function buatProgram($anggota): void
+    {
+        $daftar = [
+            [
+                'nama' => 'Kajian Rutin Jumat Malam',
+                'ringkasan' => 'Kajian kitab bersama setiap pekan untuk anggota dan masyarakat umum.',
+                'jadwal' => "Setiap Jumat malam, ba'da Isya",
+                'status' => Program::STATUS_AKTIF,
+                'pic' => [0, 1],
+            ],
+            [
+                'nama' => 'Berbagi Takjil Ramadan',
+                'ringkasan' => 'Pembagian takjil gratis di sekitar masjid selama bulan Ramadan.',
+                'jadwal' => 'Setiap sore selama Ramadan',
+                'status' => Program::STATUS_AKTIF,
+                'pic' => [2],
+            ],
+            [
+                'nama' => 'Pelatihan Menulis Opini',
+                'ringkasan' => 'Kelas menulis opini keislaman bagi anggota, dibimbing Tim Media.',
+                'jadwal' => 'Tiga pertemuan, Agustus 2025',
+                'status' => Program::STATUS_SELESAI,
+                'pic' => [3],
+            ],
+        ];
+
+        foreach ($daftar as $data) {
+            $program = Program::firstOrCreate(
+                ['nama' => $data['nama']],
+                [
+                    'slug' => Program::slugUnik($data['nama']),
+                    'ringkasan' => $data['ringkasan'],
+                    'jadwal' => $data['jadwal'],
+                    'deskripsi' => '<p>'.$data['ringkasan'].'</p><h2>Tujuan</h2><p>Mempererat ukhuwah dan menambah ilmu anggota Al-Futuuhat.</p>',
+                    'status' => $data['status'],
+                ]
+            );
+
+            $program->pic()->sync(collect($data['pic'])->map(fn ($i) => $anggota[$i]->id)->all());
+
+            if ($program->dokumentasi()->doesntExist()) {
+                DokumentasiProgram::factory()->count(2)->create(['program_id' => $program->id]);
+            }
+        }
     }
 }
