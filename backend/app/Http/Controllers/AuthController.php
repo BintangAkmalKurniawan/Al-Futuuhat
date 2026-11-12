@@ -11,31 +11,25 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
+use Throwable;
 
-/**
- * Pendaftaran, login, logout, dan data pengguna yang sedang login
- * (KF-02, KF-03, KF-04).
- */
+// Pendaftaran, login, logout, dan data pengguna yang sedang login
 class AuthController extends Controller
 {
-    /**
-     * POST /api/register — pengunjung mendaftar (KF-02).
-     */
+    // Pengunjung mendaftar
     public function register(RegisterRequest $request): JsonResponse
     {
         $data = $request->validated();
 
-        // Foto disimpan lebih dulu, di luar transaksi basis data.
         $foto = $request->hasFile('foto')
             ? $request->file('foto')->store('foto-anggota', 'public')
             : null;
 
-        // KP-03.1: baris users + anggota dibuat dalam satu transaksi.
         $user = DB::transaction(function () use ($data, $foto) {
             $user = User::create([
                 'nama' => $data['nama'],
                 'email' => $data['email'],
-                'password' => $data['password'], // otomatis di-hash oleh cast "hashed"
+                'password' => $data['password'],
                 'role' => User::ROLE_ANGGOTA,
                 'status' => User::STATUS_MENUNGGU,
             ]);
@@ -50,33 +44,35 @@ class AuthController extends Controller
             return $user;
         });
 
+        try {
+            $user->sendEmailVerificationNotification();
+        } catch (Throwable $e) {
+            report($e);
+        }
+
         return response()->json([
-            'message' => 'Pendaftaranmu sudah terkirim dan lagi dicek admin.',
+            'message' => 'Pendaftaranmu sudah terkirim. Cek emailmu untuk konfirmasi ya.',
             'data' => new UserResource($user->load('anggota')),
         ], 201);
     }
 
-    /**
-     * POST /api/login (KF-04).
-     */
     public function login(LoginRequest $request): JsonResponse
     {
         $data = $request->validated();
 
         $user = User::with('anggota')->where('email', $data['email'])->first();
 
-        // KP-04.1: satu pesan yang sama, agar tidak membocorkan email mana yang terdaftar.
         if ($user === null || ! Hash::check($data['password'], $user->password)) {
             throw ValidationException::withMessages([
                 'email' => 'Email atau kata sandinya belum cocok. Coba cek lagi ya.',
             ]);
         }
 
-        // KP-03.3, KP-04.2, KP-04.3: hanya akun aktif yang boleh mendapat token.
         if (! $user->isAktif()) {
             return response()->json([
                 'message' => $this->pesanStatusTidakAktif($user),
                 'status_akun' => $user->status,
+                'email_terkonfirmasi' => $user->hasVerifiedEmail(),
                 'catatan' => $user->anggota?->catatan_verifikasi,
             ], 403);
         }
@@ -89,9 +85,7 @@ class AuthController extends Controller
         ]);
     }
 
-    /**
-     * POST /api/logout — menghapus token yang sedang dipakai (KP-04.6).
-     */
+    // Keluar
     public function logout(Request $request): JsonResponse
     {
         $request->user()->currentAccessToken()->delete();
@@ -99,9 +93,7 @@ class AuthController extends Controller
         return response()->json(['message' => 'Kamu sudah keluar. Sampai jumpa lagi!']);
     }
 
-    /**
-     * GET /api/me — pengguna yang sedang login.
-     */
+    // Data pengguna yang sedang login
     public function me(Request $request): JsonResponse
     {
         return response()->json([
@@ -109,11 +101,13 @@ class AuthController extends Controller
         ]);
     }
 
-    /**
-     * Pesan penolakan login sesuai status akun (PRD §8.1).
-     */
+    // Pesan penolakan login sesuai status akun
     private function pesanStatusTidakAktif(User $user): string
     {
+        if ($user->status === User::STATUS_MENUNGGU && ! $user->hasVerifiedEmail()) {
+            return 'Konfirmasi emailmu dulu ya. Cek kotak masuk atau folder spam, lalu klik tautannya.';
+        }
+
         return match ($user->status) {
             User::STATUS_MENUNGGU => 'Kamu belum bisa masuk dulu. Tunggu kabar dari admin ya, biasanya tidak lama.',
             User::STATUS_DITOLAK => 'Admin belum menyetujui pendaftaranmu. Kalau ada pertanyaan, hubungi pengurus ya.',

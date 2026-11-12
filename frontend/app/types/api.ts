@@ -1,6 +1,5 @@
-// Tipe data API. Bentuknya mengikuti app/Http/Resources di backend.
 
-// ------------------------------------------------------------ Bentuk umum
+// Bentuk umum
 
 export interface TautanHalaman {
   url: string | null
@@ -19,7 +18,7 @@ export interface MetaHalaman {
   total: number
 }
 
-/** Respons daftar berpaginasi: { data, links, meta }. */
+// Respons daftar berpaginasi
 export interface ResponsHalaman<T> {
   data: T[]
   links: {
@@ -31,26 +30,27 @@ export interface ResponsHalaman<T> {
   meta: MetaHalaman
 }
 
-/** Respons satu data: { data }. */
+// Respons satu data
 export interface ResponsData<T> {
   data: T
 }
 
-/** Bentuk galat validasi Laravel (HTTP 422). */
+// Galat validasi
 export interface GalatValidasi {
   message: string
   errors: Record<string, string[]>
 }
 
-/** Bentuk umum galat API; sebagian endpoint menambah kolom khusus. */
+// Bentuk umum galat API
 export interface GalatApi {
   message: string
   status_akun?: StatusAkun
+  email_terkonfirmasi?: boolean
   catatan?: string | null
   errors?: Record<string, string[]>
 }
 
-// ---------------------------------------------------------------- Pengguna
+// Pengguna
 
 export type Peran = 'admin' | 'anggota'
 export type StatusAkun = 'menunggu' | 'aktif' | 'ditolak' | 'nonaktif'
@@ -70,6 +70,7 @@ export interface User {
   id: number
   nama: string
   email: string
+  email_terkonfirmasi: boolean
   role: Peran
   status: StatusAkun
   terdaftar_pada: string | null
@@ -86,7 +87,7 @@ export interface ResponsLogin {
   user: User
 }
 
-// ------------------------------------------------------ Struktur organisasi
+// Struktur organisasi
 
 export interface Divisi {
   id: number
@@ -106,7 +107,6 @@ export interface Periode {
   tahun_mulai: number
   tahun_selesai: number
   is_aktif: boolean
-  /** Draf 2.5: periode aktif dari tahun lalu; perubahan berikutnya memulai periode baru. */
   akan_berganti: boolean
 }
 
@@ -121,7 +121,7 @@ export interface Kepengurusan {
   jabatan?: Jabatan | null
 }
 
-/** Pengurus yang tampil di halaman publik (tanpa data pribadi). */
+// Pengurus publik
 export interface PengurusPublik {
   nama: string
   jabatan: string
@@ -138,7 +138,7 @@ export interface StrukturPublik {
   divisi: DivisiPublik[]
 }
 
-// ------------------------------------------- Riwayat struktur (Draf 2.5, KP-07.7–07.8)
+// Riwayat struktur
 
 export type AksiRiwayatStruktur = 'tambah' | 'ubah' | 'hapus' | 'periode_baru'
 
@@ -148,7 +148,7 @@ export interface PotretPengurus {
   divisi: string | null
 }
 
-/** Satu catatan log perubahan struktur. */
+// Log struktur
 export interface LogStruktur {
   id: number
   aksi: AksiRiwayatStruktur
@@ -168,18 +168,17 @@ export interface PerbandinganStruktur {
 export interface RiwayatStruktur {
   periode: Periode
   periode_sebelumnya: Periode | null
-  /** null bila periode ini tidak punya pembanding (periode pertama). */
   perbandingan: PerbandinganStruktur | null
   log: LogStruktur[]
 }
 
-// ------------------------------------------------------------------ Materi
+// Materi
 
 export type StatusMateri = 'draf' | 'diajukan' | 'terbit' | 'ditolak'
 export type StatusRevisi = 'draf' | 'diajukan' | 'disetujui' | 'ditolak'
 export type KeputusanVerifikasi = 'disetujui' | 'ditolak'
 
-/** Delta Quill disimpan apa adanya (JSON). */
+// Konten Quill
 export type KontenQuill = Record<string, unknown>
 
 export interface Verifikasi {
@@ -204,12 +203,9 @@ export interface Revisi {
   materi_id: number
   nomor_versi: number
   status: StatusRevisi
-  /** Draf 2.3: bagian materi disimpan per versi (KP-12.4, KP-13.4). */
   judul: string
   ringkasan: string | null
-  /** URL gambar sampul versi ini. */
   sampul: string | null
-  /** Hanya ikut bila relasinya dimuat backend. */
   kategori?: Kategori[]
   konten: KontenQuill
   konten_html: string
@@ -220,25 +216,22 @@ export interface Revisi {
     judul: string
     slug: string
     status: StatusMateri
-    /** Terisi bila materi pernah terbit; dipakai subteks antrean admin. */
     diterbitkan_pada?: string | null
     penulis?: RingkasPengguna
   }
   verifikasi?: Verifikasi[]
 }
 
-/** Pengajuan penarikan materi dari publik (KF-20). */
+// Penarikan materi
 export type StatusPenarikan = 'diajukan' | 'disetujui' | 'ditolak' | 'dibatalkan'
 
 export interface Penarikan {
   id: number
   status: StatusPenarikan
-  /** Alasan & catatan hanya dikirim kepada penulis dan admin (KP-20.7). */
   alasan?: string
   catatan?: string | null
   diajukan_pada: string | null
   diputuskan_pada: string | null
-  /** Ringkasan materi; ada di antrean admin (KP-20.4). */
   materi?: {
     id: number
     judul: string
@@ -248,12 +241,11 @@ export interface Penarikan {
   }
 }
 
-/** Kategori materi (KF-19). Semua materi wajib punya minimal satu kategori. */
+// Kategori materi
 export interface Kategori {
   id: number
   nama: string
   slug: string
-  /** Jumlah materi pemakai; hanya dikirim di daftar admin (KP-19.1). */
   jumlah_materi?: number
 }
 
@@ -262,7 +254,6 @@ export interface MateriRingkas {
   judul: string
   slug: string
   ringkasan: string | null
-  /** URL gambar sampul untuk thumbnail daftar (KF-18). */
   sampul: string | null
   status: StatusMateri
   penulis?: RingkasPengguna
@@ -274,39 +265,29 @@ export interface MateriRingkas {
     status: StatusRevisi
   } | null
   jumlah_komentar?: number
-  /** Kategori revisi terakhir untuk chip di baris daftar (KP-19.3, KP-19.4). */
   kategori?: Kategori[]
-  /** Versi publik yang sedang tampil; null bila materi tidak terbit (KP-16.4). */
   versi_publik?: VersiPublik | null
-  /** Versi publik terakhir, tetap ada setelah ditarik (KP-10.7). */
   versi_publik_terakhir?: VersiPublik | null
-  /** Pengajuan penarikan yang menunggu (KF-20). */
   penarikan?: Penarikan | null
-  /** Perkiraan waktu baca dari Resource (DESIGN.md §9). */
   menit_baca?: number | null
   dibuat_pada: string | null
   diperbarui_pada: string | null
 }
 
-/** Respons GET /materi/{id}/edit dan simpan materi. */
+// Data editor
 export interface DataEditor {
   materi: MateriRingkas
-  /** Path sampul apa adanya (isi `sampul` di MateriRingkas berupa URL). */
   sampul_path: string | null
-  /** Id kategori terpilih, untuk mencentang pilihan di editor (KP-19.2). */
   kategori_ids: number[]
   revisi: Revisi | null
-  /** Versi publik terakhir untuk perbandingan sebelum mengajukan (KP-10.7). */
   versi_publik_terakhir: VersiPublik | null
 }
 
-/** Isi formulir editor Quill. */
+// Isi formulir editor Quill
 export interface PayloadMateri {
   judul: string
   ringkasan?: string | null
-  /** Path berkas hasil POST /unggah-sampul, bukan URL. */
   sampul?: string | null
-  /** Id kategori terpilih; wajib minimal satu (KF-19, KP-19.2). */
   kategori: number[]
   konten: KontenQuill
   konten_html: string
@@ -317,13 +298,13 @@ export interface ResponsUnggahGambar {
   url: string
 }
 
-/** Respons POST /unggah-sampul (KF-18). */
+// Respons unggah sampul
 export interface ResponsUnggahSampul {
   path: string
   url: string
 }
 
-/** Nomor versi yang sedang terbit untuk umum (KP-16.4). */
+// Versi publik
 export interface VersiPublik {
   id: number
   nomor_versi: number
@@ -337,51 +318,40 @@ export interface MateriDetail {
   status: StatusMateri
   diterbitkan_pada: string | null
   penulis?: RingkasPengguna
-  /** Isi revisi terakhir yang ditampilkan di halaman anggota. */
   revisi?: Revisi | null
-  /** URL sampul revisi terakhir. */
   sampul?: string | null
-  /** Hanya terisi selama materi terbit (KP-16.4). */
   versi_publik?: VersiPublik | null
-  /** Tetap ada setelah materi ditarik (KP-10.7). */
   versi_publik_terakhir?: VersiPublik | null
   penarikan?: Penarikan | null
   riwayat?: RevisiRingkas[]
   jumlah_komentar?: number
-  /** Kategori materi untuk chip di halaman baca (KF-19, KP-19.4). */
   kategori?: Kategori[]
 }
 
-/** Respons GET /admin/revisi/{id}: revisi diajukan + versi publik pembanding (KP-11.2). */
+// Data tinjau revisi
 export interface DataTinjauRevisi {
   revisi: Revisi
   versi_terbit: Revisi | null
 }
 
-// -------------------------------------------------------- Publikasi (KF-17)
-
-/** Kartu daftar publikasi; sengaja tanpa data internal. */
+// Kartu daftar publikasi
 export interface MateriPublikRingkas {
   id: number
   judul: string
   slug: string
   ringkasan: string | null
-  /** URL gambar sampul kartu artikel (KF-18). */
   sampul: string | null
   penulis?: { nama: string }
   diterbitkan_pada: string | null
-  /** Kategori artikel untuk chip di kartu (KF-19, KP-19.4). */
   kategori?: Kategori[]
-  /** Perkiraan waktu baca dari Resource (DESIGN.md §9). */
   menit_baca?: number | null
 }
 
 export interface MateriPublikDetail extends MateriPublikRingkas {
-  /** Isi versi publik (revisi disetujui terakhir). */
   konten_html: string | null
 }
 
-// ------------------------------------------------------------------ Forum
+// Forum
 
 export interface Komentar {
   id: number
@@ -390,13 +360,12 @@ export interface Komentar {
   isi: string
   gambar: string | null
   user?: RingkasPengguna
-  /** Terisi hanya pada komentar induk: balasan diambil terpisah (KP-14.5). */
   balasan?: Komentar[]
   jumlah_balasan?: number
   dibuat_pada: string | null
 }
 
-// ------------------------------------------------------------------ Dasbor
+// Dasbor
 
 export interface DasborAnggota {
   materi: {
@@ -412,32 +381,23 @@ export interface DasborAnggota {
 export interface DasborAdmin {
   pendaftar_menunggu: number
   revisi_diajukan: number
-  /** Antrean penarikan materi (KF-20). */
   penarikan_diajukan: number
   anggota_aktif: number
   materi_terbit: number
 }
 
-// ----------------------------------------------------------------- Notifikasi
-
-/** Isi notifikasi (`data` pada tabel notifications) menurut jenisnya. */
+// Data notifikasi
 export interface DataNotifikasi {
   tipe: 'materi_diajukan' | 'revisi_diverifikasi' | 'penarikan_diajukan' | 'penarikan_diputuskan' | 'komentar_baru'
   judul: string
-  /** Nama penulis; hanya ada pada notifikasi untuk admin. */
   penulis?: string
-  /** Hanya ada pada notifikasi hasil verifikasi. */
   keputusan?: KeputusanVerifikasi
-  /** Catatan admin; hanya dikirim ke penulis materi. */
   catatan?: string | null
-  /** Alasan penarikan; hanya pada `penarikan_diajukan` (KF-20). */
   alasan?: string
-  /** Tidak ada pada notifikasi penarikan. */
   nomor_versi?: number
   materi_id: number
   revisi_id?: number
   penarikan_id?: number
-  /** KF-23 (`komentar_baru`): `komentar` untuk penulis materi, `balasan` untuk yang dibalas. */
   jenis?: 'komentar' | 'balasan'
   materi_slug?: string
   komentar_id?: number
@@ -447,7 +407,6 @@ export interface DataNotifikasi {
 }
 
 export interface Notifikasi {
-  /** UUID notifikasi (tabel notifications bawaan Laravel). */
   id: string
   data: DataNotifikasi
   dibaca: boolean
@@ -455,31 +414,24 @@ export interface Notifikasi {
   dibuat_pada: string | null
 }
 
-// ------------------------------------------------------ Beranda pengunjung (KF-18)
-
-/** Konten beranda yang diatur admin: cerita Al-Futuuhat dan kontak organisasi. */
+// Pengaturan beranda
 export interface PengaturanBeranda {
   cerita_judul: string | null
-  /** HTML cerita yang sudah disanitasi backend. */
   cerita_isi: string | null
-  /** Halaman Tentang kami (KF-26): visi teks biasa, misi satu poin per baris. */
   visi?: string | null
   misi?: string | null
-  /** Kontak organisasi di kaki halaman publik (KF-22); kolom kosong = null. */
   kontak?: KontakOrganisasi
   diperbarui_pada: string | null
 }
 
 export interface KontakOrganisasi {
   alamat: string | null
-  /** Angka saja dengan awalan 62, siap dipakai di wa.me. */
   whatsapp: string | null
   email: string | null
-  /** Nama akun tanpa "@". */
   instagram: string | null
 }
 
-// ------------------------------------------------------ Statistik admin (KF-25)
+// Statistik admin
 
 export interface StatistikAdmin {
   materi_terpopuler: {
@@ -498,34 +450,32 @@ export interface StatistikAdmin {
     total: number
   }[]
 }
-// ------------------------------------------------------ Program kegiatan (KF-21)
+// Program kegiatan
 
 export type StatusProgram = 'aktif' | 'selesai'
 export type JenisDokumentasi = 'foto' | 'video' | 'youtube'
 
-/** Program pada daftar publik `/program`. PIC hanya berisi nama (KNF-02). */
+// Program ringkas
 export interface ProgramRingkas {
   id: number
   nama: string
   slug: string
   ringkasan: string | null
   jadwal: string | null
-  /** URL gambar sampul; null bila tidak ada. */
   sampul: string | null
   status: StatusProgram
   pic: { nama: string | null }[]
   jumlah_foto?: number
-  /** Video MP4 + tautan YouTube. */
   jumlah_video?: number
 }
 
-/** Halaman baca satu program: ditambah penjelasan rinci (HTML tersanitasi). */
+// Halaman baca satu program
 export interface ProgramDetail extends ProgramRingkas {
   deskripsi: string
   diperbarui_pada: string | null
 }
 
-/** Program untuk halaman admin: PIC beserta id anggota untuk formulir. */
+// Program untuk halaman admin
 export interface ProgramAdmin extends Omit<ProgramRingkas, 'pic'> {
   deskripsi?: string
   pic: PicProgram[]
@@ -537,15 +487,12 @@ export interface PicProgram {
   nama: string | null
 }
 
-/** Satu butir dokumentasi program (KP-21.3). */
+// Satu butir dokumentasi program
 export interface DokumentasiProgram {
   id: number
   jenis: JenisDokumentasi
-  /** Berkas di server (foto/video) atau tautan menonton di YouTube. */
   url: string
-  /** Alamat pemutar sematan YouTube; null untuk foto dan video MP4. */
   embed: string | null
-  /** Gambar kecil untuk grid; null untuk video MP4. */
   thumbnail: string | null
   keterangan: string | null
   dibuat_pada: string | null

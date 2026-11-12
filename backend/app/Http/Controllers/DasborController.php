@@ -6,16 +6,13 @@ use App\Models\Materi;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
-/**
- * Ringkasan pribadi anggota (F10): jumlah materi per status + notifikasi belum dibaca.
- */
+// Ringkasan pribadi anggota
 class DasborController extends Controller
 {
     public function index(Request $request): JsonResponse
     {
         $user = $request->user();
 
-        // Satu query GROUP BY, bukan empat kali count.
         $jumlah = Materi::query()
             ->where('penulis_id', $user->id)
             ->selectRaw('status, count(*) as jumlah')

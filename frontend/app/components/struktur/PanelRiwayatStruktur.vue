@@ -1,7 +1,5 @@
 <template>
-  <!-- Riwayat perubahan struktur satu periode (Draf 2.5, KP-07.8):
-       perbandingan dengan periode sebelumnya dan log per aksi admin.
-       Dipakai halaman anggota /struktur dan tab Riwayat di admin. -->
+  <!-- Riwayat perubahan struktur -->
   <section>
     <AppAlert v-if="galat" variant="bahaya" title="Riwayat belum bisa dimuat">{{ galat }}</AppAlert>
 
@@ -80,7 +78,7 @@
         </template>
       </div>
 
-      <!-- Log perubahan, terbaru di atas -->
+      <!-- Log perubahan -->
       <div v-else class="pt-2">
         <p v-if="riwayat.log.length === 0" class="pt-4 text-sm text-teks-lembut">
           Belum ada perubahan yang tercatat pada periode ini.
@@ -156,7 +154,6 @@ async function muat(id: number) {
   }
 }
 
-// Muat ulang setiap kali periode yang dipilih berganti.
 watch(
   () => props.periodeId,
   (id) => {
@@ -165,7 +162,7 @@ watch(
   { immediate: true },
 )
 
-/** Dipanggil admin setelah mengubah susunan agar log langsung terbarui. */
+// Muat ulang riwayat
 function muatUlang() {
   if (props.periodeId) return muat(props.periodeId)
 }

@@ -1,5 +1,5 @@
 <template>
-  <!-- Filter segmen: pil berisi beberapa pilihan status (DESIGN.md §5, layar 18 & 20). -->
+  <!-- Filter segmen -->
   <div class="seg" role="group" :aria-label="label">
     <button
       v-for="opsi in opsi"
@@ -17,7 +17,6 @@
 interface OpsiSegmen {
   nilai: string
   label: string
-  /** Angka jumlah di sebelah label (opsional). */
   jumlah?: number
 }
 

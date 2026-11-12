@@ -10,9 +10,7 @@ use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
-/**
- * KF-18 — gambar sampul materi untuk daftar dan kartu artikel publik.
- */
+// Sampul materi
 class SampulMateriTest extends TestCase
 {
     use RefreshDatabase;
@@ -23,8 +21,6 @@ class SampulMateriTest extends TestCase
     }
 
     /**
-     * Isian editor Quill yang valid.
-     *
      * @return array<string, mixed>
      */
     private function dataMateri(array $ubah = []): array
@@ -32,20 +28,17 @@ class SampulMateriTest extends TestCase
         return array_merge([
             'judul' => 'Fiqih Puasa Ramadhan',
             'ringkasan' => 'Ringkasan materi puasa.',
-            // Kategori wajib diisi minimal satu (KF-19, KP-19.2).
             'kategori' => [$this->idKategori()],
             'konten' => ['ops' => [['insert' => "Isi materi puasa.\n"]]],
             'konten_html' => '<p>Isi materi puasa.</p>',
         ], $ubah);
     }
 
-    /** Satu kategori contoh, dipakai berulang dalam satu tes. */
     private function idKategori(string $nama = 'Fiqih'): int
     {
         return Kategori::firstOrCreate(['nama' => $nama], ['slug' => strtolower($nama)])->id;
     }
 
-    /** Unggah sampul lalu kembalikan path-nya. */
     private function unggahSampul(string $token, string $nama = 'sampul.jpg'): string
     {
         return $this->withToken($token)
@@ -54,6 +47,7 @@ class SampulMateriTest extends TestCase
             ->json('path');
     }
 
+    // KP-18.4
     public function test_sampul_tersimpan_dan_tampil_di_daftar_materi(): void
     {
         Storage::fake('public');
@@ -63,7 +57,6 @@ class SampulMateriTest extends TestCase
 
         $path = $this->unggahSampul($token);
 
-        // KP-18.4
         $id = $this->withToken($token)
             ->postJson('/api/materi', $this->dataMateri(['sampul' => $path]))
             ->assertCreated()
@@ -76,6 +69,7 @@ class SampulMateriTest extends TestCase
         $this->assertStringContainsString('/storage/sampul-materi/', (string) $respons->json('data.0.sampul'));
     }
 
+    // KP-17.1, KP-18.4
     public function test_sampul_tampil_di_kartu_artikel_publik(): void
     {
         Storage::fake('public');
@@ -99,7 +93,6 @@ class SampulMateriTest extends TestCase
             'status' => 'disetujui',
         ]);
 
-        // KP-17.1 + KP-18.4: pengunjung melihat sampul pada kartu artikel.
         $respons = $this->getJson('/api/publik/materi')->assertOk();
 
         $this->assertStringContainsString('/storage/sampul-materi/', (string) $respons->json('data.0.sampul'));
@@ -109,7 +102,6 @@ class SampulMateriTest extends TestCase
     {
         $penulis = User::factory()->create();
 
-        // Path dari folder lain (atau berkas lain di server) tidak boleh dipakai.
         $this->withToken($this->token($penulis))
             ->postJson('/api/materi', $this->dataMateri(['sampul' => 'gambar-materi/orang-lain.jpg']))
             ->assertStatus(422)
@@ -120,7 +112,6 @@ class SampulMateriTest extends TestCase
     {
         $penulis = User::factory()->create();
 
-        // KNF-03
         $this->withToken($this->token($penulis))
             ->post('/api/unggah-sampul', [
                 'sampul' => UploadedFile::fake()->create('dokumen.pdf', 100, 'application/pdf'),
@@ -154,6 +145,7 @@ class SampulMateriTest extends TestCase
         Storage::disk('public')->assertExists($sampulBaru);
     }
 
+    // KP-18.4
     public function test_sampul_revisi_materi_terbit_berubah_tanpa_mengubah_sampul_publik(): void
     {
         Storage::fake('public');
@@ -168,7 +160,6 @@ class SampulMateriTest extends TestCase
             ->assertCreated()
             ->json('data.materi.id');
 
-        // Materi sedang terbit; revisi terakhir masih draf.
         Materi::findOrFail($id)->update([
             'status' => Materi::STATUS_TERBIT,
             'diterbitkan_pada' => now(),
@@ -180,12 +171,10 @@ class SampulMateriTest extends TestCase
             ->putJson("/api/materi/{$id}", $this->dataMateri(['sampul' => $sampulPengganti]))
             ->assertOk();
 
-        // KP-18.4 (Draf 2.3): sampul revisi berganti, sampul versi publik tetap.
         $materi = Materi::findOrFail($id);
         $this->assertSame($sampulAwal, $materi->sampul);
         $this->assertSame($sampulPengganti, $materi->revisiTerakhir()->first()->sampul);
 
-        // Berkas sampul publik tidak dihapus karena masih dipakai.
         Storage::disk('public')->assertExists($sampulAwal);
         Storage::disk('public')->assertExists($sampulPengganti);
     }

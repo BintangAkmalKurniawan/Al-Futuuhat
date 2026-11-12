@@ -1,5 +1,5 @@
 <template>
-  <!-- Kelola kategori materi (KF-19, KP-19.1). -->
+  <!-- Kelola kategori materi -->
   <div>
     <header class="flex flex-wrap items-end justify-between gap-4 pb-8">
       <div>
@@ -17,7 +17,7 @@
       {{ galat }}
     </AppAlert>
 
-    <!-- Kerangka memuat berbentuk baris tabel. -->
+    <!-- Kerangka memuat -->
     <div v-if="memuat" class="animate-pulse space-y-5 pt-2">
       <div v-for="n in 4" :key="n" class="h-4 w-full rounded-full bg-permukaan" />
     </div>
@@ -126,7 +126,6 @@ const daftar = ref<Kategori[]>([])
 const memuat = ref(true)
 const galat = ref('')
 
-// Modal tambah/ubah: `sedangEdit` null berarti menambah kategori baru.
 const modalForm = ref(false)
 const sedangEdit = ref<Kategori | null>(null)
 const nama = ref('')
@@ -188,7 +187,6 @@ async function simpanForm() {
     tampilkan(respons.message, 'sukses')
     await muat()
   } catch (galatServer) {
-    // Galat 422 (mis. "Nama kategori sudah ada.") tampil di bawah isian nama.
     galatForm.value = galatIsian(galatServer, 'nama')
 
     if (!galatForm.value) {
@@ -219,7 +217,6 @@ async function hapusSekarang() {
     tampilkan(respons.message, 'sukses')
     await muat()
   } catch (galatServer) {
-    // Backend menolak kategori yang masih dipakai materi (KP-19.1).
     galatHapus.value = galatIsian(galatServer, 'kategori') || pesanGalat(galatServer)
   } finally {
     memuatHapus.value = false

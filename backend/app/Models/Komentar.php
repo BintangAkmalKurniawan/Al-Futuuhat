@@ -8,10 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-/**
- * Komentar forum pada materi terbit — PRD §10, KF-14.
- * Balasan hanya satu tingkat: `parent` adalah komentar induk, `balasan` isinya.
- */
+// Komentar forum
 class Komentar extends Model
 {
     /** @use HasFactory<KomentarFactory> */

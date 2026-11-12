@@ -7,10 +7,7 @@ declare module '#app' {
   }
 }
 
-/**
- * Klien siaran Laravel Reverb untuk forum real-time (KF-15).
- * Bila kunci Reverb belum diatur, forum tetap berjalan tanpa pembaruan otomatis.
- */
+// Klien Laravel Echo
 export default defineNuxtPlugin(() => {
   const config = useRuntimeConfig()
   const token = useCookie<string | null>('token')
@@ -19,7 +16,6 @@ export default defineNuxtPlugin(() => {
     return { provide: { echo: null } }
   }
 
-  // Laravel Echo memakai protokol Pusher; objeknya perlu tersedia di window.
   ;(window as unknown as { Pusher: typeof Pusher }).Pusher = Pusher
 
   const echo = new Echo({
@@ -34,8 +30,6 @@ export default defineNuxtPlugin(() => {
     auth: {
       headers: {
         Accept: 'application/json',
-        // Dibaca saat otorisasi kanal, sehingga token hasil login terbaru
-        // tetap terpakai tanpa perlu memuat ulang halaman.
         get Authorization() {
           return token.value ? `Bearer ${token.value}` : ''
         },

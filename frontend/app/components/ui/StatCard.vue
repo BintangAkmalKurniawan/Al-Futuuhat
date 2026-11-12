@@ -1,6 +1,5 @@
 <template>
-  <!-- Kartu angka ringkasan (DESIGN.md §5 StatCard).
-       Bila `ke` diisi, seluruh kartu menjadi tautan. -->
+  <!-- Kartu angka ringkasan -->
   <component
     :is="ke ? 'NuxtLink' : 'div'"
     :to="ke"
@@ -17,9 +16,7 @@
 defineProps<{
   label: string
   nilai: number | string
-  /** Subteks kecil di bawah angka, mis. "2 publikasi · 1 penarikan". */
   keterangan?: string
-  /** Tujuan klik; kosongkan bila kartu tidak perlu diklik. */
   ke?: string | Record<string, unknown>
 }>()
 </script>

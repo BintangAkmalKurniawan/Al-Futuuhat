@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Database\Factories\UserFactory;
+use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
@@ -10,15 +11,12 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 
-/**
- * Akun pengguna: pengunjung yang mendaftar, anggota, dan admin — PRD §10.
- */
-class User extends Authenticatable
+// Akun pengguna
+class User extends Authenticatable implements MustVerifyEmail
 {
     /** @use HasFactory<UserFactory> */
     use HasApiTokens, HasFactory, Notifiable;
 
-    // Status akun (PRD §8.1)
     public const STATUS_MENUNGGU = 'menunggu';
 
     public const STATUS_AKTIF = 'aktif';
@@ -27,7 +25,6 @@ class User extends Authenticatable
 
     public const STATUS_NONAKTIF = 'nonaktif';
 
-    // Peran pengguna (PRD §10)
     public const ROLE_ADMIN = 'admin';
 
     public const ROLE_ANGGOTA = 'anggota';
@@ -42,29 +39,30 @@ class User extends Authenticatable
     protected function casts(): array
     {
         return [
+            'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
     }
 
-    /** Data keanggotaan (no HP, alamat, foto, hasil verifikasi). */
+    // Data keanggotaan
     public function anggota(): HasOne
     {
         return $this->hasOne(Anggota::class);
     }
 
-    /** Materi yang ditulis pengguna ini. */
+    // Materi
     public function materi(): HasMany
     {
         return $this->hasMany(Materi::class, 'penulis_id');
     }
 
-    /** Komentar forum yang dikirim pengguna ini. */
+    // Komentar
     public function komentar(): HasMany
     {
         return $this->hasMany(Komentar::class);
     }
 
-    /** Keputusan verifikasi materi yang dibuat pengguna ini sebagai admin. */
+    // Keputusan verifikasi
     public function verifikasiMateri(): HasMany
     {
         return $this->hasMany(VerifikasiMateri::class, 'admin_id');

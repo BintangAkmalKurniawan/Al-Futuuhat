@@ -10,10 +10,7 @@ use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 
-/**
- * Komentar baru disiarkan ke kanal privat materi (KP-15.1, KP-15.3).
- * ShouldBroadcastNow = langsung dikirim, tanpa antrean.
- */
+// Siaran komentar baru
 class KomentarDibuat implements ShouldBroadcastNow
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
@@ -28,9 +25,7 @@ class KomentarDibuat implements ShouldBroadcastNow
         return [new PrivateChannel('materi.'.$this->komentar->materi_id)];
     }
 
-    /**
-     * Nama event di sisi frontend (Echo): komentar.dibuat
-     */
+    // Nama event
     public function broadcastAs(): string
     {
         return 'komentar.dibuat';

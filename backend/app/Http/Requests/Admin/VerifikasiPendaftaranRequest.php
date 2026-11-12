@@ -9,7 +9,7 @@ class VerifikasiPendaftaranRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return true; // hak akses admin dicek middleware
+        return true;
     }
 
     /**
@@ -19,7 +19,6 @@ class VerifikasiPendaftaranRequest extends FormRequest
     {
         return [
             'keputusan' => ['required', Rule::in(['disetujui', 'ditolak'])],
-            // KP-05.4: alasan penolakan wajib
             'catatan' => ['nullable', 'string', 'required_if:keputusan,ditolak'],
         ];
     }

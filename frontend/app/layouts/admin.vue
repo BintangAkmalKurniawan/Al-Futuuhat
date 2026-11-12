@@ -1,6 +1,6 @@
 <template>
   <div class="min-h-screen bg-kanvas text-teks lg:flex">
-    <!-- Sidebar 248 px; di layar kecil menjadi laci di atas konten (DESIGN.md §4). -->
+    <!-- Sidebar 248 px -->
     <aside
       class="border-b border-garis bg-permukaan lg:sticky lg:top-0 lg:h-screen lg:w-62 lg:shrink-0 lg:overflow-y-auto lg:border-r lg:border-b-0"
     >
@@ -58,8 +58,7 @@
 
         <slot name="navigasi" />
 
-        <!-- Akun: notifikasi dan keluar dari aplikasi (DESIGN.md §4).
-             Draf 2.6: admin tidak memakai layout anggota, jadi notifikasinya ada di sini. -->
+        <!-- Akun -->
         <div class="mt-5">
           <p class="px-3 pb-2 text-xs tracking-wider text-teks-redup uppercase">Akun</p>
 
@@ -117,7 +116,6 @@
 </template>
 
 <script setup lang="ts">
-// Logo resmi (tulisan putih, latar transparan) menggantikan wordmark teks.
 import logo from '~/assets/logo.png'
 import {
   Bell,
@@ -171,7 +169,6 @@ const menuGrup = computed(() => [
         label: 'Pemeriksaan materi',
         to: '/admin/verifikasi-materi',
         ikon: ClipboardCheck,
-        // Antrean gabungan: pengajuan publikasi + penarikan materi (KF-11, KF-20).
         jumlah: (ringkasan.value?.revisi_diajukan ?? 0) + (ringkasan.value?.penarikan_diajukan ?? 0),
       },
       { label: 'Arsip materi', to: '/materi', ikon: BookOpen, jumlah: 0 },
@@ -180,18 +177,15 @@ const menuGrup = computed(() => [
   },
   {
     judul: 'Kegiatan',
-    // Program kegiatan rutin beserta dokumentasinya (KF-21).
     item: [{ label: 'Program', to: '/admin/program', ikon: CalendarDays, jumlah: 0 }],
   },
   {
     judul: 'Tampilan',
-    // Konten beranda pengunjung: cerita Al-Futuuhat dan kontak organisasi.
     item: [{ label: 'Konten beranda', to: '/admin/beranda', ikon: Image, jumlah: 0 }],
   },
 ])
 
 function sedangAktif(to: string) {
-  // Dasbor hanya aktif persis di /admin agar menu lain tidak ikut menyala.
   if (to === '/admin') return route.path === '/admin'
 
   return route.path === to || route.path.startsWith(`${to}/`)
@@ -207,18 +201,17 @@ async function klikKeluar() {
   }
 }
 
-// Angka antrean di lencana sidebar (F2/F3).
+// Muat ringkasan antrean
 async function muatRingkasan() {
   try {
     const respons = await api.get<ResponsData<DasborAdmin>>('/admin/dasbor')
     ringkasan.value = respons.data
   } catch {
-    // Gagal memuat: menu tetap tampil tanpa lencana angka.
     ringkasan.value = null
   }
 }
 
-// Jumlah notifikasi belum dibaca diambil dari ringkasan pribadi (GET /dasbor).
+// Muat jumlah notifikasi
 async function muatNotifikasi() {
   try {
     const respons = await api.get<ResponsData<DasborAnggota>>('/dasbor')
@@ -233,8 +226,6 @@ onMounted(() => {
   muatNotifikasi()
 })
 
-// Laci menu ponsel ditutup dan angka notifikasi diperbarui setiap pindah halaman
-// (mis. setelah menandai notifikasi dibaca).
 watch(
   () => route.path,
   () => {

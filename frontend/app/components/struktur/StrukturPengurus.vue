@@ -1,7 +1,5 @@
 <template>
-  <!-- Kelola susunan pengurus periode saat ini (KF-07).
-       Draf 2.5: tanpa pemilih periode — periode dibuat otomatis per tahun (KP-07.1)
-       dan setiap perubahan tercatat di riwayat (KP-07.7). -->
+  <!-- Kelola susunan pengurus -->
   <div>
     <div class="flex flex-wrap items-end gap-3 border-t border-garis pt-6">
       <div class="max-w-xl">
@@ -25,7 +23,7 @@
       <AppButton :disabled="memuat" @click="bukaTambah">Tambah pengurus</AppButton>
     </div>
 
-    <!-- Tahun sudah berganti: perubahan berikutnya memulai periode baru (KP-07.1). -->
+    <!-- Tahun sudah berganti -->
     <AppAlert
       v-if="periodeAktif?.akan_berganti"
       variant="aksen"
@@ -40,7 +38,7 @@
       {{ galat }}
     </AppAlert>
 
-    <!-- Kerangka memuat berbentuk baris tabel. -->
+    <!-- Kerangka memuat -->
     <div v-else-if="memuat" class="animate-pulse space-y-5 pt-8">
       <div v-for="n in 3" :key="n" class="h-4 w-full rounded-full bg-permukaan" />
     </div>
@@ -85,7 +83,6 @@
               </span>
             </td>
             <td>
-              <!-- Tanpa divisi berarti pengurus inti (PRD §10). -->
               <span v-if="item.divisi">{{ item.divisi.nama_divisi }}</span>
               <span v-else class="text-teks-redup">— Pengurus inti</span>
             </td>
@@ -121,7 +118,7 @@
       </AppAlert>
 
       <form id="form-pengurus" novalidate class="space-y-4" @submit.prevent="simpan">
-        <!-- Pemilih anggota: cari lalu pilih satu anggota aktif. -->
+        <!-- Pemilih anggota -->
         <div>
           <p class="mb-1.5 text-xs font-medium tracking-wider text-teks-redup uppercase">
             Anggota<span class="text-bahaya" aria-hidden="true"> *</span>
@@ -304,7 +301,6 @@ const galatIsian = computed(() => ({
   divisi_id: galatForm.divisi_id?.[0] ?? '',
 }))
 
-// Anggota yang sudah menjabat pada periode ini tidak dapat dipilih lagi.
 const idTerpakai = computed(() => {
   const terpakai = new Set<number>()
 
@@ -336,8 +332,7 @@ async function muatAwal() {
   }
 }
 
-/** Pengurus + periode aktif. Dipanggil ulang setelah setiap perubahan, karena
- *  perubahan pertama di tahun baru dapat memulai periode baru. */
+// Pengurus + periode aktif
 async function muatPengurus() {
   const respons = await daftarPengurus()
 
@@ -356,7 +351,6 @@ async function cariDaftarAnggota() {
     })
 
     if (nomor === permintaanCari) {
-      // Hanya anggota yang punya baris anggota (bukan admin murni) yang bisa dipilih.
       hasilCari.value = respons.data.filter((item) => item.anggota?.id)
     }
   } catch {
@@ -367,7 +361,6 @@ async function cariDaftarAnggota() {
 }
 
 watch(cariAnggota, () => {
-  // Jangan mencari saat anggota sudah dipilih (kotak pencarian tersembunyi).
   if (anggotaTerpilih.value) return
 
   clearTimeout(penundaCari)
@@ -379,7 +372,7 @@ function kosongkanGalat() {
   galatFormUmum.value = ''
 }
 
-/** "Pratinjau bagan": membuka /struktur periode saat ini di tab baru. */
+// Pratinjau bagan
 function pratinjauBagan() {
   if (!periodeAktif.value) return
 
@@ -450,7 +443,6 @@ async function simpan() {
 
   memuatSimpan.value = true
 
-  // Draf 2.5: tanpa periode_id — backend mencatat pada periode saat ini.
   const payload = {
     jabatan_id: Number(form.jabatan_id),
     divisi_id: form.divisi_id === '' ? null : Number(form.divisi_id),
@@ -473,7 +465,6 @@ async function simpan() {
       galatForm[kunci] = daftarPesan
     }
 
-    // Galat `periode` (periode lama hanya-baca) tidak punya isian sendiri.
     if (isian.periode?.[0]) galatFormUmum.value = isian.periode[0]
     else if (Object.keys(isian).length === 0) galatFormUmum.value = pesanGalat(galatServer)
   } finally {

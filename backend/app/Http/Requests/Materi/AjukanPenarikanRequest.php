@@ -7,18 +7,12 @@ use Illuminate\Auth\Access\Response;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Gate;
 
-/**
- * Pengajuan penarikan materi dari publik oleh penulis (KF-20, KP-20.1).
- */
+// Pengajuan penarikan materi dari publik oleh penulis
 class AjukanPenarikanRequest extends FormRequest
 {
-    /**
-     * Hanya penulis materi (MateriPolicy::tarik). Diperiksa di sini supaya
-     * bukan penulis mendapat 403 lebih dulu, sebelum validasi alasan (422).
-     */
+    // Hanya penulis materi
     public function authorize(): Response
     {
-        // inspect() mengembalikan Response sehingga pesan penolakan Policy ikut terkirim.
         return Gate::inspect('tarik', $this->route('materi'));
     }
 

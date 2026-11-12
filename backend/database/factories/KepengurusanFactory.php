@@ -27,7 +27,7 @@ class KepengurusanFactory extends Factory
         ];
     }
 
-    /** Pengurus inti: tanpa divisi (mis. Ketua). */
+    // Pengurus inti
     public function inti(): static
     {
         return $this->state(fn (array $attributes) => [

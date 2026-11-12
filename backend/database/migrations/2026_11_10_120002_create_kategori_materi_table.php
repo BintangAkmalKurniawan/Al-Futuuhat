@@ -6,9 +6,7 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Pivot kategori per materi (KF-19, KP-19.2) — banyak kategori per materi.
-     */
+    // Pivot kategori per materi
     public function up(): void
     {
         Schema::create('kategori_materi', function (Blueprint $table) {
@@ -17,7 +15,6 @@ return new class extends Migration
             $table->foreignId('kategori_id')->constrained('kategori')->cascadeOnDelete();
             $table->timestamps();
 
-            // Satu kategori tidak boleh terpasang dua kali pada materi yang sama.
             $table->unique(['materi_id', 'kategori_id']);
         });
     }

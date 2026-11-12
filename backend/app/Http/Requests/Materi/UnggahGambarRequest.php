@@ -4,9 +4,7 @@ namespace App\Http\Requests\Materi;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-/**
- * Unggahan gambar untuk editor Quill (KP-08.2, KNF-03).
- */
+// Unggahan gambar untuk editor Quill
 class UnggahGambarRequest extends FormRequest
 {
     public function authorize(): bool

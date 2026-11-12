@@ -7,9 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-/**
- * Catatan keputusan admin atas sebuah revisi — PRD §10, KP-11.5.
- */
+// Catatan keputusan admin atas sebuah revisi
 class VerifikasiMateri extends Model
 {
     /** @use HasFactory<VerifikasiMateriFactory> */

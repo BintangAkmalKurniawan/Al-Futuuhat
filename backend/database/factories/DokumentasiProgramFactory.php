@@ -14,8 +14,6 @@ class DokumentasiProgramFactory extends Factory
     protected $model = DokumentasiProgram::class;
 
     /**
-     * Bawaan: tautan YouTube, agar tidak membutuhkan berkas sungguhan.
-     *
      * @return array<string, mixed>
      */
     public function definition(): array

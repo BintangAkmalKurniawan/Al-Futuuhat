@@ -6,24 +6,24 @@ use App\Models\Anggota;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 
-/**
- * Akun admin (ketua) yang dibuat dari variabel .env — PRD §10.
- * Admin juga anggota, jadi tetap punya satu baris data keanggotaan (PRD §5).
- */
+// Akun admin
 class AdminSeeder extends Seeder
 {
     public function run(): void
     {
-        // env() aman dipakai di seeder karena seeder hanya dijalankan dari terminal
         $user = User::updateOrCreate(
             ['email' => env('ADMIN_EMAIL', 'admin@alfutuuhat.test')],
             [
                 'nama' => env('ADMIN_NAMA', 'Administrator Al-Futuuhat'),
-                'password' => env('ADMIN_PASSWORD', 'admin12345'), // otomatis di-hash oleh cast 'hashed'
+                'password' => env('ADMIN_PASSWORD', 'admin12345'),
                 'role' => User::ROLE_ADMIN,
                 'status' => User::STATUS_AKTIF,
             ]
         );
+
+        if (! $user->hasVerifiedEmail()) {
+            $user->markEmailAsVerified();
+        }
 
         Anggota::updateOrCreate(
             ['user_id' => $user->id],

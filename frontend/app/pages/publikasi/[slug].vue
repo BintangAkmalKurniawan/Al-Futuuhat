@@ -1,5 +1,5 @@
 <template>
-  <!-- Halaman baca publik: hanya isi versi publik, tanpa riwayat & forum (KP-17.4). -->
+  <!-- Halaman baca publik -->
   <div class="mx-auto w-full max-w-baca">
     <NuxtLink
       to="/publikasi"
@@ -9,7 +9,6 @@
       Semua artikel
     </NuxtLink>
 
-    <!-- Kerangka memuat berbentuk seperti judul dan paragraf. -->
     <div v-if="memuat" class="mt-8 animate-pulse space-y-4">
       <div class="h-9 w-3/4 rounded-full bg-permukaan" />
       <div class="h-4 w-40 rounded-full bg-permukaan" />
@@ -33,7 +32,6 @@
         ke-kategori="/publikasi"
       />
 
-      <!-- Bagikan artikel (KF-22) dan atur ukuran tulisan. -->
       <div class="mt-8 flex flex-wrap items-center justify-between gap-3">
         <TombolBagikan :judul="materi.judul" />
         <div class="flex flex-wrap items-center gap-2">
@@ -46,8 +44,7 @@
         <IsiMateri :html="materi.konten_html" />
       </div>
 
-      <!-- Penutup: penulis, keterangan peninjauan, lalu ajakan bergabung
-           sebagai pengganti forum (DESIGN.md §6.1 no. 03). -->
+      <!-- Penutup -->
       <footer class="mt-14 border-t border-garis pt-7">
         <div class="flex flex-wrap items-center gap-3.5">
           <AvatarInisial :nama="materi.penulis?.nama" ukuran="besar" />

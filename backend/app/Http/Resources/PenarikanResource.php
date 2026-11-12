@@ -5,12 +5,7 @@ namespace App\Http\Resources;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-/**
- * Pengajuan penarikan materi dari publik (KF-20).
- *
- * Alasan dan catatan admin hanya dikirim kepada penulis materi dan admin
- * (KP-20.7). Untuk memeriksa penulis, relasi `materi` harus sudah tersedia.
- */
+// Pengajuan penarikan materi dari publik
 class PenarikanResource extends JsonResource
 {
     /**
@@ -31,7 +26,6 @@ class PenarikanResource extends JsonResource
             'catatan' => $this->when($bolehLihatRincian, $this->catatan),
             'diajukan_pada' => $this->created_at?->toIso8601String(),
             'diputuskan_pada' => $this->diputuskan_pada?->toIso8601String(),
-            // Ringkasan materi untuk antrean admin (KP-20.4).
             'materi' => $this->whenLoaded('materi', fn () => [
                 'id' => $this->materi->id,
                 'judul' => $this->materi->judul,

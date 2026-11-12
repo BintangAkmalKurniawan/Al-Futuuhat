@@ -70,7 +70,6 @@ function pilihBerkas(event: Event) {
   bersihkanPratinjau()
   model.value = berkas
 
-  // URL sementara untuk pratinjau; dicabut lagi saat berganti/komponen dilepas.
   if (berkas) pratinjau.value = URL.createObjectURL(berkas)
 }
 

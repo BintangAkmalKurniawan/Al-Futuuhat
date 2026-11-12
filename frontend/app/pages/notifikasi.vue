@@ -23,7 +23,7 @@
       {{ galat }}
     </AppAlert>
 
-    <!-- Kerangka memuat berbentuk baris notifikasi (DESIGN.md §11). -->
+    <!-- Kerangka memuat -->
     <div v-if="memuat" class="mt-5 animate-pulse space-y-6 border-t border-garis pt-6">
       <div v-for="n in 3" :key="n" class="flex gap-3.5">
         <div class="h-9 w-9 shrink-0 rounded-full bg-permukaan" />
@@ -47,7 +47,6 @@
         class="relative flex gap-3.5 border-b border-garis py-[18px]"
         :class="item.dibaca ? 'opacity-70' : ''"
       >
-        <!-- Titik aksen untuk yang belum dibaca (DESIGN.md §6.3 no. 16). -->
         <span
           v-if="!item.dibaca"
           class="absolute top-8 -left-4 h-[7px] w-[7px] rounded-full bg-aksen"
@@ -67,7 +66,7 @@
             {{ akhiran(item) }}
           </p>
 
-          <!-- Cuplikan komentar baru (KF-23). -->
+          <!-- Cuplikan komentar baru -->
           <p
             v-if="item.data.cuplikan"
             class="mt-2 rounded-r-md border-l-2 border-garis-kuat bg-permukaan px-3 py-2.5 text-[13px] text-teks-lembut"
@@ -75,7 +74,6 @@
             “{{ item.data.cuplikan }}”
           </p>
 
-          <!-- Alasan penarikan dari penulis, untuk admin (KF-20). -->
           <p
             v-if="item.data.alasan"
             class="mt-2 rounded-r-md border-l-2 border-aksen bg-permukaan px-3 py-2.5 text-[13px] text-teks-lembut"
@@ -83,7 +81,6 @@
             {{ item.data.alasan }}
           </p>
 
-          <!-- Catatan admin hanya ada pada notifikasi penolakan untuk penulis. -->
           <p
             v-if="item.data.catatan"
             class="mt-2 rounded-r-md border-l-2 border-ditolak bg-permukaan px-3 py-2.5 text-[13px] text-teks-lembut"
@@ -144,11 +141,8 @@ const halaman = ref(1)
 const memuat = ref(true)
 const galat = ref('')
 const memprosesSemua = ref(false)
-// Id notifikasi yang sedang diproses, agar tombolnya nonaktif sementara.
 const memproses = ref(new Set<string>())
 
-// Jumlah belum dibaca diambil dari ringkasan dasbor agar mencakup semua halaman;
-// bila gagal, dihitung dari notifikasi yang sedang tampil.
 const jumlahBelumDibaca = computed(
   () => ringkasan.value?.notifikasi_belum_dibaca ?? notifikasi.value.filter((item) => !item.dibaca).length,
 )
@@ -162,11 +156,8 @@ function ikon(item: Notifikasi) {
   return CircleCheck
 }
 
-// Kalimat notifikasi = awalan + judul materi (tebal) + akhiran.
-// Notifikasi untuk admin memakai bahasa formal; untuk penulis memakai bahasa santai
-// (Panduan Bahasa UI di CLAUDE.md). Nama penulis sudah tampil di baris waktu.
+// Awalan kalimat notifikasi
 function awalan(item: Notifikasi): string {
-  // Komentar baru (KF-23): netral, karena penerimanya bisa anggota maupun admin.
   if (item.data.tipe === 'komentar_baru') {
     const pengirim = item.data.pengirim ?? 'Seseorang'
     return item.data.jenis === 'balasan'
@@ -203,7 +194,7 @@ function akhiran(item: Notifikasi): string {
   return ' sudah tayang untuk umum. Selamat! 🎉'
 }
 
-/** Halaman tujuan tiap jenis notifikasi; admin ke antrean, penulis ke editor materinya. */
+// Tautan notifikasi
 function tautan(item: Notifikasi): string | null {
   switch (item.data.tipe) {
     case 'materi_diajukan':
@@ -223,7 +214,6 @@ function tautan(item: Notifikasi): string | null {
 function waktu(item: Notifikasi): string {
   const relatif = formatWaktuRelatif(item.dibuat_pada)
 
-  // Nama penulis hanya tersedia pada notifikasi untuk admin.
   if ((item.data.tipe === 'materi_diajukan' || item.data.tipe === 'penarikan_diajukan') && item.data.penulis) {
     return `${relatif} · oleh ${item.data.penulis}`
   }
@@ -258,7 +248,6 @@ async function bacaSatu(item: Notifikasi) {
 
   try {
     await tandaiDibaca(item.id)
-    // Perbarui tampilan tanpa memuat ulang seluruh daftar.
     item.dibaca = true
 
     if (ringkasan.value) {
@@ -280,7 +269,6 @@ async function bacaSemua() {
   try {
     const respons = await tandaiSemuaDibaca()
     tampilkan(respons.message, 'sukses')
-    // Semua sudah dibaca: angka di kepala halaman ikut nol.
     if (ringkasan.value) ringkasan.value.notifikasi_belum_dibaca = 0
     await muat()
   } catch (galatServer) {
@@ -295,7 +283,6 @@ async function muatRingkasan() {
     const respons = await api.get<ResponsData<DasborAnggota>>('/dasbor')
     ringkasan.value = respons.data
   } catch {
-    // Gagal: jumlah belum dibaca dihitung dari daftar yang tampil.
     ringkasan.value = null
   }
 }

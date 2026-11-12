@@ -1,5 +1,5 @@
 <template>
-  <!-- Menu titik tiga untuk aksi sekunder pada baris daftar (DESIGN.md §6.2 no. 11). -->
+  <!-- Menu titik tiga -->
   <div class="relative">
     <button
       type="button"
@@ -37,7 +37,6 @@ import { EllipsisVertical } from '@lucide/vue'
 
 interface ItemMenu {
   label: string
-  /** Aksi berisiko ditandai warna bahaya. */
   bahaya?: boolean
   aksi: () => void
 }
@@ -57,7 +56,7 @@ function pilih(aksi: ItemMenu) {
   aksi.aksi()
 }
 
-// Menutup menu saat pengguna mengklik di luar area menu.
+// Tutup saat klik di luar
 function tutupDiLuar(event: MouseEvent) {
   if (!terbuka.value) return
   if (!(event.target as HTMLElement).closest('[aria-haspopup="menu"]')) terbuka.value = false

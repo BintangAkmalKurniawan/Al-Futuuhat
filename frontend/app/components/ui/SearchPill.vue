@@ -1,6 +1,5 @@
 <template>
-  <!-- Kotak cari berbentuk pil (DESIGN.md §5). Dengan `realtime`, daftar
-       disaring saat mengetik (dijeda singkat); Enter tetap langsung mencari. -->
+  <!-- Kotak cari berbentuk pil -->
   <form class="relative" role="search" @submit.prevent="cariSekarang">
     <Search
       class="pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-teks-redup"
@@ -24,9 +23,7 @@ import { Search } from '@lucide/vue'
 const props = withDefaults(
   defineProps<{
     placeholder?: string
-    /** Saring saat mengetik, bukan hanya saat Enter. */
     realtime?: boolean
-    /** Jeda (ms) sebelum pencarian realtime dikirim. */
     jeda?: number
   }>(),
   {
@@ -53,15 +50,13 @@ function kirim() {
   emit('cari', model.value.trim())
 }
 
-/** Enter: langsung menyaring tanpa menunggu jeda realtime. */
+// Cari sekarang
 function cariSekarang() {
   batalkanPewaktu()
   kirim()
 }
 
-// Satu permintaan per jeda, bukan satu per ketukan, agar API tidak dibanjiri.
-// Dipicu oleh ketikan di kotak INI saja (bukan perubahan nilai dari luar), sehingga
-// halaman boleh memasang dua kotak (ponsel + sidebar) tanpa pencarian terkirim dua kali.
+// Cari saat mengetik
 function ketikRealtime() {
   if (!props.realtime) return
 

@@ -1,5 +1,5 @@
 <template>
-  <!-- Daftar program untuk admin (KF-21, KP-21.1, KP-21.4). -->
+  <!-- Daftar program untuk admin -->
   <div>
     <header class="flex flex-wrap items-end justify-between gap-4 pb-8">
       <div>
@@ -15,7 +15,7 @@
 
     <AppAlert v-if="galat" variant="bahaya" title="Gagal memuat data">{{ galat }}</AppAlert>
 
-    <!-- Kerangka memuat berbentuk baris tabel. -->
+    <!-- Kerangka memuat -->
     <div v-else-if="memuat" class="animate-pulse space-y-5 pt-2">
       <div v-for="n in 4" :key="n" class="h-4 w-full rounded-full bg-permukaan" />
     </div>

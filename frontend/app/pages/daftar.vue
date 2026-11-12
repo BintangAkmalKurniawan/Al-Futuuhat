@@ -120,7 +120,7 @@ function kosongkanGalat() {
   for (const kunci of Object.keys(galat)) delete galat[kunci]
 }
 
-// KNF-03: cek jenis dan ukuran foto juga di sisi klien, walau backend tetap memvalidasi.
+// Periksa foto
 function periksaFoto(): boolean {
   if (!foto.value) return true
 
@@ -166,7 +166,6 @@ async function kirim() {
       galat[kunci] = daftarPesan[0] ?? ''
     }
 
-    // Pesan umum hanya bila tidak ada galat per isian.
     if (Object.keys(isian).length === 0) {
       pesan.value = pesanGalat(galatServer)
     }

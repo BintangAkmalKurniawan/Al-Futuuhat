@@ -1,7 +1,4 @@
-/**
- * Memulihkan data pengguna dari token yang tersimpan saat aplikasi dimuat ulang.
- * Dengan begitu menu dan middleware langsung tahu peran pengguna.
- */
+// Pulihkan sesi login
 export default defineNuxtPlugin(async () => {
   const token = useCookie<string | null>('token')
 
@@ -10,6 +7,5 @@ export default defineNuxtPlugin(async () => {
   try {
     await useAuth().fetchMe()
   } catch {
-    // Token tidak berlaku: useApi sudah menghapus cookie dan mengarahkan ke /masuk.
   }
 })

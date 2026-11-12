@@ -20,13 +20,13 @@ class KomentarFactory extends Factory
         return [
             'materi_id' => Materi::factory(),
             'user_id' => User::factory(),
-            'parent_id' => null, // null = komentar induk
+            'parent_id' => null,
             'isi' => fake()->sentence(),
             'gambar' => null,
         ];
     }
 
-    /** Balasan untuk sebuah komentar induk (satu tingkat, KP-14.3). */
+    // Balasan komentar
     public function balasan(Komentar $induk): static
     {
         return $this->state(fn (array $attributes) => [

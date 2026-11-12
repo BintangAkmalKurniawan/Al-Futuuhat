@@ -1,6 +1,5 @@
 <template>
-  <!-- Laci diskusi di sisi kanan (DESIGN.md §6.2 no. 09). Pola lacinya sama
-       dengan RiwayatVersi, hanya lebih lebar karena memuat komposer dan balasan. -->
+  <!-- Laci diskusi -->
   <div v-if="open" class="fixed inset-0 z-40" role="dialog" aria-modal="true" :aria-labelledby="idJudul">
     <div class="absolute inset-0 bg-black/60" @click="tutup" />
 
@@ -33,7 +32,6 @@ import { X } from '@lucide/vue'
 
 defineProps<{
   materiId: number
-  /** Penulis materi; komentator dengannya diberi label "Penulis". */
   materiPenulisId?: number | null
 }>()
 
@@ -46,13 +44,11 @@ function tutup() {
   open.value = false
 }
 
-// Tombol Escape ikut menutup laci.
+// Tutup dengan Escape
 function tekanTombol(event: KeyboardEvent) {
   if (event.key === 'Escape' && open.value) tutup()
 }
 
-// Fokus dipindah ke tombol tutup begitu laci terbuka, supaya penekanan Tab
-// berikutnya tidak berjalan di halaman yang sedang tertutup lapisan gelap.
 watch(open, async (terbuka) => {
   if (!terbuka) return
 

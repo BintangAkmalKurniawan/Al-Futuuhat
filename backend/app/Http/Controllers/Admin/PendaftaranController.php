@@ -12,25 +12,19 @@ use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
-/**
- * Verifikasi pendaftaran anggota oleh admin (KF-05).
- */
+// Verifikasi pendaftaran
 class PendaftaranController extends Controller
 {
-    /**
-     * GET /api/admin/pendaftaran?status=menunggu|ditolak (KP-05.1).
-     */
     public function index(Request $request): AnonymousResourceCollection
     {
         $status = $request->query('status', User::STATUS_MENUNGGU);
 
-        // Hanya status yang relevan untuk halaman pendaftaran.
         if (! in_array($status, [User::STATUS_MENUNGGU, User::STATUS_DITOLAK], true)) {
             $status = User::STATUS_MENUNGGU;
         }
 
         $pendaftar = User::query()
-            ->with('anggota') // KNF-09: hindari query N+1
+            ->with('anggota')
             ->where('status', $status)
             ->latest()
             ->paginate(10)
@@ -39,9 +33,7 @@ class PendaftaranController extends Controller
         return UserResource::collection($pendaftar);
     }
 
-    /**
-     * GET /api/admin/pendaftaran/{user} — detail pendaftar (KP-05.2).
-     */
+    // Detail pendaftar
     public function show(User $user): JsonResponse
     {
         return response()->json([
@@ -49,12 +41,9 @@ class PendaftaranController extends Controller
         ]);
     }
 
-    /**
-     * PATCH /api/admin/pendaftaran/{user} — setujui atau tolak (KP-05.3–05.5).
-     */
+    // Setujui atau tolak pendaftaran
     public function update(VerifikasiPendaftaranRequest $request, User $user): JsonResponse
     {
-        // KP-05.5: pendaftar yang sudah diputuskan tidak bisa diputuskan ulang.
         if ($user->status !== User::STATUS_MENUNGGU) {
             throw ValidationException::withMessages([
                 'keputusan' => 'Pendaftar ini sudah diputuskan sebelumnya.',
@@ -63,18 +52,22 @@ class PendaftaranController extends Controller
 
         $data = $request->validated();
 
+        if ($data['keputusan'] === 'disetujui' && ! $user->hasVerifiedEmail()) {
+            throw ValidationException::withMessages([
+                'keputusan' => 'Email pendaftar belum dikonfirmasi. Pendaftaran dapat disetujui setelah pendaftar mengonfirmasi emailnya.',
+            ]);
+        }
+
         DB::transaction(function () use ($user, $data) {
             if ($data['keputusan'] === 'disetujui') {
                 $user->update(['status' => User::STATUS_AKTIF]);
 
-                // KP-05.3: isi tanggal bergabung dan waktu verifikasi.
                 $user->anggota()->update([
                     'tanggal_bergabung' => now()->toDateString(),
                     'diverifikasi_pada' => now(),
                     'catatan_verifikasi' => $data['catatan'] ?? null,
                 ]);
             } else {
-                // KP-05.4: catatan penolakan wajib (divalidasi di FormRequest).
                 $user->update(['status' => User::STATUS_DITOLAK]);
                 $user->anggota()->update(['catatan_verifikasi' => $data['catatan']]);
             }

@@ -26,3 +26,8 @@ _ide_helper.php
 Homestead.json
 Homestead.yaml
 Thumbs.db
+
+# Hasil laporan tes
+/coverage
+/playwright-report
+/test-results

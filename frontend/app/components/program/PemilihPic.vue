@@ -1,6 +1,5 @@
 <template>
-  <!-- Pemilih PIC program (KP-21.2): satu atau lebih anggota aktif.
-       Pola pencariannya sama dengan pemilih anggota di tab Pengurus. -->
+  <!-- Pemilih PIC program -->
   <div>
     <p class="mb-1.5 text-xs font-medium tracking-wider text-teks-redup uppercase">
       PIC (penanggung jawab)<span class="text-bahaya" aria-hidden="true"> *</span>
@@ -26,7 +25,7 @@
       </li>
     </ul>
 
-    <!-- Bukan SearchPill: komponen ini berada di dalam <form> formulir program. -->
+    <!-- Bukan SearchPill -->
     <input
       v-model="kataKunci"
       type="search"
@@ -95,7 +94,6 @@ async function cari() {
   try {
     const respons = await daftarAnggota({ q: kataKunci.value.trim() || undefined, status: 'aktif' })
 
-    // Hanya akun yang punya baris anggota yang dapat dijadikan PIC.
     if (nomor === nomorPermintaan) hasil.value = respons.data.filter((item) => item.anggota?.id)
   } catch {
     if (nomor === nomorPermintaan) hasil.value = []
@@ -108,7 +106,7 @@ function terpilih(anggotaId: number | undefined) {
   return model.value.some((orang) => orang.anggota_id === anggotaId)
 }
 
-/** Klik baris hasil: pilih bila belum, lepas bila sudah. */
+// Klik baris hasil
 function alihkan(item: User) {
   const anggotaId = item.anggota?.id
   if (!anggotaId) return
@@ -121,7 +119,6 @@ function lepas(anggotaId: number) {
   model.value = model.value.filter((orang) => orang.anggota_id !== anggotaId)
 }
 
-// Pencarian dengan jeda ±350 ms (satu permintaan per jeda).
 watch(kataKunci, () => {
   clearTimeout(penunda)
   penunda = setTimeout(cari, 350)

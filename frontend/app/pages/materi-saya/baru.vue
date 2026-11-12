@@ -1,7 +1,5 @@
 <template>
-  <!-- Editor materi baru. Header halaman memakai layout anggota (navigasi saja);
-       status dan tombol aksi ada di dalam FormMateri. Belum ada status, jadi chip
-       tidak ditampilkan (layar 12). -->
+  <!-- Editor materi baru -->
   <FormMateri
     ref="formRef"
     keterangan="Materi baru"
@@ -15,7 +13,6 @@
         Batal
       </AppButton>
 
-      <!-- Materi baru belum punya id, jadi tombol utama menyimpan sebagai draf. -->
       <AppButton size="sm" :loading="memuat" @click="formRef?.kirim()">Simpan</AppButton>
     </template>
   </FormMateri>
@@ -24,7 +21,6 @@
 <script setup lang="ts">
 import type { PayloadMateri } from '~/types/api'
 
-// KP-08.6: admin hanya mengelola, tidak menulis materi → dialihkan ke /admin.
 definePageMeta({ layout: 'anggota', middleware: ['auth', 'bukan-admin'] })
 useHead({ title: 'Tulis Materi' })
 
@@ -52,7 +48,6 @@ async function kirim(payload: PayloadMateri) {
   try {
     await simpanMateri(payload)
 
-    // Langsung buka tab Draf agar materi baru terlihat (alur F5).
     await navigateTo({ path: '/materi-saya', query: { tab: 'draf', sukses: 'disimpan' } })
   } catch (galatServer) {
     const isian = galatValidasi(galatServer)
@@ -61,13 +56,11 @@ async function kirim(payload: PayloadMateri) {
       judul: isian.judul?.[0],
       ringkasan: isian.ringkasan?.[0],
       sampul: isian.sampul?.[0],
-      // Kategori memakai kunci `kategori` atau `kategori.0` (KF-19).
       kategori: isian.kategori?.[0] ?? isian['kategori.0']?.[0],
       konten: isian.konten?.[0] ?? isian['konten.ops']?.[0] ?? isian.konten_html?.[0],
       catatan_revisi: isian.catatan_revisi?.[0],
     }
 
-    // Tampilkan pesan umum bila galat tidak tertampung pada isian mana pun.
     if (!Object.values(galatIsian.value).some(Boolean)) {
       galatUmum.value = pesanGalat(galatServer)
       tampilkan(galatUmum.value, 'bahaya')

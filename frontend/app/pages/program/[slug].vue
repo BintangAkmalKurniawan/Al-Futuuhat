@@ -1,5 +1,5 @@
 <template>
-  <!-- Halaman satu program: penjelasan rinci + dokumentasi (KF-21, KP-21.5, KP-21.6). -->
+  <!-- Halaman satu program -->
   <div>
     <NuxtLink
       to="/program"
@@ -9,7 +9,6 @@
       Semua program
     </NuxtLink>
 
-    <!-- Kerangka memuat berbentuk judul, sampul, dan paragraf. -->
     <div v-if="memuat" class="mt-8 max-w-baca animate-pulse space-y-4">
       <div class="h-5 w-20 rounded-full bg-permukaan" />
       <div class="h-9 w-3/4 rounded-full bg-permukaan" />
@@ -17,7 +16,7 @@
       <div class="aspect-[16/9] w-full rounded-lg bg-permukaan" />
     </div>
 
-    <!-- Slug tidak dikenal: tampilan 404 yang sama dengan halaman lain. -->
+    <!-- Slug tidak dikenal -->
     <AppEmptyState
       v-else-if="tidakDitemukan"
       title="Programnya tidak ketemu."
@@ -85,7 +84,6 @@
       <AppTabs v-model="tab" :tabs="daftarTab" class="mt-10" />
 
       <section v-if="tab === 'tentang'" class="max-w-baca pt-8">
-        <!-- Penjelasan ditulis admin dengan editor Quill dan sudah disanitasi backend. -->
         <article class="prosa" v-html="program.deskripsi" />
       </section>
 
@@ -115,7 +113,6 @@ const memuat = ref(true)
 const galat = ref('')
 const tidakDitemukan = ref(false)
 
-// Tab tersimpan di URL (?tab=dokumentasi) agar tautannya dapat dibagikan.
 const tab = ref(route.query.tab === 'dokumentasi' ? 'dokumentasi' : 'tentang')
 
 const daftarTab = computed(() => [

@@ -6,14 +6,7 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Susunan pengurus per periode — PRD §10.
-     * divisi_id boleh kosong untuk pengurus inti (mis. Ketua).
-     *
-     * Catatan: relasi ke periode/divisi/jabatan/anggota memakai RESTRICT,
-     * sehingga penghapusan data yang masih dipakai ditolak oleh basis data
-     * (KP-07.5) dan pesannya dibuat di controller, bukan error 500.
-     */
+    // Susunan pengurus per periode
     public function up(): void
     {
         Schema::create('kepengurusan', function (Blueprint $table) {
@@ -24,7 +17,6 @@ return new class extends Migration
             $table->foreignId('jabatan_id')->index()->constrained('jabatan')->restrictOnDelete();
             $table->timestamps();
 
-            // Satu anggota hanya boleh tercatat sekali pada periode yang sama (KP-07.4)
             $table->unique(['anggota_id', 'periode_id']);
         });
     }

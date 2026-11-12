@@ -5,7 +5,7 @@
     :aria-busy="loading || undefined"
     :class="kelas"
   >
-    <!-- Indikator memuat; tombol tetap bisa dibaca pembaca layar lewat teks di slot. -->
+    <!-- Indikator memuat -->
     <svg
       v-if="loading"
       class="h-4 w-4 shrink-0 animate-spin"
@@ -38,8 +38,6 @@ const props = withDefaults(defineProps<Props>(), {
   disabled: false,
 })
 
-// Varian memetakan ke kelas pil di main.css (DESIGN.md §5 BaseButton).
-// Dalam satu kelompok aksi hanya boleh ada satu tombol `utama`.
 const kelasVarian: Record<NonNullable<Props['variant']>, string> = {
   utama: 'btn-primer',
   sekunder: 'btn-sekunder',

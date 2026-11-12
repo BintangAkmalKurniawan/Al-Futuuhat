@@ -4,9 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-/**
- * Dokumentasi program: foto, video (berkas MP4), atau tautan YouTube (KF-21, KP-21.3).
- */
+// Dokumentasi program
 return new class extends Migration
 {
     public function up(): void
@@ -14,9 +12,9 @@ return new class extends Migration
         Schema::create('dokumentasi_program', function (Blueprint $table) {
             $table->id();
             $table->foreignId('program_id')->index()->constrained('program')->cascadeOnDelete();
-            $table->string('jenis'); // foto | video | youtube
-            $table->string('path')->nullable(); // berkas foto/video di disk `public`
-            $table->string('youtube_id', 20)->nullable(); // ID video bila jenis = youtube
+            $table->string('jenis');
+            $table->string('path')->nullable();
+            $table->string('youtube_id', 20)->nullable();
             $table->string('keterangan', 255)->nullable();
             $table->timestamps();
 

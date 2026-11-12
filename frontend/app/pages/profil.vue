@@ -1,6 +1,5 @@
 <template>
-  <!-- Profil sendiri (KF-24): data diri dan kata sandi. Dipakai anggota maupun
-       admin, jadi teksnya netral (Panduan Bahasa UI). -->
+  <!-- Profil sendiri -->
   <div class="mx-auto w-full max-w-2xl">
     <header class="pb-6">
       <h1 class="font-serif text-halaman font-bold text-teks-kuat">Profil</h1>
@@ -87,7 +86,6 @@ const punyaAnggota = ref(false)
 const form = reactive({ nama: '', no_hp: '', alamat: '' })
 const galat = ref<Record<string, string | undefined>>({})
 
-// Foto: tersimpan (URL), berkas baru yang dipilih, atau ditandai untuk dihapus.
 const masukanFoto = ref<HTMLInputElement | null>(null)
 const fotoTersimpan = ref<string | null>(null)
 const fotoBaru = ref<File | null>(null)
@@ -174,7 +172,7 @@ async function simpanProfil() {
     fotoBaru.value = null
     hapusFoto.value = false
     bersihkanPratinjau()
-    await fetchMe() // nama di menu akun ikut diperbarui
+    await fetchMe()
     tampilkan(respons.message, 'sukses')
   } catch (galatServer) {
     const isian = galatValidasi(galatServer)

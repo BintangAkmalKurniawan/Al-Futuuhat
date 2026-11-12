@@ -5,10 +5,7 @@ namespace App\Http\Resources;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-/**
- * Satu catatan log perubahan struktur (KP-07.7, KP-07.8).
- * Dibaca anggota dan admin; hanya nama admin yang dikirim.
- */
+// Satu catatan log perubahan struktur
 class RiwayatStrukturResource extends JsonResource
 {
     /**

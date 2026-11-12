@@ -1,9 +1,6 @@
 import type { User } from '~/types/api'
 
-/**
- * Hanya untuk tamu. Pengguna yang sudah masuk diarahkan ke dasbornya
- * (admin → /admin, anggota → /dasbor).
- */
+// Hanya untuk tamu
 export default defineNuxtRouteMiddleware(async () => {
   const token = useCookie<string | null>('token')
 
@@ -15,7 +12,6 @@ export default defineNuxtRouteMiddleware(async () => {
     try {
       await useAuth().fetchMe()
     } catch {
-      // Token tidak berlaku; useApi sudah membersihkan sesi.
       return
     }
   }

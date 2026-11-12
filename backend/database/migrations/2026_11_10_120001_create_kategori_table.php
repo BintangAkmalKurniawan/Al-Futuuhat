@@ -6,16 +6,13 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Kategori materi, mis. Fiqih, Akhlak, Sejarah Islam (KF-19) — PRD §10.
-     * Daftar kategori diatur admin; satu materi boleh punya beberapa kategori.
-     */
+    // Kategori materi
     public function up(): void
     {
         Schema::create('kategori', function (Blueprint $table) {
             $table->id();
             $table->string('nama')->unique();
-            $table->string('slug')->unique(); // dipakai penyaring di URL: ?kategori=fiqih
+            $table->string('slug')->unique();
             $table->timestamps();
         });
     }

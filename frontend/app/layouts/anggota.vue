@@ -1,10 +1,7 @@
 <template>
-  <!-- overflow-x-clip: pengaman agar halaman tidak pernah bisa digeser ke samping di ponsel.
-       Dipakai "clip" (bukan "hidden") supaya header sticky tetap berfungsi. -->
+  <!-- Overflow-x-clip -->
   <div class="flex min-h-screen flex-col overflow-x-clip bg-kanvas text-teks">
-    <!-- Header anggota (DESIGN.md §4).
-         Tablet/desktop (md ke atas): navbar lengkap di atas.
-         Ponsel (di bawah md): hanya wordmark + avatar; navigasi pindah ke toolbar bawah. -->
+    <!-- Header anggota -->
     <header class="sticky top-0 z-30 border-b border-garis bg-kanvas/95 backdrop-blur">
       <div class="mx-auto flex h-[52px] w-full max-w-halaman items-center px-4 sm:px-6 md:h-[57px] md:gap-5">
         <NuxtLink to="/materi" class="shrink-0">
@@ -34,7 +31,7 @@
           </NuxtLink>
         </nav>
 
-        <!-- Menu avatar: dipakai di semua ukuran layar. -->
+        <!-- Menu avatar -->
         <div class="relative ml-auto md:ml-0">
           <button
             type="button"
@@ -45,12 +42,11 @@
             @click="menuTerbuka = !menuTerbuka"
           >
             <AvatarInisial :nama="user?.nama" :id="user?.id" />
-            <!-- Di ponsel lonceng tidak tampil, jadi avatar diberi titik penanda notifikasi. -->
             <span v-if="jumlahNotifikasi" class="absolute -top-0.5 -right-0.5 h-3 w-3 rounded-full bg-aksen ring-2 ring-kanvas md:hidden" aria-hidden="true" />
           </button>
 
           <div v-if="menuTerbuka" class="absolute right-0 mt-2 w-60 overflow-hidden rounded-lg border border-garis bg-angkat py-1 shadow-[0_14px_40px_rgba(0,0,0,.5)]" role="menu">
-            <!-- Profil singkat pengguna yang sedang masuk. -->
+            <!-- Profil singkat -->
             <div class="flex items-center gap-3 border-b border-garis px-4 py-3">
               <AvatarInisial :nama="user?.nama" :id="user?.id" />
               <div class="min-w-0">
@@ -59,13 +55,12 @@
               </div>
             </div>
 
-            <!-- Di ponsel "Dasbor" sudah ada di toolbar, jadi hanya tampil di tablet/desktop. -->
             <NuxtLink to="/dasbor" class="hidden items-center gap-3 px-4 py-2 text-sm text-teks transition-colors duration-200 hover:bg-permukaan md:flex" role="menuitem" @click="menuTerbuka = false">
               <LayoutDashboard class="h-4 w-4 text-teks-lembut" :stroke-width="1.5" aria-hidden="true" />
               Dasbor
             </NuxtLink>
 
-            <!-- Profil sendiri (KF-24). -->
+            <!-- Profil sendiri -->
             <NuxtLink to="/profil" class="flex items-center gap-3 px-4 py-2 text-sm text-teks transition-colors duration-200 hover:bg-permukaan" role="menuitem" @click="menuTerbuka = false">
               <UserRound class="h-4 w-4 text-teks-lembut" :stroke-width="1.5" aria-hidden="true" />
               Profil
@@ -99,12 +94,11 @@
       </div>
     </header>
 
-    <!-- Di ponsel pb-28 memberi ruang agar konten paling bawah tidak tertutup toolbar. -->
     <main class="mx-auto w-full max-w-halaman flex-1 px-4 pt-8 pb-28 sm:px-6 md:pt-10 md:pb-10">
       <slot />
     </main>
 
-    <!-- Toolbar bawah khusus ponsel, dengan tombol "Tulis" bulat di tengah. -->
+    <!-- Toolbar bawah ponsel -->
     <nav aria-label="Navigasi anggota (ponsel)" class="fixed inset-x-3 bottom-3 z-30 mx-auto max-w-md rounded-2xl bg-angkat/95 shadow-[0_14px_40px_rgba(0,0,0,.5)] ring-1 ring-garis backdrop-blur md:hidden">
       <ul class="grid h-16 grid-cols-5 items-center">
         <li v-for="item in menuToolbar" :key="item.to">
@@ -114,7 +108,6 @@
             :class="!item.utama && sedangAktif(item) ? 'text-aksen' : 'text-teks-lembut hover:text-teks-kuat'"
             :aria-current="sedangAktif(item) ? 'page' : undefined"
           >
-            <!-- Tombol utama (Tulis) berbentuk lingkaran terang seperti btn-primer. -->
             <span v-if="item.utama" class="grid h-9 w-9 place-items-center rounded-full bg-tombol text-tombol-teks" :class="sedangAktif(item) && 'ring-2 ring-aksen ring-offset-2 ring-offset-angkat'">
               <component :is="item.ikon" class="h-5 w-5" :stroke-width="2" aria-hidden="true" />
             </span>
@@ -128,7 +121,6 @@
 </template>
 
 <script setup lang="ts">
-// Logo resmi (tulisan putih, latar transparan) menggantikan wordmark teks.
 import logo from '~/assets/logo.png'
 import { Bell, FileText, LayoutDashboard, Library, LogOut, Network, PenLine, Plus, ShieldCheck, UserRound } from "@lucide/vue";
 import type { DasborAnggota, ResponsData } from "~/types/api";
@@ -141,15 +133,12 @@ const keluar = ref(false);
 const menuTerbuka = ref(false);
 const jumlahNotifikasi = ref(0);
 
-// Navbar tablet/desktop (DESIGN.md §4): Arsip · Materi saya · Struktur.
-// Layout ini khusus anggota; admin selalu memakai layout admin (middleware auth).
 const menuNavbar = [
   { label: "Arsip", to: "/materi" },
   { label: "Materi saya", to: "/materi-saya" },
   { label: "Struktur", to: "/struktur" },
 ];
 
-// Toolbar ponsel: Dasbor, Arsip, Tulis (tengah), Materi saya, Struktur.
 const menuToolbar = [
   { label: "Dasbor", to: "/dasbor", ikon: LayoutDashboard },
   { label: "Arsip", to: "/materi", ikon: Library },
@@ -158,8 +147,7 @@ const menuToolbar = [
   { label: "Struktur", to: "/struktur", ikon: Network },
 ];
 
-// Menu aktif bila rute sama atau merupakan turunannya (mis. /materi/slug → Arsip).
-// Pengecualian: /materi-saya/baru milik "Tulis", bukan "Materi saya".
+// Menu aktif
 function sedangAktif(item: { to: string; utama?: boolean }) {
   if (item.utama) return route.path === item.to;
   if (item.to === "/materi-saya" && route.path === "/materi-saya/baru") return false;
@@ -176,13 +164,12 @@ async function klikKeluar() {
   }
 }
 
-// Lencana notifikasi memakai angka dari ringkasan dasbor yang sudah ada (F2/F7).
+// Muat jumlah notifikasi
 async function muatNotifikasi() {
   try {
     const respons = await api.get<ResponsData<DasborAnggota>>("/dasbor");
     jumlahNotifikasi.value = respons.data.notifikasi_belum_dibaca ?? 0;
   } catch {
-    // Ringkasan gagal dimuat: lonceng/avatar tetap tampil tanpa angka.
     jumlahNotifikasi.value = 0;
   }
 }
@@ -196,13 +183,12 @@ onMounted(() => {
       .catch(() => {});
 });
 
-// Menutup menu avatar saat pengguna mengklik di luar area menu.
+// Tutup menu avatar
 function tutupMenu(event: MouseEvent) {
   if (!menuTerbuka.value) return;
   if (!(event.target as HTMLElement).closest('[aria-haspopup="menu"]')) menuTerbuka.value = false;
 }
 
-// Menu avatar juga ditutup setiap kali pindah halaman.
 watch(
   () => route.fullPath,
   () => (menuTerbuka.value = false),

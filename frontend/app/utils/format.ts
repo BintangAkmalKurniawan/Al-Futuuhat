@@ -1,11 +1,11 @@
-/** Tanggal ringkas berbahasa Indonesia, mis. "9 Nov 2026". */
+// Format tanggal
 export function formatTanggal(nilai: string | null | undefined): string {
   if (!nilai) return '—'
 
   return new Intl.DateTimeFormat('id-ID', { dateStyle: 'medium' }).format(new Date(nilai))
 }
 
-/** Tanggal + jam, mis. "9 Nov 2026, 14.05". */
+// Format tanggal dan jam
 export function formatTanggalWaktu(nilai: string | null | undefined): string {
   if (!nilai) return '—'
 
@@ -15,7 +15,7 @@ export function formatTanggalWaktu(nilai: string | null | undefined): string {
   }).format(new Date(nilai))
 }
 
-/** Inisial nama untuk avatar sederhana, maksimal dua huruf. */
+// Inisial nama
 export function inisial(nama: string | null | undefined): string {
   if (!nama) return '?'
 
@@ -27,7 +27,7 @@ export function inisial(nama: string | null | undefined): string {
     .join('')
 }
 
-/** Waktu relatif berbahasa Indonesia, mis. "2 jam lalu" (DESIGN.md §9). */
+// Waktu relatif
 export function formatWaktuRelatif(nilai: string | null | undefined): string {
   if (!nilai) return ''
 

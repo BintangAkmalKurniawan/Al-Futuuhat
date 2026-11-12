@@ -5,10 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-/**
- * Pengajuan penarikan materi dari publik oleh penulis (KF-20).
- * Setelah disetujui admin, materi kembali `draf` dan hilang dari halaman publik.
- */
+// Pengajuan penarikan materi dari publik oleh penulis
 class PenarikanMateri extends Model
 {
     public const STATUS_DIAJUKAN = 'diajukan';

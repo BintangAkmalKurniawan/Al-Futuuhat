@@ -7,9 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-/**
- * Jabatan kepengurusan (Ketua, Koordinator, ...) — PRD §10.
- */
+// Jabatan kepengurusan
 class Jabatan extends Model
 {
     /** @use HasFactory<JabatanFactory> */

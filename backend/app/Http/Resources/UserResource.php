@@ -5,9 +5,7 @@ namespace App\Http\Resources;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-/**
- * Data akun. Dipakai untuk /me, login, dan daftar pendaftar/anggota di admin.
- */
+// Data akun
 class UserResource extends JsonResource
 {
     /**
@@ -19,10 +17,10 @@ class UserResource extends JsonResource
             'id' => $this->id,
             'nama' => $this->nama,
             'email' => $this->email,
+            'email_terkonfirmasi' => $this->email_verified_at !== null,
             'role' => $this->role,
             'status' => $this->status,
             'terdaftar_pada' => $this->created_at?->toIso8601String(),
-            // Data pribadi hanya ikut terkirim bila memang di-eager load oleh controller
             'anggota' => $this->whenLoaded('anggota', fn () => new AnggotaResource($this->anggota)),
         ];
     }

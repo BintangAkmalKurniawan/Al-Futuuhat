@@ -6,11 +6,7 @@ use App\Http\Requests\Materi\UnggahSampulRequest;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Storage;
 
-/**
- * Unggahan gambar sampul materi (KF-18). Berkas disimpan di server dan yang
- * dikirim balik hanya path-nya; URL dibentuk di Resource agar tidak terikat
- * nilai APP_URL saat berkas diunggah.
- */
+// Unggahan gambar sampul materi
 class UnggahSampulController extends Controller
 {
     public function store(UnggahSampulRequest $request): JsonResponse

@@ -5,9 +5,7 @@ namespace App\Http\Resources;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-/**
- * Keputusan admin atas satu revisi (KP-13.2).
- */
+// Keputusan admin atas satu revisi
 class VerifikasiResource extends JsonResource
 {
     /**

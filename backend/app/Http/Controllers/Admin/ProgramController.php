@@ -12,27 +12,21 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Mews\Purifier\Facades\Purifier;
 
-/**
- * Pengelolaan program oleh admin (KF-21, KP-21.1, KP-21.2, KP-21.4).
- */
+// Kelola program
 class ProgramController extends Controller
 {
-    /**
-     * GET /api/admin/program — semua program + jumlah dokumentasi.
-     */
+    // Daftar program
     public function index(): AnonymousResourceCollection
     {
         return ProgramAdminResource::collection(
-            Program::with('pic.user') // KNF-09: nama PIC dimuat sekaligus
+            Program::with('pic.user')
                 ->denganJumlahDokumentasi()
                 ->urutanTampil()
                 ->get()
         );
     }
 
-    /**
-     * GET /api/admin/program/{program} — isi awal formulir ubah.
-     */
+    // Detail program
     public function show(Program $program): ProgramAdminResource
     {
         $program = Program::with('pic.user')
@@ -42,9 +36,7 @@ class ProgramController extends Controller
         return new ProgramAdminResource($program);
     }
 
-    /**
-     * POST /api/admin/program — multipart karena dapat memuat sampul.
-     */
+    // Simpan program baru
     public function store(SimpanProgramRequest $request): JsonResponse
     {
         $data = $request->validated();
@@ -58,7 +50,6 @@ class ProgramController extends Controller
                 'sampul' => $request->hasFile('sampul')
                     ? $request->file('sampul')->store('program/sampul', 'public')
                     : null,
-                // Sanitasi seperti isi materi: penjelasan ditulis dengan editor Quill.
                 'deskripsi' => Purifier::clean($data['deskripsi'], 'materi'),
                 'status' => $data['status'],
             ]);
@@ -74,11 +65,7 @@ class ProgramController extends Controller
         ], 201);
     }
 
-    /**
-     * POST /api/admin/program/{program} — ubah program.
-     * Memakai POST, bukan PUT, karena PHP tidak membaca body multipart pada
-     * permintaan PUT (sama seperti formulir konten beranda).
-     */
+    // Ubah program
     public function update(SimpanProgramRequest $request, Program $program): JsonResponse
     {
         $data = $request->validated();
@@ -95,7 +82,6 @@ class ProgramController extends Controller
 
             $program->update([
                 'nama' => $data['nama'],
-                // Slug hanya dibentuk ulang bila nama berubah, agar tautan lama tetap berlaku.
                 'slug' => $data['nama'] === $program->nama
                     ? $program->slug
                     : Program::slugUnik($data['nama'], $program->id),
@@ -109,7 +95,6 @@ class ProgramController extends Controller
             $program->pic()->sync($data['pic']);
         });
 
-        // Sampul lama dihapus setelah datanya tersimpan (berkas lama dibuang setelah data baru aman).
         if ($sampulLama !== null && $sampulLama !== $program->sampul) {
             Storage::disk('public')->delete($sampulLama);
         }
@@ -120,15 +105,11 @@ class ProgramController extends Controller
         ]);
     }
 
-    /**
-     * DELETE /api/admin/program/{program} — hapus program beserta seluruh
-     * dokumentasi dan berkasnya (KP-21.4).
-     */
+    // Hapus program
     public function destroy(Program $program): JsonResponse
     {
         $berkas = $program->semuaBerkas();
 
-        // Baris PIC dan dokumentasi ikut terhapus lewat cascade di basis data.
         $program->delete();
 
         Storage::disk('public')->delete($berkas);

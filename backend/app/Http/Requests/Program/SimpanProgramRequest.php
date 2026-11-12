@@ -9,15 +9,12 @@ use Closure;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
-/**
- * Validasi tambah/ubah program oleh admin (KF-21, KP-21.1, KP-21.2).
- * Dikirim sebagai multipart karena dapat memuat gambar sampul.
- */
+// Validasi tambah/ubah program oleh admin
 class SimpanProgramRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return true; // hak admin dicek middleware `admin`
+        return true;
     }
 
     /**
@@ -26,7 +23,7 @@ class SimpanProgramRequest extends FormRequest
     public function rules(): array
     {
         /** @var Program|null $program */
-        $program = $this->route('program'); // null saat menambah
+        $program = $this->route('program');
 
         return [
             'nama' => ['required', 'string', 'max:150', Rule::unique('program', 'nama')->ignore($program?->id)],
@@ -36,8 +33,6 @@ class SimpanProgramRequest extends FormRequest
             'deskripsi' => [
                 'required',
                 'string',
-                // Editor Quill yang dikosongkan tetap mengirim "<p><br></p>",
-                // jadi isinya diperiksa setelah tag HTML dibuang.
                 function (string $attribute, mixed $value, Closure $fail) {
                     if (trim(strip_tags((string) $value, '<img>')) === '') {
                         $fail('Penjelasan program wajib diisi.');
@@ -45,13 +40,11 @@ class SimpanProgramRequest extends FormRequest
                 },
             ],
             'sampul' => ['nullable', 'image', 'mimes:jpg,jpeg,png', 'max:2048'],
-            // Dicentang admin untuk melepas sampul tanpa mengunggah berkas baru.
             'hapus_sampul' => ['sometimes', 'boolean'],
             'pic' => ['required', 'array', 'min:1'],
             'pic.*' => [
                 'integer',
                 'distinct',
-                // KP-21.2: PIC harus anggota yang akunnya berstatus aktif.
                 function (string $attribute, mixed $value, Closure $fail) {
                     $aktif = Anggota::whereKey($value)
                         ->whereHas('user', fn ($query) => $query->where('status', User::STATUS_AKTIF))

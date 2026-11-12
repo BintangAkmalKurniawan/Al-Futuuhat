@@ -9,15 +9,9 @@ use App\Models\Divisi;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Validation\ValidationException;
 
-/**
- * CRUD divisi (KF-07, KP-07.2, KP-07.5).
- * Daftar divisi dibaca dari endpoint publik GET /api/divisi.
- */
+// CRUD divisi
 class DivisiController extends Controller
 {
-    /**
-     * POST /api/admin/divisi.
-     */
     public function store(DivisiRequest $request): JsonResponse
     {
         $divisi = Divisi::create($request->validated());
@@ -28,9 +22,6 @@ class DivisiController extends Controller
         ], 201);
     }
 
-    /**
-     * PUT /api/admin/divisi/{divisi}.
-     */
     public function update(DivisiRequest $request, Divisi $divisi): JsonResponse
     {
         $divisi->update($request->validated());
@@ -41,9 +32,7 @@ class DivisiController extends Controller
         ]);
     }
 
-    /**
-     * DELETE /api/admin/divisi/{divisi} — ditolak bila masih dipakai (KP-07.5).
-     */
+    // Hapus divisi
     public function destroy(Divisi $divisi): JsonResponse
     {
         if ($divisi->kepengurusan()->exists()) {

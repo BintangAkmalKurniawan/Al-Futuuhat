@@ -1,8 +1,8 @@
 <template>
   <div>
-    <!-- Hero: judul serif raksasa, dek, satu tombol utama (DESIGN.md §6.1). -->
+    <!-- Hero -->
     <section class="relative overflow-hidden pt-6 pb-16 lg:pt-10 lg:pb-24">
-      <!-- Ornamen lengkung; hanya hiasan dan disembunyikan di layar kecil. -->
+      <!-- Ornamen lengkung -->
       <svg class="pointer-events-none absolute -top-10 right-0 hidden h-[320px] w-[320px] lg:block" viewBox="0 0 200 200" fill="none" aria-hidden="true">
         <circle cx="160" cy="40" r="92" stroke="var(--color-garis-kuat)" stroke-width="1" />
         <path d="M60 200a100 100 0 0 1 100-100" stroke="var(--color-aksen)" stroke-opacity="0.6" />
@@ -11,7 +11,7 @@
       <div class="relative max-w-[700px]">
         <h1 class="font-serif text-[44px] leading-[1.05] font-semibold tracking-[-0.03em] text-teks-kuat sm:text-[64px] lg:text-tampilan">Tumbuh bersama,<br />belajar bersama.</h1>
 
-        <!-- GANTI: teks sambutan resmi dari pengurus. -->
+        <!-- GANTI -->
         <p class="mt-6 max-w-[560px] font-serif text-dek text-teks-lembut">Wadah pembinaan, pembelajaran, dan pengabdian bagi anggota. Melalui divisi-divisi yang ada, anggota mengembangkan kemampuan dan berkontribusi bagi masyarakat.</p>
 
         <div class="mt-8 flex flex-wrap items-center gap-4">
@@ -23,8 +23,7 @@
       </div>
     </section>
 
-    <!-- Artikel terbaru dan program (KF-22): tiga item masing-masing. Bagian
-         disembunyikan bila belum ada isinya, supaya beranda tidak berisi bagian kosong. -->
+    <!-- Artikel terbaru dan program -->
     <section v-if="artikelTerbaru.length" class="border-t border-garis py-14">
       <PanelJudul judul="Artikel terbaru" tautan="Lihat semua" ke="/publikasi" />
       <div class="mt-6 grid gap-8 sm:grid-cols-2 xl:grid-cols-3">
@@ -39,23 +38,21 @@
       </div>
     </section>
 
-    <!-- Cerita Al-Futuuhat: judul dan isi diatur admin; teks bawaan dipakai
-         selama admin belum mengisinya. -->
+    <!-- Cerita Al-Futuuhat -->
     <section id="cerita" class="border-t border-garis py-14">
       <h2 class="text-[15px] text-teks-lembut">Cerita Al-Futuuhat</h2>
 
-      <!-- Kerangka memuat berbentuk sama dengan teks cerita. -->
       <div v-if="memuatBeranda" class="mt-6 max-w-baca animate-pulse space-y-4">
         <div class="h-3 w-full rounded-full bg-permukaan" />
         <div class="h-3 w-5/6 rounded-full bg-permukaan" />
         <div class="h-3 w-4/6 rounded-full bg-permukaan" />
       </div>
 
-      <!-- Cerita panjang dipotong; lengkapnya di halaman Tentang kami (KF-26). -->
+      <!-- Cerita panjang dipotong -->
       <CeritaAlFutuuhat v-else class="mt-6" :judul="ceritaJudul" :isi="ceritaIsi" ringkas />
     </section>
 
-    <!-- Struktur organisasi: bagan per periode (DESIGN.md §6.1). -->
+    <!-- Struktur organisasi -->
     <section id="struktur" class="border-t border-garis py-11">
       <BaganStruktur varian="ringkas" />
     </section>
@@ -95,15 +92,12 @@ const { daftarPublik: daftarProgram } = useProgram();
 const artikelTerbaru = ref<MateriPublikRingkas[]>([]);
 const programKami = ref<ProgramRingkas[]>([]);
 
-// Cerita beranda diatur admin lewat /admin/beranda (KF-18).
 const pengaturan = ref<PengaturanBeranda | null>(null);
 const memuatBeranda = ref(true);
 
 const ceritaJudul = computed(() => pengaturan.value?.cerita_judul ?? "");
 const ceritaIsi = computed(() => rapikanSpasiHtml(pengaturan.value?.cerita_isi ?? ""));
 
-// Bila konten belum diatur atau gagal dimuat, halaman tetap tampil dengan teks
-// bawaan — beranda tidak boleh kosong bagi pengunjung.
 onMounted(async () => {
   try {
     const respons = await berandaPublik();
@@ -113,7 +107,6 @@ onMounted(async () => {
   }
 });
 
-// Gagal memuat cukup menyembunyikan bagiannya; beranda tetap tampil.
 onMounted(() => {
   publikArsip({ page: 1 })
     .then((respons) => (artikelTerbaru.value = respons.data.slice(0, 3)))

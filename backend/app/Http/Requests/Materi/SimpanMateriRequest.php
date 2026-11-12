@@ -8,16 +8,11 @@ use Illuminate\Auth\Access\Response;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Gate;
 
-/**
- * Validasi formulir materi dari editor Quill (KF-08).
- * `konten` = Delta Quill (array), `konten_html` = hasil render editor yang akan disanitasi.
- */
+// Validasi formulir materi dari editor Quill
 class SimpanMateriRequest extends FormRequest
 {
     public function authorize(): Response|bool
     {
-        // Tambah materi: admin ditolak sebelum validasi (KP-08.6).
-        // Ubah materi: kepemilikan dicek Policy di controller.
         return $this->route('materi') === null ? Gate::inspect('buat', Materi::class) : true;
     }
 
@@ -29,9 +24,7 @@ class SimpanMateriRequest extends FormRequest
         return [
             'judul' => ['required', 'string', 'max:255'],
             'ringkasan' => ['nullable', 'string'],
-            // Sampul dikirim sebagai path hasil POST /unggah-sampul (KF-18).
             'sampul' => ['nullable', 'string', 'max:255', $this->sampulDikenal()],
-            // Kategori wajib minimal satu, boleh lebih (KF-19, KP-19.2).
             'kategori' => ['required', 'array', 'min:1'],
             'kategori.*' => ['integer', 'exists:kategori,id'],
             'konten' => ['required', 'array'],
@@ -41,10 +34,7 @@ class SimpanMateriRequest extends FormRequest
         ];
     }
 
-    /**
-     * Sampul hanya boleh berupa path di folder unggahan kita, supaya klien
-     * tidak bisa menitipkan path sembarang (atau path berkas lain di server).
-     */
+    // Cek path sampul
     private function sampulDikenal(): Closure
     {
         return function (string $attribute, mixed $value, Closure $fail): void {

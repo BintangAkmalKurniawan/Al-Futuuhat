@@ -1,10 +1,5 @@
-/**
- * Ukuran tulisan isi artikel yang dapat diatur pembaca (tombol A− / A+).
- * Pilihan disimpan di localStorage agar tetap dipakai di artikel lain;
- * bila localStorage tidak tersedia, ukuran bawaan tetap dipakai.
- */
 const KUNCI = 'ukuran-artikel'
-const LANGKAH = 2 // px per klik
+const LANGKAH = 2
 const MIN = -4
 const MAKS = 8
 
@@ -13,7 +8,6 @@ function batasi(nilai: number) {
 }
 
 export function useUkuranArtikel() {
-  // Selisih dari ukuran bawaan (20px desktop, 18px ponsel), mis. +2 → 22px.
   const selisih = useState('ukuran-artikel', () => {
     try {
       const tersimpan = Number(localStorage.getItem(KUNCI) ?? 0)
@@ -29,11 +23,9 @@ export function useUkuranArtikel() {
     try {
       localStorage.setItem(KUNCI, String(selisih.value))
     } catch {
-      // Abaikan: ukuran tetap berlaku sampai halaman dimuat ulang.
     }
   }
 
-  // Menimpa token ukuran .prosa (main.css) hanya di dalam pembungkus artikel.
   const gaya = computed(() => ({
     '--text-badan': `${20 + selisih.value}px`,
     '--text-badan-hp': `${18 + selisih.value}px`,

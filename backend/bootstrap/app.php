@@ -16,7 +16,6 @@ return Application::configure(basePath: dirname(__DIR__))
         commands: __DIR__.'/../routes/console.php',
         health: '/up',
     )
-    // Kanal real-time memakai prefix /api dan token Sanctum (PRD §11, KF-15)
     ->withBroadcasting(
         __DIR__.'/../routes/channels.php',
         ['prefix' => 'api', 'middleware' => ['api', 'auth:sanctum', 'aktif']],
@@ -27,8 +26,6 @@ return Application::configure(basePath: dirname(__DIR__))
             'admin' => EnsureUserIsAdmin::class,
         ]);
 
-        // Rute API tidak punya halaman login web; tamu selalu mendapat 401 JSON
-        // (KNF-02), termasuk saat diuji lewat curl/Postman tanpa header Accept JSON.
         $middleware->redirectGuestsTo(
             fn (Request $request) => $request->is('api/*') ? null : '/'
         );
@@ -38,9 +35,6 @@ return Application::configure(basePath: dirname(__DIR__))
             fn (Request $request) => $request->is('api/*') || $request->expectsJson(),
         );
 
-        // Panduan Bahasa UI: pesan bawaan Laravel berbahasa Inggris (mis. "This action is
-        // unauthorized.", "No query results for model ...", "Server Error") tidak boleh tampil
-        // ke pengguna. Pesan khusus yang ditulis di controller/Policy tidak disentuh.
         $exceptions->respond(function (Response $response, Throwable $e, Request $request) {
             if (! $request->is('api/*') || ! $response instanceof JsonResponse) {
                 return $response;

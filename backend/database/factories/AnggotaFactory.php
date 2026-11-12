@@ -17,20 +17,18 @@ class AnggotaFactory extends Factory
     public function definition(): array
     {
         return [
-            // Membuat akun baru bila tidak diberikan user_id
             'user_id' => User::factory(),
             'no_hp' => '08'.fake()->numerify('##########'),
             'alamat' => fake()->address(),
             'alasan_bergabung' => fake()->paragraph(),
             'foto' => null,
-            // Data contoh dianggap sudah diverifikasi admin
             'tanggal_bergabung' => now()->toDateString(),
             'catatan_verifikasi' => null,
             'diverifikasi_pada' => now(),
         ];
     }
 
-    /** Pendaftar yang belum diputuskan admin (belum ada tanggal bergabung). */
+    // Pendaftar menunggu
     public function menunggu(): static
     {
         return $this->state(fn (array $attributes) => [

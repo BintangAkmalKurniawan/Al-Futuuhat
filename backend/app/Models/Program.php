@@ -10,10 +10,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Str;
 
-/**
- * Program: kegiatan rutin Al-Futuuhat (KF-21) — PRD §10.
- * Hanya admin yang mengelola; pengunjung dan anggota hanya membaca.
- */
+// Program kegiatan
 class Program extends Model
 {
     /** @use HasFactory<ProgramFactory> */
@@ -35,22 +32,19 @@ class Program extends Model
         'status',
     ];
 
-    /** PIC program: satu atau lebih anggota (KP-21.2). */
+    // PIC program
     public function pic(): BelongsToMany
     {
         return $this->belongsToMany(Anggota::class, 'pic_program')->withTimestamps();
     }
 
-    /** Kumpulan foto dan video program ini (KP-21.3). */
+    // Dokumentasi
     public function dokumentasi(): HasMany
     {
         return $this->hasMany(DokumentasiProgram::class);
     }
 
-    /**
-     * Tambahkan `jumlah_foto` dan `jumlah_video` (video MP4 + YouTube) dengan
-     * subquery hitung, agar daftar tidak memuat seluruh dokumentasi (KNF-09).
-     */
+    // Hitung jumlah dokumentasi
     public function scopeDenganJumlahDokumentasi(Builder $query): Builder
     {
         return $query->withCount([
@@ -62,9 +56,7 @@ class Program extends Model
         ]);
     }
 
-    /**
-     * Urutan tampil (KP-21.5): program aktif lebih dulu, lalu menurut nama.
-     */
+    // Urutan tampil
     public function scopeUrutanTampil(Builder $query): Builder
     {
         return $query
@@ -73,9 +65,7 @@ class Program extends Model
     }
 
     /**
-     * Path seluruh berkas milik program: sampul dan berkas dokumentasi (KP-21.4).
-     * Dikumpulkan sebelum program dihapus, karena baris dokumentasi ikut
-     * terhapus lewat cascade sehingga path-nya tidak dapat dibaca lagi.
+     * Semua berkas program
      *
      * @return array<int, string>
      */
@@ -90,9 +80,7 @@ class Program extends Model
         return $berkas;
     }
 
-    /**
-     * Slug unik dari nama program (kolom `slug` bersifat unik).
-     */
+    // Buat slug unik
     public static function slugUnik(string $nama, ?int $abaikanId = null): string
     {
         $dasar = Str::slug($nama) ?: 'program';

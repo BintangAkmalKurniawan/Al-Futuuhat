@@ -12,17 +12,11 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Testing\TestResponse;
 use Tests\TestCase;
 
-/**
- * KF-21 — program kegiatan rutin: pengelolaan oleh admin dan halaman baca publik.
- */
+// Program kegiatan rutin
 class ProgramTest extends TestCase
 {
     use RefreshDatabase;
 
-    /**
-     * Kirim permintaan sebagai pengguna tertentu. Guard dilupakan dulu karena
-     * Sanctum mengingat pengguna dari permintaan sebelumnya dalam satu tes.
-     */
     private function sebagai(User $user): static
     {
         $this->app['auth']->forgetGuards();
@@ -61,7 +55,7 @@ class ProgramTest extends TestCase
         return $this->sebagai($admin)->post('/api/admin/program', $this->dataProgram($data), ['Accept' => 'application/json']);
     }
 
-    // ------------------------------------------------------------ KP-21.1
+    // KP-21.1
 
     public function test_admin_menambah_program_dengan_sampul_dan_slug_otomatis(): void
     {
@@ -79,7 +73,6 @@ class ProgramTest extends TestCase
         $program = Program::firstOrFail();
 
         Storage::disk('public')->assertExists((string) $program->sampul);
-        // Penjelasan disanitasi seperti isi materi.
         $this->assertStringNotContainsString('<script', $program->deskripsi);
         $this->assertStringContainsString('/storage/program/sampul/', (string) $respons->json('data.sampul'));
     }
@@ -114,11 +107,9 @@ class ProgramTest extends TestCase
         $program = Program::factory()->create();
         $anggota = User::factory()->create();
 
-        // Tamu → 401
         $this->postJson('/api/admin/program', [])->assertUnauthorized();
         $this->deleteJson("/api/admin/program/{$program->id}")->assertUnauthorized();
 
-        // Anggota biasa → 403
         $this->sebagai($anggota)->postJson('/api/admin/program', $this->dataProgram())->assertForbidden();
         $this->sebagai($anggota)->postJson("/api/admin/program/{$program->id}", $this->dataProgram())->assertForbidden();
         $this->sebagai($anggota)->deleteJson("/api/admin/program/{$program->id}")->assertForbidden();
@@ -148,10 +139,9 @@ class ProgramTest extends TestCase
             ->assertJsonPath('data.pic.0.anggota_id', $picBaru->id);
 
         $program->refresh();
-        Storage::disk('public')->assertMissing($sampulLama); // berkas lama dibuang
+        Storage::disk('public')->assertMissing($sampulLama);
         Storage::disk('public')->assertExists((string) $program->sampul);
 
-        // Sampul dilepas tanpa berkas baru.
         $this->sebagai($admin)->post("/api/admin/program/{$program->id}", $this->dataProgram([
             'nama' => 'Kajian Kitab Pekanan',
             'hapus_sampul' => true,
@@ -160,7 +150,7 @@ class ProgramTest extends TestCase
             ->assertJsonPath('data.sampul', null);
     }
 
-    // ------------------------------------------------------------ KP-21.2
+    // KP-21.2
 
     public function test_pic_boleh_lebih_dari_satu_tetapi_harus_anggota_aktif(): void
     {
@@ -180,7 +170,7 @@ class ProgramTest extends TestCase
             ->assertJsonCount(2, 'data.pic');
     }
 
-    // ------------------------------------------------------------ KP-21.4
+    // KP-21.4
 
     public function test_menghapus_program_menghapus_dokumentasi_dan_berkasnya(): void
     {
@@ -206,7 +196,7 @@ class ProgramTest extends TestCase
         Storage::disk('public')->assertMissing($foto);
     }
 
-    // ------------------------------------------------------------ KP-21.5
+    // KP-21.5
 
     public function test_pengunjung_melihat_daftar_program_aktif_lebih_dulu_tanpa_data_pribadi_pic(): void
     {
@@ -222,18 +212,16 @@ class ProgramTest extends TestCase
         $respons = $this->getJson('/api/publik/program')
             ->assertOk()
             ->assertJsonCount(2, 'data')
-            ->assertJsonPath('data.0.nama', 'Z Program Aktif') // aktif di atas walau abjadnya belakang
+            ->assertJsonPath('data.0.nama', 'Z Program Aktif')
             ->assertJsonPath('data.0.jumlah_foto', 1)
             ->assertJsonPath('data.0.jumlah_video', 2)
             ->assertJsonPath('data.0.pic', [['nama' => 'Ahmad Fauzi']])
             ->assertJsonPath('data.1.status', Program::STATUS_SELESAI);
 
-        // KNF-02: hanya nama PIC; tidak ada email, no HP, alamat, ataupun id anggota.
         $json = $respons->getContent();
         $this->assertStringNotContainsString($pic->no_hp, (string) $json);
         $this->assertStringNotContainsString('email', (string) $json);
         $this->assertStringNotContainsString('anggota_id', (string) $json);
-        // Penjelasan rinci tidak dikirim di daftar.
         $this->assertArrayNotHasKey('deskripsi', $respons->json('data.0'));
     }
 

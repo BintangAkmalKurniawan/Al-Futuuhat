@@ -22,7 +22,6 @@ class MateriFactory extends Factory
         return [
             'penulis_id' => User::factory(),
             'judul' => $judul,
-            // Akhiran acak supaya slug tetap unik meski judulnya mirip
             'slug' => Str::slug($judul).'-'.Str::lower(Str::random(5)),
             'ringkasan' => fake()->paragraph(),
             'status' => Materi::STATUS_DRAF,

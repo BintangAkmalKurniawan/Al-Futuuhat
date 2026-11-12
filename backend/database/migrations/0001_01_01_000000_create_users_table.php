@@ -6,22 +6,18 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
         Schema::create('users', function (Blueprint $table) {
             $table->id();
-            $table->string('nama'); // memakai "nama" (bukan "name") sesuai PRD §10
+            $table->string('nama');
             $table->string('email')->unique();
             $table->string('password');
-            $table->string('role')->default('anggota'); // admin | anggota (PRD §10)
-            $table->string('status')->default('menunggu'); // menunggu | aktif | ditolak | nonaktif (PRD §8.1)
+            $table->string('role')->default('anggota');
+            $table->string('status')->default('menunggu');
             $table->rememberToken();
             $table->timestamps();
 
-            // Daftar anggota difilter berdasarkan status (KP-06.1)
             $table->index('status');
         });
 
@@ -41,9 +37,6 @@ return new class extends Migration
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('users');

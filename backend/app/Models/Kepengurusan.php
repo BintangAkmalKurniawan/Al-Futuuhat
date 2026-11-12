@@ -7,9 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-/**
- * Susunan pengurus: satu anggota pada satu periode, dengan divisi dan jabatan — PRD §10.
- */
+// Susunan pengurus
 class Kepengurusan extends Model
 {
     /** @use HasFactory<KepengurusanFactory> */
@@ -29,7 +27,7 @@ class Kepengurusan extends Model
         return $this->belongsTo(PeriodeKepengurusan::class, 'periode_id');
     }
 
-    /** Kosong berarti pengurus inti (mis. Ketua). */
+    // Divisi
     public function divisi(): BelongsTo
     {
         return $this->belongsTo(Divisi::class);
@@ -41,8 +39,7 @@ class Kepengurusan extends Model
     }
 
     /**
-     * Potret baris ini saat ini: nama, jabatan, dan divisi (KP-07.7).
-     * Disimpan di riwayat sebagai data sebelum/sesudah.
+     * Ringkasan posisi
      *
      * @return array{nama: string|null, jabatan: string|null, divisi: string|null}
      */
@@ -58,8 +55,7 @@ class Kepengurusan extends Model
     }
 
     /**
-     * Teks posisi dari sebuah ringkasan, mis. "Koordinator Divisi Media"
-     * atau "Ketua (pengurus inti)".
+     * Teks posisi
      *
      * @param  array{jabatan?: string|null, divisi?: string|null}  $ringkasan
      */

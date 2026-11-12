@@ -7,9 +7,7 @@ use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
-/**
- * F3 — Data Anggota (KF-06).
- */
+// Data Anggota
 class AnggotaAdminTest extends TestCase
 {
     use RefreshDatabase;
@@ -19,6 +17,7 @@ class AnggotaAdminTest extends TestCase
         return User::factory()->admin()->create()->createToken('api')->plainTextToken;
     }
 
+    // KP-06.1
     public function test_daftar_anggota_bisa_dicari_dan_diffilter_status(): void
     {
         $token = $this->tokenAdmin();
@@ -26,7 +25,6 @@ class AnggotaAdminTest extends TestCase
         Anggota::factory()->create(['user_id' => $budi->id]);
         User::factory()->create(['nama' => 'Siti Aminah', 'email' => 'siti@alfutuuhat.test']);
 
-        // KP-06.1: cari berdasarkan nama
         $this->withToken($token)->getJson('/api/admin/anggota?q=Budi')
             ->assertOk()
             ->assertJsonCount(1, 'data')
@@ -34,24 +32,22 @@ class AnggotaAdminTest extends TestCase
             ->assertJsonPath('data.0.anggota.id', $budi->anggota()->first()->id)
             ->assertJsonPath('data.0.anggota.no_hp', $budi->anggota()->first()->no_hp);
 
-        // KP-06.1: cari berdasarkan email
         $this->withToken($token)->getJson('/api/admin/anggota?q=siti@alfutuuhat.test')
             ->assertOk()
             ->assertJsonCount(1, 'data');
 
-        // KP-06.1: filter status (admin juga berstatus aktif, jadi hitung hasilnya)
         $this->withToken($token)->getJson('/api/admin/anggota?status=aktif')
             ->assertOk()
             ->assertJsonPath('meta.total', 3);
     }
 
+    // KP-06.2
     public function test_admin_mengubah_data_dan_peran_anggota(): void
     {
         $token = $this->tokenAdmin();
         $user = User::factory()->create();
         Anggota::factory()->create(['user_id' => $user->id]);
 
-        // KP-06.2
         $this->withToken($token)->putJson("/api/admin/anggota/{$user->id}", [
             'nama' => 'Nama Baru',
             'no_hp' => '081200000001',
@@ -67,13 +63,13 @@ class AnggotaAdminTest extends TestCase
         ]);
     }
 
+    // KP-06.3
     public function test_menonaktifkan_akun_menghapus_semua_token_dan_menolak_akses(): void
     {
         $token = $this->tokenAdmin();
         $user = User::factory()->create();
         $tokenUser = $user->createToken('api')->plainTextToken;
 
-        // KP-06.3
         $this->withToken($token)->patchJson("/api/admin/anggota/{$user->id}/status", [
             'status' => 'nonaktif',
         ])->assertOk();
@@ -81,22 +77,20 @@ class AnggotaAdminTest extends TestCase
         $this->assertDatabaseHas('users', ['id' => $user->id, 'status' => 'nonaktif']);
         $this->assertSame(0, $user->tokens()->count(), 'Semua token akun harus dihapus.');
 
-        // Token lama tidak berlaku lagi.
         $this->app['auth']->forgetGuards();
         $this->withToken($tokenUser)->getJson('/api/me')->assertStatus(401);
 
-        // Login juga ditolak.
         $this->postJson('/api/login', ['email' => $user->email, 'password' => 'password'])
             ->assertStatus(403)
             ->assertJsonPath('status_akun', 'nonaktif');
     }
 
+    // KP-06.3
     public function test_akun_yang_diaktifkan_kembali_bisa_login(): void
     {
         $token = $this->tokenAdmin();
         $user = User::factory()->nonaktif()->create();
 
-        // KP-06.3
         $this->withToken($token)->patchJson("/api/admin/anggota/{$user->id}/status", [
             'status' => 'aktif',
         ])->assertOk();
@@ -105,12 +99,12 @@ class AnggotaAdminTest extends TestCase
         $this->postJson('/api/login', ['email' => $user->email, 'password' => 'password'])->assertOk();
     }
 
+    // KP-06.4
     public function test_atur_ulang_kata_sandi_mengganti_kata_sandi_lama(): void
     {
         $token = $this->tokenAdmin();
         $user = User::factory()->create();
 
-        // KP-06.4
         $this->withToken($token)->patchJson("/api/admin/anggota/{$user->id}/password", [
             'password' => 'katasandi-baru',
             'password_confirmation' => 'katasandi-baru',
@@ -120,17 +114,16 @@ class AnggotaAdminTest extends TestCase
         $this->postJson('/api/login', ['email' => $user->email, 'password' => 'password'])->assertStatus(422);
     }
 
+    // KP-06.5
     public function test_admin_tidak_dapat_menonaktifkan_atau_menurunkan_peran_dirinya_sendiri(): void
     {
         $admin = User::factory()->admin()->create();
         $token = $admin->createToken('api')->plainTextToken;
 
-        // KP-06.5: nonaktifkan diri sendiri
         $this->withToken($token)->patchJson("/api/admin/anggota/{$admin->id}/status", [
             'status' => 'nonaktif',
         ])->assertStatus(422)->assertJsonValidationErrors('status');
 
-        // KP-06.5: turunkan peran sendiri
         $this->withToken($token)->putJson("/api/admin/anggota/{$admin->id}", [
             'nama' => $admin->nama,
             'no_hp' => '081200000002',

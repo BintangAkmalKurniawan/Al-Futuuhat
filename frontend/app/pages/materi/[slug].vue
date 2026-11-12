@@ -8,7 +8,6 @@
       Arsip materi
     </NuxtLink>
 
-    <!-- Kerangka memuat berbentuk seperti judul dan paragraf. -->
     <div v-if="memuat" class="mt-8 animate-pulse space-y-4">
       <div class="h-9 w-3/4 rounded-full bg-permukaan" />
       <div class="h-4 w-40 rounded-full bg-permukaan" />
@@ -34,7 +33,6 @@
           ke-kategori="/materi"
         />
 
-        <!-- Anggota dapat membaca materi yang belum terbit; pengunjung tidak. -->
         <AppAlert
           v-if="materi.status !== 'terbit'"
           variant="peringatan"
@@ -55,8 +53,6 @@
           />
         </div>
 
-        <!-- Isi versi lama tidak ikut terkirim di daftar riwayat, jadi baris ini
-             menandai bahwa yang tampil bukan versi terbaru (KP-13.4). -->
         <div
           v-if="versiArsip"
           class="mt-8 flex flex-wrap items-center gap-x-4 gap-y-2 rounded-lg border border-garis bg-angkat px-4 py-3"
@@ -76,7 +72,6 @@
           </button>
         </div>
 
-        <!-- Ukuran tulisan isi materi dapat diatur pembaca (KF-22). -->
         <div class="flex flex-wrap justify-end gap-2 pt-6">
           <PemutarSuara :judul="versiTampil?.judul ?? materi.judul" :html="versiTampil?.konten_html" />
           <PengaturUkuranTeks />
@@ -87,8 +82,6 @@
         </div>
       </div>
 
-      <!-- Diskusi dan riwayat versi tampil sebagai laci kanan, bukan bagian
-           halaman (DESIGN.md §6.2 no. 09–10). -->
       <PanelDiskusi
         v-model:open="panelDiskusi"
         :materi-id="materi.id"
@@ -110,7 +103,6 @@
 import { ArrowLeft, Undo2 } from '@lucide/vue'
 import type { MateriDetail, Revisi } from '~/types/api'
 
-// Halaman baca anggota: laci riwayat versi, laci diskusi, dan label status internal.
 definePageMeta({ layout: 'anggota', middleware: ['auth'] })
 
 const route = useRoute()
@@ -123,16 +115,12 @@ const galat = ref('')
 const panelRiwayat = ref(false)
 const panelDiskusi = ref(false)
 
-// Versi lama yang isinya sedang dibaca (KP-13.4); null = revisi terakhir.
 const versiArsip = ref<Revisi | null>(null)
 const { gaya: gayaArtikel } = useUkuranArtikel()
 const idArsipSedangDimuat = ref<number | null>(null)
 
-// Isi yang tampil di kolom baca: versi arsip bila ada, jika tidak revisi terakhir.
 const versiTampil = computed(() => versiArsip.value ?? materi.value?.revisi ?? null)
 
-// KP-16.4: tampilkan keterangan bila versi publik berbeda dari revisi terakhir.
-// `versi_publik` hanya terisi selama materi terbit (Draf 2.3).
 const versiPublikBerbeda = computed(() => {
   const publik = materi.value?.versi_publik
   const terakhir = materi.value?.revisi
@@ -140,12 +128,10 @@ const versiPublikBerbeda = computed(() => {
   return Boolean(publik && terakhir && publik.id !== terakhir.id)
 })
 
-// Tautan "Versi publik: vN" di ActionBar; disembunyikan saat sedang membaca versi lain.
 const tautanVersiPublik = computed(() =>
   versiPublikBerbeda.value && !versiArsip.value ? (materi.value?.versi_publik?.nomor_versi ?? null) : null,
 )
 
-// Sedang membaca versi publik (bukan arsip lain dari riwayat).
 const membacaVersiPublik = computed(
   () => Boolean(versiArsip.value && versiArsip.value.id === materi.value?.versi_publik?.id),
 )
@@ -157,12 +143,10 @@ const teksKembali = computed(() => {
   return 'Kembali ke versi terbaru'
 })
 
-// Materi yang pernah terbit lalu ditarik dari publik (KF-20).
 const sudahDitarik = computed(
   () => materi.value?.status === 'draf' && Boolean(materi.value?.diterbitkan_pada),
 )
 
-// Banner untuk materi yang belum tayang: pesannya dipecah per keadaan (Panduan Bahasa UI).
 const judulBannerAkses = computed(() => {
   if (sudahDitarik.value) return 'Materi ini sudah diturunkan dari halaman umum'
   if (materi.value?.status === 'diajukan') return 'Materi ini lagi dicek admin'
@@ -194,13 +178,10 @@ const metaByline = computed(() => {
   const menit = menitBaca(materi.value?.revisi?.konten_html)
 
   if (menit) bagian.push(`${menit} menit baca`)
-  // Nomor versi tidak ditampilkan di sini; cukup di Riwayat perubahan (Panduan Bahasa UI).
 
   return bagian.join(' · ')
 })
 
-// Catatan kanan ActionBar (KP-16.4, DESIGN.md §5). Saat membaca arsip, baris
-// arsip di atas isi yang menjelaskan, jadi catatan ini disembunyikan.
 const catatanVersi = computed(() => {
   if (versiArsip.value) return null
 
@@ -212,13 +193,13 @@ const catatanVersi = computed(() => {
   return bagian.length ? bagian.join(' · ') : null
 })
 
-/** Baca versi publik di kolom baca (KP-16.4), memakai mode baca arsip yang sama. */
+// Buka versi publik
 function bukaVersiPublik() {
   const id = materi.value?.versi_publik?.id
   if (id) bukaVersi(id)
 }
 
-// Hanya satu laci terbuka pada satu waktu, supaya lapisan gelapnya tidak menumpuk.
+// Buka diskusi
 function bukaDiskusi() {
   panelRiwayat.value = false
   panelDiskusi.value = true
@@ -229,10 +210,7 @@ function bukaRiwayat() {
   panelRiwayat.value = true
 }
 
-/**
- * Buka isi satu versi (KP-13.4). Laci baru ditutup setelah isinya berhasil
- * diambil, supaya pengguna dapat mencoba lagi bila pengambilannya gagal.
- */
+// Buka isi satu versi
 async function bukaVersi(id: number) {
   if (!materi.value) return
 
@@ -243,7 +221,6 @@ async function bukaVersi(id: number) {
     versiArsip.value = respons.data
     panelRiwayat.value = false
 
-    // Isi versi menggantikan artikel di kolom baca; antar pembaca ke atas isi.
     await nextTick()
     document.getElementById('isi-materi')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
   } catch (galatServer) {
@@ -253,7 +230,7 @@ async function bukaVersi(id: number) {
   }
 }
 
-/** Kembali membaca revisi terakhir (KP-16.4). */
+// Kembali ke versi terbaru
 function kembaliKeTerbaru() {
   versiArsip.value = null
 }

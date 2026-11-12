@@ -6,10 +6,7 @@ interface OpsiMinta {
   headers?: Record<string, string>
 }
 
-/**
- * Pembungkus tunggal untuk memanggil API Laravel.
- * Halaman dan komponen tidak boleh memakai $fetch langsung (konvensi frontend).
- */
+// Pemanggil API
 export function useApi() {
   const config = useRuntimeConfig()
   const token = useCookie<string | null>('token')
@@ -22,7 +19,6 @@ export function useApi() {
   ): Promise<T> {
     const headers: Record<string, string> = {
       Accept: 'application/json',
-      // Token Sanctum dikirim sebagai Bearer; hanya bila pengguna sudah masuk.
       ...(token.value ? { Authorization: `Bearer ${token.value}` } : {}),
       ...(opsi.headers ?? {}),
     }
@@ -38,8 +34,6 @@ export function useApi() {
     } catch (galat) {
       const status = (galat as { response?: { status?: number } }).response?.status
 
-      // 401: token tidak berlaku lagi (kedaluwarsa atau akun dinonaktifkan).
-      // Bersihkan sesi lalu arahkan ke halaman masuk, kecuali memang sedang di sana.
       if (status === 401 && useRoute().path !== '/masuk') {
         token.value = null
         user.value = null

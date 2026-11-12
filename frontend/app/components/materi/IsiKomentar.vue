@@ -1,5 +1,4 @@
 <template>
-  <!-- Komentar baru berupa HTML Quill; komentar lama tetap teks biasa. -->
   <div class="text-[15px] break-words text-teks">
     <div v-if="html" class="komentar-kaya" v-html="rapikanSpasiHtml(html)" />
     <p v-else-if="isi" class="whitespace-pre-line">{{ isi }}</p>
@@ -9,7 +8,6 @@
 <script setup lang="ts">
 const props = defineProps<{ isi: string | null | undefined }>()
 
-// Tag yang boleh muncul dari editor komentar (sama dengan profil Purifier backend).
 const TAG_DIIZINKAN = new Set([
   'p',
   'br',
@@ -39,11 +37,6 @@ const TAG_DIIZINKAN = new Set([
   'h6',
 ])
 
-/**
- * Hanya perlakukan sebagai HTML bila berbentuk blok Quill dan seluruh tag
- * berada di daftar aman. Komentar lama yang tersimpan sebagai teks biasa
- * (termasuk yang memuat karakter "<") tetap dirender sebagai teks.
- */
 const html = computed(() => {
   const nilai = props.isi?.trim() ?? ''
 

@@ -1,5 +1,5 @@
 <template>
-  <!-- Data anggota (KF-06, DESIGN.md §6.6). -->
+  <!-- Data anggota -->
   <div>
     <header class="pb-6">
       <h1 class="font-serif text-halaman font-bold text-teks-kuat">Data anggota</h1>
@@ -8,7 +8,7 @@
       </p>
     </header>
 
-    <!-- Bilah alat: filter segmen status + kotak cari (DESIGN.md §6.6 no. 20). -->
+    <!-- Bilah alat -->
     <div class="mt-6 mb-2 flex flex-wrap items-center gap-3">
       <FilterSegmen v-model="statusTerpilih" :opsi="opsiStatus" label="Filter status anggota" />
 
@@ -23,7 +23,7 @@
       {{ galat }}
     </AppAlert>
 
-    <!-- Kerangka memuat berbentuk baris tabel. -->
+    <!-- Kerangka memuat -->
     <div v-if="memuat" class="animate-pulse space-y-5 pt-8">
       <div v-for="n in 4" :key="n" class="h-4 w-full rounded-full bg-permukaan" />
     </div>
@@ -58,7 +58,6 @@
               </td>
               <td>{{ item.email }}</td>
               <td>
-                <!-- Lencana peran Admin dibedakan dengan garis aksen (layar 20). -->
                 <AppBadge :variant="item.role === 'admin' ? 'aksen' : 'netral'">
                   {{ item.role === 'admin' ? 'Admin' : 'Anggota' }}
                 </AppBadge>
@@ -106,7 +105,6 @@ const opsiStatus = [
 ]
 
 const cari = ref('')
-// Filter segmen memakai teks; nilai kosong berarti semua status.
 const statusTerpilih = ref('')
 const halaman = ref(1)
 const anggota = ref<User[]>([])
@@ -114,7 +112,7 @@ const meta = ref<MetaHalaman | null>(null)
 const memuat = ref(true)
 const galat = ref('')
 
-/** Tanggal bergabung: tanggal verifikasi bila ada, jika tidak tanggal mendaftar. */
+// Tanggal bergabung
 function tanggalBergabung(item: User) {
   return item.anggota?.tanggal_bergabung ?? item.terdaftar_pada ?? null
 }
@@ -149,7 +147,7 @@ async function muat() {
   }
 }
 
-/** Kembali ke halaman 1; watcher halaman yang memuat ulang data. */
+// Mulai dari halaman pertama
 function mulaiDariAwal() {
   if (halaman.value !== 1) {
     halaman.value = 1

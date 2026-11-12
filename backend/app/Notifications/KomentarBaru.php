@@ -7,11 +7,7 @@ use App\Models\Materi;
 use Illuminate\Notifications\Notification;
 use Illuminate\Support\Str;
 
-/**
- * Pemberitahuan komentar baru (KF-23):
- * - jenis `komentar`: untuk penulis materi, saat ada komentar baru di materinya;
- * - jenis `balasan`: untuk pemilik komentar, saat komentarnya dibalas.
- */
+// Notifikasi komentar baru
 class KomentarBaru extends Notification
 {
     public const JENIS_KOMENTAR = 'komentar';
@@ -38,7 +34,6 @@ class KomentarBaru extends Notification
      */
     public function toArray(object $notifiable): array
     {
-        // Cuplikan teks polos dari isi komentar (HTML Quill); gambar saja → "(gambar)".
         $teks = trim(html_entity_decode(strip_tags((string) $this->komentar->isi)));
         $cuplikan = $teks !== '' ? Str::limit($teks, 100) : '(gambar)';
 

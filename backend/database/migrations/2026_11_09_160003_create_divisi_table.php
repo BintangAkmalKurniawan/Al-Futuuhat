@@ -6,9 +6,7 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Divisi organisasi (data awal 6 divisi) — PRD §10.
-     */
+    // Divisi organisasi (data awal 6 divisi)
     public function up(): void
     {
         Schema::create('divisi', function (Blueprint $table) {

@@ -41,13 +41,11 @@ import { X } from '@lucide/vue'
 interface Props {
   title: string
   deskripsi?: string
-  /** Dialog lebar (±1000 px), mis. untuk perbandingan versi (KP-10.7). */
   lebar?: boolean
 }
 
 defineProps<Props>()
 
-// v-model:open="..." dari halaman pemakai.
 const terbuka = defineModel<boolean>('open', { default: false })
 
 const dialog = ref<HTMLDialogElement | null>(null)
@@ -57,12 +55,11 @@ function tutup() {
   terbuka.value = false
 }
 
-// Klik pada area gelap di luar kotak dialog ikut menutup.
+// Klik latar
 function klikLatar(event: MouseEvent) {
   if (event.target === dialog.value) tutup()
 }
 
-// showModal() memberi jebakan fokus dan tombol Escape secara bawaan.
 watch(terbuka, (nilai) => {
   const elemen = dialog.value
   if (!elemen) return

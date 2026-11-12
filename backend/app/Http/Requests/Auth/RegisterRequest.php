@@ -4,14 +4,12 @@ namespace App\Http\Requests\Auth;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-/**
- * Validasi formulir pendaftaran anggota (KF-02, KP-02.1–02.4).
- */
+// Validasi formulir pendaftaran anggota
 class RegisterRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return true; // endpoint publik
+        return true;
     }
 
     /**
@@ -26,13 +24,12 @@ class RegisterRequest extends FormRequest
             'no_hp' => ['required', 'string', 'max:20'],
             'alamat' => ['required', 'string'],
             'alasan_bergabung' => ['required', 'string'],
-            // KNF-03: hanya JPG/PNG, maksimal 2 MB (2048 KB)
             'foto' => ['nullable', 'image', 'mimes:jpg,jpeg,png', 'max:2048'],
         ];
     }
 
     /**
-     * Pesan sesuai PRD (KP-02.2, KP-02.3, KP-02.4).
+     * Pesan validasi
      *
      * @return array<string, string>
      */

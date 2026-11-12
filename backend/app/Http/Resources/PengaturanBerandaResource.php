@@ -5,10 +5,7 @@ namespace App\Http\Resources;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-/**
- * Konten beranda (KF-18). Isinya sama untuk pengunjung dan admin — tidak ada
- * data internal — jadi satu Resource dipakai kedua endpoint.
- */
+// Konten beranda
 class PengaturanBerandaResource extends JsonResource
 {
     /**
@@ -19,10 +16,8 @@ class PengaturanBerandaResource extends JsonResource
         return [
             'cerita_judul' => $this->cerita_judul,
             'cerita_isi' => $this->cerita_isi,
-            // Halaman Tentang kami (KF-26): visi teks biasa, misi satu poin per baris.
             'visi' => $this->visi,
             'misi' => $this->misi,
-            // Kontak organisasi (KF-22) — memang untuk umum, bukan data pribadi anggota.
             'kontak' => [
                 'alamat' => $this->kontak_alamat,
                 'whatsapp' => $this->kontak_whatsapp,

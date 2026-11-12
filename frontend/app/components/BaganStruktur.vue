@@ -1,8 +1,6 @@
 <template>
   <section>
-    <!-- Kepala bagan: judul + pemilih periode berbentuk pil (DESIGN.md §6.1, §6.2).
-         Draf 2.5: pemilih periode hanya untuk anggota (/struktur); beranda
-         pengunjung selalu menampilkan periode saat ini (KP-01.2, KP-01.3). -->
+    <!-- Kepala bagan -->
     <div class="flex flex-wrap items-end gap-4">
       <div class="min-w-0 flex-1">
         <h1 v-if="varian === 'halaman'" class="font-serif text-halaman font-bold text-teks-kuat">
@@ -35,7 +33,7 @@
       {{ galat }}
     </AppAlert>
 
-    <!-- Kerangka memuat berbentuk bagan. -->
+    <!-- Kerangka memuat -->
     <div v-else-if="memuat || memuatStruktur" class="mt-6 animate-pulse">
       <div class="h-44 w-full rounded-xl bg-permukaan" />
     </div>
@@ -53,7 +51,7 @@
     />
 
     <div v-else-if="simpul" class="bagan-wrap mt-6">
-      <!-- Petunjuk dan tombol buka/tutup; hanya di halaman /struktur (§9.4). -->
+      <!-- Petunjuk dan tombol buka/tutup -->
       <div v-if="tampilTools" class="bagan-tools">
         <span class="bagan-hint">
           <Network class="h-4 w-4 shrink-0" aria-hidden="true" />
@@ -71,7 +69,7 @@
           collapsible
           :pt="{ nodeToggleButton: { 'aria-label': 'Buka atau tutup anggota divisi' } }"
         >
-          <!-- Kotak pengurus inti (akar bagan). -->
+          <!-- Kotak pengurus inti -->
           <template #inti="{ node }">
             <div class="w-[270px]">
               <p
@@ -100,7 +98,7 @@
             </div>
           </template>
 
-          <!-- Kotak divisi (cabang). -->
+          <!-- Kotak divisi -->
           <template #divisi="{ node }">
             <div class="w-[164px]">
               <p class="font-serif text-[17px] font-bold tracking-[-.01em] text-teks-kuat">
@@ -127,7 +125,7 @@
             </div>
           </template>
 
-          <!-- Kotak daftar anggota divisi (daun). -->
+          <!-- Kotak daftar anggota divisi -->
           <template #anggota="{ node }">
             <div class="w-[164px]">
               <div
@@ -158,17 +156,11 @@
 
 <script setup lang="ts">
 import { ChevronDown, Network } from '@lucide/vue'
-// Komponen PrimeVue diimpor manual karena autoImport dimatikan (DESIGN.md §9.2).
 import OrganizationChart from 'primevue/organizationchart'
 import type { Periode, StrukturPublik } from '~/types/api'
 
 interface Props {
-  /**
-   * `halaman` untuk /struktur (anggota, dapat memilih periode lama),
-   * `ringkas` untuk beranda (pengunjung, hanya periode saat ini).
-   */
   varian?: 'halaman' | 'ringkas'
-  /** Tombol "Buka semua"/"Tutup semua" hanya tampil di /struktur (§9.4). */
   tampilTools?: boolean
   judul?: string
   deskripsi?: string
@@ -181,12 +173,10 @@ const props = withDefaults(defineProps<Props>(), {
   deskripsi: 'Bagan pengurus per periode. Pengurus inti di puncak, divisi di bawahnya.',
 })
 
-// Halaman memakai periode terpilih untuk menampilkan riwayatnya (KP-07.8).
 const emit = defineEmits<{ (e: 'periode', periode: Periode): void }>()
 
 const { daftarPeriode, strukturPeriode, strukturPublik } = useStruktur()
 
-// Beranda = pengunjung: hanya periode saat ini lewat endpoint publik.
 const publik = computed(() => props.varian === 'ringkas')
 
 const route = useRoute()
@@ -199,7 +189,6 @@ const memuat = ref(true)
 const memuatStruktur = ref(false)
 const galat = ref('')
 
-// Penanda agar klik periode yang beruntun tidak menimpa hasil terbaru.
 let permintaanTerakhir = 0
 
 const { simpul, ciut, bukaSemua, tutupSemua } = useBaganStruktur(struktur)
@@ -217,7 +206,7 @@ const namaPeriode = computed(
   () => periode.value.find((item) => item.id === periodeId.value)?.nama_periode ?? '',
 )
 
-/** Ponsel: bagan tetap utuh dan digulir mendatar, posisi awal di tengah (§9.4). */
+// Tengahkan gulir bagan
 async function tengahkanGulir() {
   await nextTick()
   const el = gulir.value
@@ -237,11 +226,9 @@ async function muatPeriode() {
     const respons = await daftarPeriode()
     periode.value = respons.data
 
-    // Tautan "Pratinjau bagan" dari admin dapat memilih periode lewat ?periode=.
     const diminta = Number(route.query.periode)
     const dariTautan = respons.data.find((item) => item.id === diminta)
 
-    // Selain itu: periode aktif tampil terpilih, bila tidak ada pakai yang pertama.
     const awal = dariTautan ?? respons.data.find((item) => item.is_aktif) ?? respons.data[0]
     if (awal) await pilihPeriode(awal.id)
   } catch (galatServer) {
@@ -251,7 +238,7 @@ async function muatPeriode() {
   }
 }
 
-/** Beranda: satu permintaan, struktur periode saat ini saja. */
+// Muat struktur publik
 async function muatPublik() {
   try {
     const respons = await strukturPublik()
@@ -291,8 +278,7 @@ async function pilihPeriode(id: number) {
   }
 }
 
-// Memilih periode lain lewat pemilih periode. Tanpa watcher agar permintaan
-// tidak terkirim dua kali saat halaman pertama dimuat.
+// Pilih periode
 function pilihDariPilihan() {
   if (periodeId.value !== null) pilihPeriode(periodeId.value).catch(() => {})
 }

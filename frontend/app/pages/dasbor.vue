@@ -1,6 +1,5 @@
 <template>
-  <!-- Dasbor anggota (F10, DESIGN.md §6.2 no. 07):
-       4 kartu angka, lalu panel "Materi saya terbaru" dan "Notifikasi". -->
+  <!-- Dasbor anggota -->
   <div class="mx-auto w-full max-w-halaman">
     <header class="pb-1">
       <h1 class="font-serif text-halaman font-bold text-teks-kuat">
@@ -9,7 +8,7 @@
       <p class="mt-3 text-sm text-teks-lembut">Ringkasan materimu dan kabar terbaru.</p>
     </header>
 
-    <!-- Kerangka memuat berbentuk kartu angka. -->
+    <!-- Kerangka memuat -->
     <div v-if="memuat" class="mt-7 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
       <div v-for="n in 4" :key="n" class="h-[86px] animate-pulse rounded-lg bg-permukaan" />
     </div>
@@ -25,7 +24,7 @@
     </div>
 
     <div class="mt-9 grid grid-cols-[minmax(0,1fr)] gap-14 lg:grid-cols-[minmax(0,1fr)_360px]">
-      <!-- Panel kiri: tiga materi terbaru milik sendiri. -->
+      <!-- Panel kiri -->
       <section>
         <PanelJudul judul="Materi saya terbaru" tautan="Lihat semua" ke="/materi-saya" />
 
@@ -61,7 +60,7 @@
         <AppButton class="mt-6" @click="navigateTo('/materi-saya/baru')">Tulis materi baru</AppButton>
       </section>
 
-      <!-- Panel kanan: tiga notifikasi terbaru. -->
+      <!-- Panel kanan -->
       <section>
         <PanelJudul judul="Notifikasi" tautan="Lihat semua" ke="/notifikasi" />
 
@@ -80,7 +79,6 @@
             class="relative flex gap-3.5 border-b border-garis py-[18px]"
             :class="item.dibaca ? 'opacity-70' : ''"
           >
-            <!-- Titik aksen untuk notifikasi yang belum dibaca. -->
             <span
               v-if="!item.dibaca"
               class="absolute top-8 -left-4 h-[7px] w-[7px] rounded-full bg-aksen"
@@ -116,7 +114,6 @@ import type {
   ResponsHalaman,
 } from '~/types/api'
 
-// KP-08.6: admin hanya mengelola, tidak menulis materi → dialihkan ke /admin.
 definePageMeta({ layout: 'anggota', middleware: ['auth', 'bukan-admin'] })
 useHead({ title: 'Dasbor' })
 
@@ -140,7 +137,7 @@ const kartuMateri = computed(() => [
   { kunci: 'terbit', label: 'Tayang untuk umum', nilai: ringkasan.value?.materi.terbit ?? 0 },
 ])
 
-// Keterangan baris materi mengikuti statusnya (mockup 07).
+// Keterangan materi
 function metaMateri(item: MateriRingkas): string {
   const komentar = `${item.jumlah_komentar ?? 0} komentar`
 
@@ -155,7 +152,6 @@ function metaMateri(item: MateriRingkas): string {
 function ikon(item: Notifikasi) {
   if (item.data.tipe === 'komentar_baru') return MessageCircle
   if (item.data.tipe === 'materi_diajukan') return FileText
-  // Pengajuan penarikan materi dari publik (KF-20).
   if (item.data.tipe === 'penarikan_diajukan') return Undo2
   if (item.data.keputusan === 'ditolak') return X
 
@@ -169,7 +165,6 @@ async function muatRingkasan() {
     const respons = await api.get<ResponsData<DasborAnggota>>('/dasbor')
     ringkasan.value = respons.data
   } catch {
-    // Ringkasan gagal dimuat: kartu tetap tampil dengan angka nol.
     ringkasan.value = null
   } finally {
     memuat.value = false

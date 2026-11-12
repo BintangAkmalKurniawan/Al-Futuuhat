@@ -5,9 +5,7 @@ namespace App\Http\Resources;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-/**
- * Baris susunan pengurus (dipakai respons admin setelah simpan/ubah).
- */
+// Baris susunan pengurus
 class KepengurusanResource extends JsonResource
 {
     /**

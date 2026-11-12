@@ -13,10 +13,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
 use Tests\TestCase;
 
-/**
- * F4 + Draf 2.5 — Struktur organisasi: periode otomatis per tahun, periode lama
- * hanya-baca, riwayat perubahan, dan akses publik/anggota (KF-01, KF-07).
- */
+// Struktur organisasi
 class StrukturTest extends TestCase
 {
     use RefreshDatabase;
@@ -27,15 +24,10 @@ class StrukturTest extends TestCase
     {
         parent::setUp();
 
-        // Semua tes berjalan di tahun 2026 kecuali dipindah dengan travelTo().
         $this->travelTo(Carbon::create(2026, 6, 1, 9));
         $this->admin = User::factory()->admin()->create(['nama' => 'Admin Ketua']);
     }
 
-    /**
-     * Kirim permintaan sebagai pengguna tertentu. Guard dilupakan dulu karena
-     * Sanctum mengingat pengguna dari permintaan sebelumnya dalam satu tes.
-     */
     private function sebagai(User $user): static
     {
         $this->app['auth']->forgetGuards();
@@ -68,7 +60,7 @@ class StrukturTest extends TestCase
         ]);
     }
 
-    // ------------------------------------------------------------ KP-07.2, KP-07.5
+    // KP-07.2, KP-07.5
 
     public function test_crud_divisi_dan_jabatan(): void
     {
@@ -105,13 +97,13 @@ class StrukturTest extends TestCase
             ->assertStatus(422)->assertJsonValidationErrors('jabatan');
     }
 
+    // KP-07.1
     public function test_rute_kelola_periode_manual_sudah_tidak_ada(): void
     {
-        // KP-07.1 (Draf 2.5): periode tidak lagi dibuat atau diaktifkan manual.
         $this->sebagai($this->admin)->postJson('/api/admin/periode', ['nama_periode' => '2030'])->assertNotFound();
     }
 
-    // ------------------------------------------------------------ KP-07.1, KP-07.3
+    // KP-07.1, KP-07.3
 
     public function test_perubahan_pertama_tanpa_periode_membuat_periode_tahun_berjalan(): void
     {
@@ -146,13 +138,12 @@ class StrukturTest extends TestCase
             ->assertJsonPath('data.nama', 'Ketua Umum')
             ->assertJsonPath('data.periode_id', $aktif->id);
 
-        $this->assertSame(1, PeriodeKepengurusan::count()); // tidak ada periode baru
+        $this->assertSame(1, PeriodeKepengurusan::count());
 
         $riwayat = $aktif->riwayat()->sole();
         $this->assertSame(RiwayatStruktur::AKSI_TAMBAH, $riwayat->aksi);
         $this->assertSame($this->admin->id, $riwayat->admin_id);
         $this->assertSame('Menambahkan Ketua Umum sebagai Ketua (pengurus inti).', $riwayat->keterangan);
-        // assertEquals: JSONB PostgreSQL tidak menjaga urutan kunci objek.
         $this->assertEquals(['nama' => 'Ketua Umum', 'jabatan' => 'Ketua', 'divisi' => null], $riwayat->data_sesudah);
     }
 
@@ -166,7 +157,6 @@ class StrukturTest extends TestCase
         $this->pengurus($lama, $this->anggotaAktif('Ahmad'), $ketua);
         $baris = $this->pengurus($lama, $this->anggotaAktif('Siti'), $koordinator, $media);
 
-        // Tahun berganti; admin mengubah baris yang masih milik periode lama.
         $this->travelTo(Carbon::create(2027, 1, 5, 8));
 
         $this->sebagai($this->admin)->putJson("/api/admin/kepengurusan/{$baris->id}", [
@@ -179,9 +169,8 @@ class StrukturTest extends TestCase
         $this->assertSame('2027', $baru->nama_periode);
         $this->assertFalse($lama->fresh()->is_aktif);
 
-        // Susunan lama disalin; perubahan hanya mengenai salinan di periode baru.
         $this->assertSame(2, $baru->kepengurusan()->count());
-        $this->assertSame($koordinator->id, $baris->fresh()->jabatan_id); // arsip utuh
+        $this->assertSame($koordinator->id, $baris->fresh()->jabatan_id);
         $this->assertSame($ketua->id, $baru->kepengurusan()->where('anggota_id', $baris->anggota_id)->value('jabatan_id'));
 
         $this->assertSame(
@@ -194,7 +183,7 @@ class StrukturTest extends TestCase
         );
     }
 
-    // ------------------------------------------------------------ KP-07.6
+    // KP-07.6
 
     public function test_periode_lama_hanya_dapat_dibaca(): void
     {
@@ -214,7 +203,7 @@ class StrukturTest extends TestCase
         $this->assertDatabaseHas('kepengurusan', ['id' => $baris->id]);
     }
 
-    // ------------------------------------------------------------ KP-07.3, KP-07.4
+    // KP-07.3, KP-07.4
 
     public function test_anggota_yang_sama_tidak_boleh_dua_kali_pada_periode_yang_sama(): void
     {
@@ -238,11 +227,10 @@ class StrukturTest extends TestCase
             'jabatan_id' => Jabatan::factory()->create()->id,
         ])->assertStatus(422)->assertJsonValidationErrors('anggota_id');
 
-        // Permintaan yang gagal tidak meninggalkan periode baru.
         $this->assertSame(0, PeriodeKepengurusan::count());
     }
 
-    // ------------------------------------------------------------ KP-07.7
+    // KP-07.7
 
     public function test_hapus_tercatat_dan_ubah_tanpa_perbedaan_tidak_dicatat(): void
     {
@@ -265,8 +253,6 @@ class StrukturTest extends TestCase
         );
     }
 
-    // ------------------------------------------------------------ Daftar admin
-
     public function test_admin_melihat_pengurus_periode_aktif_saja(): void
     {
         $aktif = $this->periode(2026, true, '2026/2027');
@@ -282,7 +268,7 @@ class StrukturTest extends TestCase
         $this->sebagai($this->admin)->getJson('/api/admin/kepengurusan')
             ->assertOk()
             ->assertJsonCount(2, 'data')
-            ->assertJsonPath('data.0.nama', 'Ketua Umum') // pengurus inti lebih dulu
+            ->assertJsonPath('data.0.nama', 'Ketua Umum')
             ->assertJsonPath('data.1.divisi.nama_divisi', 'Edukasi')
             ->assertJsonPath('periode.nama_periode', '2026/2027')
             ->assertJsonPath('periode.akan_berganti', false);
@@ -290,7 +276,7 @@ class StrukturTest extends TestCase
         $this->sebagai(User::factory()->create())->getJson('/api/admin/kepengurusan')->assertForbidden();
     }
 
-    // ------------------------------------------------------------ KP-01.2, KP-01.3
+    // KP-01.2, KP-01.3
 
     public function test_pengunjung_hanya_melihat_struktur_periode_saat_ini(): void
     {
@@ -303,12 +289,12 @@ class StrukturTest extends TestCase
             ->assertOk()
             ->assertJsonPath('data.periode.id', $aktif->id);
 
-        // Daftar periode, struktur periode lama, dan riwayat butuh login.
         $this->getJson('/api/periode')->assertUnauthorized();
         $this->getJson("/api/periode/{$lama->id}/struktur")->assertUnauthorized();
         $this->getJson("/api/periode/{$aktif->id}/riwayat")->assertUnauthorized();
     }
 
+    // KP-01.4
     public function test_anggota_melihat_semua_periode_dan_struktur_periode_lama(): void
     {
         $aktif = $this->periode(2026, true);
@@ -329,7 +315,6 @@ class StrukturTest extends TestCase
             ->assertJsonCount(2, 'data')
             ->assertJsonPath('data.0.id', $aktif->id);
 
-        // KP-01.4: inti di atas, lalu per divisi sesuai urutan jabatan.
         $this->sebagai($anggota)->getJson("/api/periode/{$lama->id}/struktur")
             ->assertOk()
             ->assertJsonPath('data.periode.is_aktif', false)
@@ -338,6 +323,7 @@ class StrukturTest extends TestCase
             ->assertJsonPath('data.divisi.0.pengurus.1.nama', 'Staf Edukasi');
     }
 
+    // KP-01.5
     public function test_struktur_publik_tidak_memuat_data_pribadi(): void
     {
         $periode = $this->periode(2026, true);
@@ -350,7 +336,6 @@ class StrukturTest extends TestCase
         ]);
         $this->pengurus($periode, $anggota, Jabatan::factory()->create(), Divisi::factory()->create());
 
-        // KP-01.5, KNF-02
         $isi = (string) $this->getJson('/api/publik/struktur')->assertOk()->getContent();
 
         foreach (['rahasia@alfutuuhat.test', '081299998888', 'Jl. Rahasia No. 9', 'Alasan pribadi.', 'foto-anggota'] as $terlarang) {
@@ -358,7 +343,7 @@ class StrukturTest extends TestCase
         }
     }
 
-    // ------------------------------------------------------------ KP-07.8
+    // KP-07.8
 
     public function test_riwayat_berisi_perbandingan_dengan_periode_sebelumnya_dan_log(): void
     {
@@ -374,11 +359,9 @@ class StrukturTest extends TestCase
         $citra = $this->anggotaAktif('Citra');
         $dewi = $this->anggotaAktif('Dewi');
 
-        // 2025: Ahmad ketua, Budi koordinator Edukasi, Citra koordinator Media.
         $this->pengurus($lama, $ahmad, $ketua);
         $this->pengurus($lama, $budi, $koordinator, $edukasi);
         $this->pengurus($lama, $citra, $koordinator, $media);
-        // 2026: Ahmad tetap, Budi pindah ke Media, Citra keluar, Dewi masuk.
         $this->pengurus($baru, $ahmad, $ketua);
         $this->pengurus($baru, $budi, $koordinator, $media);
         $this->pengurus($baru, $dewi, $koordinator, $edukasi);
@@ -401,10 +384,9 @@ class StrukturTest extends TestCase
                 'dari' => 'Koordinator Divisi Edukasi',
                 'menjadi' => 'Koordinator Divisi Media',
             ]])
-            ->assertJsonPath('data.log.0.keterangan', 'Catatan kedua.') // terbaru di atas
+            ->assertJsonPath('data.log.0.keterangan', 'Catatan kedua.')
             ->assertJsonPath('data.log.0.admin.nama', 'Admin Ketua');
 
-        // Periode pertama tidak punya pembanding.
         $this->sebagai($this->admin)->getJson("/api/periode/{$lama->id}/riwayat")
             ->assertOk()
             ->assertJsonPath('data.periode_sebelumnya', null)

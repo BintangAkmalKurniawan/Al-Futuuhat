@@ -4,10 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-/**
- * Visi dan misi organisasi untuk halaman Tentang kami (KF-26).
- * Misi ditulis satu poin per baris dan ditampilkan sebagai daftar bernomor.
- */
+// Visi dan misi
 return new class extends Migration
 {
     public function up(): void

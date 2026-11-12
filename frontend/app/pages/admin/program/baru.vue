@@ -1,5 +1,5 @@
 <template>
-  <!-- Tambah program (KP-21.1). Dokumentasi diunggah setelah program tersimpan. -->
+  <!-- Tambah program -->
   <div class="mx-auto max-w-3xl">
     <NuxtLink
       to="/admin/program"
@@ -29,7 +29,7 @@ useHead({ title: 'Tambah Program' })
 
 const { tampilkan } = usePesanToast()
 
-/** Lanjut ke halaman kelola, langsung pada tab Dokumentasi. */
+// Setelah simpan
 async function setelahSimpan(program: ProgramAdmin, pesan: string) {
   tampilkan(pesan, 'sukses')
   await navigateTo({ path: `/admin/program/${program.id}`, query: { tab: 'dokumentasi' } })

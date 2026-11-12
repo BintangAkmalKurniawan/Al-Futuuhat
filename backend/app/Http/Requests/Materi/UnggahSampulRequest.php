@@ -7,14 +7,11 @@ use Illuminate\Auth\Access\Response;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Gate;
 
-/**
- * Unggahan gambar sampul materi (KF-18, KNF-03).
- */
+// Unggahan gambar sampul materi
 class UnggahSampulRequest extends FormRequest
 {
     public function authorize(): Response
     {
-        // Sampul hanya untuk materi; admin tidak menulis materi (KP-08.6).
         return Gate::inspect('buat', Materi::class);
     }
 

@@ -1,5 +1,5 @@
 <template>
-  <!-- Halaman galat: route tidak ada atau materi belum terbit (KP-17.3, DESIGN.md §6.4 no. 27). -->
+  <!-- Halaman galat -->
   <div class="flex min-h-screen flex-col items-center bg-kanvas px-6 py-28 text-center text-teks">
     <p
       class="font-serif text-[120px] leading-none font-semibold tracking-[-0.04em] text-teks-kuat"
@@ -37,7 +37,7 @@ const pesan = computed(() =>
     : 'Permintaan tidak dapat diproses saat ini. Silakan coba lagi sebentar lagi.',
 )
 
-// clearError() menutup halaman galat lalu berpindah ke daftar publikasi.
+// Ke daftar publikasi
 function kePublikasi() {
   clearError({ redirect: '/publikasi' })
 }

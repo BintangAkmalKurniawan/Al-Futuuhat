@@ -1,6 +1,5 @@
 <template>
-  <!-- Kartu artikel untuk daftar publikasi pengunjung (DESIGN.md §6.2):
-       sampul di atas, lalu penulis, judul serif, ringkasan tiga baris, dan meta. -->
+  <!-- Kartu artikel -->
   <article
     class="group flex h-full flex-col overflow-hidden rounded-lg bg-permukaan ring-1 ring-garis transition-colors duration-200 hover:ring-garis-kuat"
   >
@@ -13,7 +12,7 @@
           loading="lazy"
           class="h-full w-full object-cover transition-transform duration-300 ease-halus group-hover:scale-[1.02]"
         />
-        <!-- Tanpa sampul: sampul bawaan dari judul & kategori artikel. -->
+        <!-- Tanpa sampul -->
         <SampulBawaan
           v-else
           :id="materi.id"
@@ -30,7 +29,6 @@
         <span class="text-teks">{{ materi.penulis?.nama ?? 'Anonim' }}</span>
       </div>
 
-      <!-- Kategori sebagai label rubrik di atas judul (KF-19, KP-19.4). -->
       <ChipKategori
         v-if="materi.kategori?.length"
         :daftar="materi.kategori"

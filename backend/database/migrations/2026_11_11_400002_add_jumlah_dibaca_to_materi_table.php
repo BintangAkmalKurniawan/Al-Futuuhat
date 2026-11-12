@@ -4,9 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-/**
- * Jumlah halaman baca materi dibuka, untuk statistik admin (KF-25).
- */
+// Jumlah dibaca materi
 return new class extends Migration
 {
     public function up(): void

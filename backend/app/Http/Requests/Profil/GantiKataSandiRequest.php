@@ -6,9 +6,7 @@ use Closure;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Hash;
 
-/**
- * Ganti kata sandi sendiri (KF-24): wajib memasukkan kata sandi lama.
- */
+// Ganti kata sandi sendiri
 class GantiKataSandiRequest extends FormRequest
 {
     public function authorize(): bool

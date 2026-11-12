@@ -33,14 +33,13 @@ return [
         'test'    => [
             'Attr.EnableID' => 'true',
         ],
-        // Profil untuk konten Quill (PRD KF-08, KP-08.4):
-        // hanya tag yang memang dihasilkan editor, tanpa <script>/atribut acak.
+        // Profil konten Quill
         'materi' => [
             'HTML.Doctype'             => 'HTML 4.01 Transitional',
             'HTML.Allowed'             => 'p[class],br,h1[class],h2[class],h3[class],h4[class],h5[class],h6[class],strong,b,em,i,u,s,sub,sup,blockquote[class],pre[class],code,ol[class],ul[class],li[class],a[href|title|target|rel],img[src|alt|title|width|height],span[class],div[class]',
             'URI.AllowedSchemes'       => ['http' => true, 'https' => true, 'mailto' => true],
-            'AutoFormat.AutoParagraph' => false, // Quill sudah mengirim <p> sendiri
-            'AutoFormat.RemoveEmpty'   => false, // <p><br></p> adalah baris kosong Quill
+            'AutoFormat.AutoParagraph' => false,
+            'AutoFormat.RemoveEmpty'   => false,
         ],
         "youtube" => [
             "HTML.SafeIframe"      => 'true',

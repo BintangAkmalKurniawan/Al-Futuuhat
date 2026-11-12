@@ -1,14 +1,12 @@
 <template>
-  <!-- Konfirmasi "Ajukan publikasi" (KP-10.7). Materi yang pernah terbit
-       menampilkan perbandingan versi publik terakhir dengan versi yang akan
-       diajukan; materi yang belum pernah terbit cukup konfirmasi biasa. -->
+  <!-- Konfirmasi "Ajukan publikasi" -->
   <AppModal v-model:open="terbuka" :title="judulDialog" :deskripsi="deskripsiDialog" :lebar="pernahTerbit">
     <AppAlert v-if="galatAjukan" variant="bahaya" title="Belum berhasil diajukan" class="mb-4">
       {{ galatAjukan }}
     </AppAlert>
 
     <template v-if="pernahTerbit">
-      <!-- Kerangka memuat berbentuk dua kolom. -->
+      <!-- Kerangka memuat -->
       <div v-if="memuatBanding" class="grid animate-pulse gap-8 py-2 md:grid-cols-2">
         <div v-for="n in 2" :key="n" class="space-y-3">
           <div class="h-6 w-3/4 rounded-full bg-permukaan" />
@@ -46,10 +44,8 @@ import type { DataEditor, Revisi } from '~/types/api'
 
 const props = defineProps<{
   materiId: number | string
-  /** Id revisi terakhir (draf) yang akan diajukan. */
   idRevisi: number | null
   nomorRevisi: number | null
-  /** Id versi publik terakhir; null bila materi belum pernah terbit. */
   idVersiPublik: number | null
 }>()
 
@@ -79,7 +75,7 @@ const deskripsiDialog = computed(() =>
     : 'Admin akan mengecek materimu dulu. Selama dicek, isinya belum bisa diubah.',
 )
 
-/** Ambil isi lengkap kedua versi lewat GET /materi/{id}/riwayat/{revisi} (KP-13.4). */
+// Muat kedua versi
 async function muatBanding() {
   if (!pernahTerbit.value) return
 
@@ -101,7 +97,6 @@ async function muatBanding() {
   }
 }
 
-// Setiap kali dialog dibuka, perbandingan dimuat ulang agar sesuai draf terbaru.
 watch(terbuka, (buka) => {
   if (!buka) return
 

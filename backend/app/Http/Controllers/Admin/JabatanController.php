@@ -10,14 +10,10 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Validation\ValidationException;
 
-/**
- * CRUD jabatan (KF-07, KP-07.2, KP-07.5).
- */
+// CRUD jabatan
 class JabatanController extends Controller
 {
-    /**
-     * GET /api/admin/jabatan — diurutkan sesuai kolom `urutan`.
-     */
+    // Daftar jabatan
     public function index(): AnonymousResourceCollection
     {
         $jabatan = Jabatan::orderBy('urutan')->orderBy('nama_jabatan')->get();
@@ -25,9 +21,6 @@ class JabatanController extends Controller
         return JabatanResource::collection($jabatan);
     }
 
-    /**
-     * POST /api/admin/jabatan.
-     */
     public function store(JabatanRequest $request): JsonResponse
     {
         $jabatan = Jabatan::create($request->validated());
@@ -38,9 +31,6 @@ class JabatanController extends Controller
         ], 201);
     }
 
-    /**
-     * PUT /api/admin/jabatan/{jabatan}.
-     */
     public function update(JabatanRequest $request, Jabatan $jabatan): JsonResponse
     {
         $jabatan->update($request->validated());
@@ -51,9 +41,7 @@ class JabatanController extends Controller
         ]);
     }
 
-    /**
-     * DELETE /api/admin/jabatan/{jabatan} — ditolak bila masih dipakai (KP-07.5).
-     */
+    // Hapus jabatan
     public function destroy(Jabatan $jabatan): JsonResponse
     {
         if ($jabatan->kepengurusan()->exists()) {

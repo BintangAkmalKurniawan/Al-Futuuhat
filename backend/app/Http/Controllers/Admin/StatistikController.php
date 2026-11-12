@@ -7,19 +7,15 @@ use App\Models\Materi;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 
-/**
- * Statistik untuk dasbor admin (KF-25): materi paling banyak dibaca dan
- * anggota paling aktif 30 hari terakhir. Berguna sebagai bahan laporan pengurus.
- */
+// Statistik untuk dasbor admin
 class StatistikController extends Controller
 {
     private const JUMLAH = 5;
 
-    /** GET /api/admin/statistik */
     public function index(): JsonResponse
     {
         $terpopuler = Materi::query()
-            ->with('penulis') // KNF-09
+            ->with('penulis')
             ->where('jumlah_dibaca', '>', 0)
             ->orderByDesc('jumlah_dibaca')
             ->limit(self::JUMLAH)
@@ -33,7 +29,6 @@ class StatistikController extends Controller
                 'jumlah_dibaca' => $materi->jumlah_dibaca,
             ]);
 
-        // Aktif = menulis materi baru atau berkomentar dalam 30 hari terakhir.
         $sejak = now()->subDays(30);
 
         $teraktif = User::query()

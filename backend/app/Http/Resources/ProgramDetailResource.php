@@ -4,9 +4,7 @@ namespace App\Http\Resources;
 
 use Illuminate\Http\Request;
 
-/**
- * Halaman baca satu program (KP-21.5): data daftar + penjelasan rinci.
- */
+// Halaman baca satu program
 class ProgramDetailResource extends ProgramResource
 {
     /**

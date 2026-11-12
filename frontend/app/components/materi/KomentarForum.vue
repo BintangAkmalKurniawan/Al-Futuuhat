@@ -1,12 +1,10 @@
 <template>
   <section>
-    <!-- Di dalam PanelDiskusi judulnya sudah ada di kepala laci, jadi di sini
-         cukup baris tipis berisi jumlah komentar dan indikator siaran. -->
     <header class="flex items-center gap-3" :class="dalamPanel ? '' : 'pt-7'">
       <h2 v-if="!dalamPanel" class="text-xl font-semibold text-teks-kuat">Diskusi ({{ jumlah }})</h2>
       <p v-else class="text-[13px] text-teks-lembut">{{ jumlah }} komentar</p>
 
-      <!-- Indikator siaran langsung (KP-15). -->
+      <!-- Indikator siaran langsung -->
       <span
         class="inline-flex items-center gap-1.5 text-[12px]"
         :class="terhubung ? 'text-terbit' : 'text-teks-redup'"
@@ -21,7 +19,6 @@
     </header>
 
     <div id="isi-forum" class="space-y-5 pt-5">
-      <!-- Tamu tidak dapat membaca/menulis forum (rute forum wajib login). -->
       <div v-if="!isLoggedIn" class="space-y-3">
         <p class="text-sm text-teks-lembut">
           Masuk dulu sebagai anggota untuk ikut berdiskusi ya.
@@ -30,8 +27,7 @@
       </div>
 
       <template v-else>
-        <!-- Kotak tulis komentar: avatar dan nama di atas, bilah format di atas
-             kotak bergaris, petunjuk lampiran di bawahnya (DESIGN.md §6.2 no. 09). -->
+        <!-- Kotak tulis komentar -->
         <form @submit.prevent="kirim">
           <div class="flex items-center gap-3">
             <AvatarInisial :nama="user?.nama" :id="user?.id" />
@@ -50,7 +46,7 @@
             @lampiran="gambar = $event"
           >
             <template #aksi>
-              <!-- Lampiran terpilih: nama berkas dan tombol hapus (KP-14.2). -->
+              <!-- Lampiran terpilih -->
               <span
                 v-if="gambar"
                 class="flex items-center gap-1.5 rounded-full bg-angkat px-3 py-1 text-[12px] text-teks-lembut"
@@ -75,7 +71,7 @@
 
         <AppAlert v-if="galat" variant="bahaya" title="Diskusinya belum bisa dimuat">{{ galat }}</AppAlert>
 
-        <!-- Kerangka memuat berbentuk seperti komentar. -->
+        <!-- Kerangka memuat -->
         <div v-if="memuat" class="animate-pulse space-y-5">
           <div v-for="n in 2" :key="n" class="space-y-2">
             <div class="h-3 w-32 rounded-full bg-permukaan" />
@@ -130,8 +126,6 @@
                   </button>
                 </div>
 
-                <!-- Balasan satu tingkat (KP-14.3) tidak ikut pada daftar komentar:
-                     isinya diambil saat tombol ini ditekan (KP-14.5). -->
                 <button
                   v-if="jumlahBalasan(komentar) > 0"
                   type="button"
@@ -155,7 +149,7 @@
                   {{ galatMuatBalasan[komentar.id] }}
                 </p>
 
-                <!-- Kerangka memuat balasan. -->
+                <!-- Kerangka memuat balasan -->
                 <div
                   v-if="sedangMuatBalasan.has(komentar.id)"
                   class="mt-4 animate-pulse space-y-3 border-l-2 border-garis pl-4"
@@ -201,7 +195,7 @@
                   </div>
                 </div>
 
-                <!-- Form balasan; tampilannya mengikuti kotak komentar di atas. -->
+                <!-- Form balasan -->
                 <form
                   v-if="balasUntuk === komentar.id"
                   class="mt-3"
@@ -231,7 +225,7 @@
       </template>
     </div>
 
-    <!-- Konfirmasi hapus komentar (ConfirmDialog) -->
+    <!-- Konfirmasi hapus komentar -->
     <AppModal
       v-model:open="modalHapus"
       title="Hapus komentar?"
@@ -260,9 +254,7 @@ import type { Komentar, MetaHalaman } from '~/types/api'
 
 const props = defineProps<{
   materiId: number
-  /** Penulis materi; komentator dengannya diberi label "Penulis". */
   materiPenulisId?: number | null
-  /** true = komponen tampil di dalam laci (PanelDiskusi), judulnya dipangkas. */
   dalamPanel?: boolean
 }>()
 
@@ -276,7 +268,6 @@ const { isLoggedIn, user } = useAuth()
 const { $echo } = useNuxtApp()
 const config = useRuntimeConfig()
 
-// Storage::url mengembalikan path relatif (/storage/...); tambahkan asal backend.
 const asalBerkas = config.public.apiBase.replace(/\/api\/?$/, '')
 
 const daftar = ref<Komentar[]>([])
@@ -285,7 +276,6 @@ const halaman = ref(1)
 const memuat = ref(true)
 const galat = ref('')
 
-// Naikkan nilai ini untuk memasang ulang editor Quill setelah komentar terkirim.
 const versiEditor = ref(0)
 
 const isi = ref('')
@@ -302,15 +292,12 @@ const akanDihapus = ref<number | null>(null)
 const menghapus = ref(false)
 const galatHapus = ref('')
 
-// Balasan: hanya komentar yang dibuka pemakainya yang diambil dari server (KP-14.5).
 const terbukaBalasan = ref(new Set<number>())
 const sedangMuatBalasan = ref(new Set<number>())
 const galatMuatBalasan = ref<Record<number, string>>({})
 
-// Komentar yang baru masuk lewat siaran; diberi latar aksen yang memudar.
 const baru = ref(new Set<number>())
 
-// Keadaan sambungan Reverb, ditampilkan sebagai "Langsung"/"Terputus".
 const terhubung = ref(false)
 
 const jumlah = computed(() => meta.value?.total ?? daftar.value.length)
@@ -322,10 +309,7 @@ const modalHapus = computed({
   },
 })
 
-/**
- * Quill selalu menghasilkan HTML, termasuk saat kosong (<p><br></p>).
- * Buang tag dan entitas spasi sebelum memastikan komentar benar-benar berisi.
- */
+// Cek HTML kosong
 function htmlKosong(nilai: string) {
   return !nilai
     .replace(/<[^>]*>/g, ' ')
@@ -333,7 +317,7 @@ function htmlKosong(nilai: string) {
     .trim()
 }
 
-/** Tandai komentar baru agar sempat tersorot, lalu bersihkan setelah 2 detik. */
+// Tandai komentar baru
 function tandaiBaru(id: number) {
   baru.value = new Set([...baru.value, id])
 
@@ -348,8 +332,6 @@ async function muat() {
   memuat.value = true
   galat.value = ''
 
-  // Daftar dimuat ulang tanpa balasan, jadi balasan yang tadi terbuka ditutup
-  // lagi; isinya diambil lagi saat tombolnya ditekan.
   terbukaBalasan.value = new Set()
   galatMuatBalasan.value = {}
 
@@ -364,12 +346,12 @@ async function muat() {
   }
 }
 
-/** Jumlah balasan: dari daftar yang sudah diambil, atau angka dari server. */
+// Jumlah balasan
 function jumlahBalasan(komentar: Komentar) {
   return komentar.balasan?.length ?? komentar.jumlah_balasan ?? 0
 }
 
-/** Tambah/buang satu id pada kumpulan id di dalam ref (Set diganti, bukan diubah). */
+// Tambah atau buang id
 function setKe(dari: Ref<Set<number>>, id: number, tambah: boolean) {
   const salinan = new Set(dari.value)
   if (tambah) salinan.add(id)
@@ -378,7 +360,7 @@ function setKe(dari: Ref<Set<number>>, id: number, tambah: boolean) {
   dari.value = salinan
 }
 
-/** Ambil balasan satu induk dari server, lalu tempelkan pada komentarnya. */
+// Buka balasan
 async function bukaBalasan(komentar: Komentar) {
   if (komentar.balasan) {
     setKe(terbukaBalasan, komentar.id, true)
@@ -406,7 +388,7 @@ async function bukaBalasan(komentar: Komentar) {
   }
 }
 
-/** Tombol "Lihat n balasan" / "Sembunyikan balasan". */
+// Tampilkan atau sembunyikan balasan
 function alihkanBalasan(komentar: Komentar) {
   if (terbukaBalasan.value.has(komentar.id)) {
     setKe(terbukaBalasan, komentar.id, false)
@@ -426,7 +408,6 @@ async function kirim() {
   galatIsi.value = ''
 
   try {
-    // isi berupa HTML hasil Quill; backend menyaringnya sebelum disimpan.
     await kirimKomentar(props.materiId, { isi: isi.value, gambar: gambar.value })
 
     isi.value = ''
@@ -435,7 +416,6 @@ async function kirim() {
 
     await muat()
 
-    // Komentar terbaru berada di halaman terakhir (urutan terlama dahulu).
     if (meta.value && meta.value.current_page !== meta.value.last_page) {
       halaman.value = meta.value.last_page
     }
@@ -449,7 +429,7 @@ async function kirim() {
   }
 }
 
-/** Tombol "Batal": kosongkan isian dan lampiran, lalu pasang ulang editor. */
+// Batal membalas
 function batalkan() {
   isi.value = ''
   gambar.value = null
@@ -479,7 +459,6 @@ async function kirimBalasan(indukId: number) {
   galatBalasan.value = ''
 
   try {
-    // parent_id selalu komentar induk; backend meratakan balasan satu tingkat.
     const respons = await kirimKomentar(props.materiId, {
       isi: isiBalasan.value,
       parent_id: indukId,
@@ -489,13 +468,11 @@ async function kirimBalasan(indukId: number) {
 
     batalBalas()
 
-    // Balasan langsung ditempelkan ke induknya, tanpa memuat ulang seluruh daftar.
     if (induk) {
       if (induk.balasan) {
         induk.balasan = [...induk.balasan, respons.data]
         tandaiBaru(respons.data.id)
       } else {
-        // Belum pernah diambil: buka induknya, sekaligus ambil balasannya dari server.
         induk.jumlah_balasan = (induk.jumlah_balasan ?? 0) + 1
         await bukaBalasan(induk)
       }
@@ -525,7 +502,7 @@ async function hapusSekarang() {
   }
 }
 
-/** Buang satu balasan dari induknya; bila balasannya belum diambil, kurangi angkanya. */
+// Hapus balasan dari daftar
 function hapusDariBalasan(induk: Komentar, balasanId: number): Komentar {
   if (induk.balasan) {
     return { ...induk, balasan: induk.balasan.filter((balasan) => balasan.id !== balasanId) }
@@ -534,10 +511,7 @@ function hapusDariBalasan(induk: Komentar, balasanId: number): Komentar {
   return { ...induk, jumlah_balasan: Math.max((induk.jumlah_balasan ?? 0) - 1, 0) }
 }
 
-/**
- * Berlangganan kanal privat materi (KP-15). Komentar buatan sendiri tidak
- * diterima kembali karena backend memakai ->toOthers().
- */
+// Berlangganan kanal privat materi
 function berlangganan() {
   if (!isLoggedIn.value || !$echo) return
 
@@ -546,8 +520,6 @@ function berlangganan() {
     .listen('.komentar.dibuat', (data: Komentar) => {
       if (typeof data?.id === 'number') tandaiBaru(data.id)
 
-      // Balasan baru (KP-14.5): cukup tambah angkanya, atau langsung tampilkan
-      // bila induknya sedang terbuka. Isinya tidak perlu diambil ulang.
       if (data?.parent_id) {
         const induk = daftar.value.find((komentar) => komentar.id === data.parent_id)
 
@@ -559,11 +531,9 @@ function berlangganan() {
         return
       }
 
-      // Komentar induk baru: daftar dimuat ulang agar urutannya tetap benar.
       muat()
     })
     .listen('.komentar.dihapus', (data: { id: number; parent_id: number | null }) => {
-      // Balasan: buang dari daftar balasan induknya, atau kurangi angkanya.
       if (data.parent_id) {
         daftar.value = daftar.value.map((komentar) =>
           komentar.id === data.parent_id ? hapusDariBalasan(komentar, data.id) : komentar,
@@ -572,12 +542,11 @@ function berlangganan() {
         return
       }
 
-      // Komentar induk: balasannya ikut terhapus (KP-14.4).
       daftar.value = daftar.value.filter((komentar) => komentar.id !== data.id)
     })
 }
 
-/** Ikuti keadaan sambungan Reverb untuk indikator "Langsung"/"Terputus". */
+// Pantau sambungan
 function pantauSambungan() {
   const koneksi = (
     $echo as unknown as {

@@ -1,9 +1,6 @@
 import type { Notifikasi, ResponsHalaman } from '~/types/api'
 
-/**
- * Notifikasi dalam aplikasi (F10).
- * Daftar berpaginasi 15 per halaman, terbaru lebih dulu (NotifikasiController).
- */
+// Notifikasi dalam aplikasi
 export function useNotifikasi() {
   const api = useApi()
 

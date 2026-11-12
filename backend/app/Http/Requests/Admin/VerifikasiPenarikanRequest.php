@@ -6,14 +6,12 @@ use App\Models\PenarikanMateri;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
-/**
- * Keputusan admin atas pengajuan penarikan materi (KP-20.5, KP-20.6).
- */
+// Keputusan admin atas pengajuan penarikan materi
 class VerifikasiPenarikanRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return true; // peran admin sudah dicek middleware `admin`
+        return true;
     }
 
     /**
@@ -26,7 +24,6 @@ class VerifikasiPenarikanRequest extends FormRequest
                 'required',
                 Rule::in([PenarikanMateri::STATUS_DISETUJUI, PenarikanMateri::STATUS_DITOLAK]),
             ],
-            // KP-20.6: catatan wajib saat menolak.
             'catatan' => ['nullable', 'string', 'required_if:keputusan,ditolak'],
         ];
     }

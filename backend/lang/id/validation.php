@@ -1,15 +1,5 @@
 <?php
 
-/*
-|--------------------------------------------------------------------------
-| Pesan validasi bawaan Laravel dalam bahasa Indonesia
-|--------------------------------------------------------------------------
-| Dipakai bila FormRequest tidak menulis pesan khusus lewat messages().
-| Gaya bahasanya netral (tanpa "kamu"/"Anda") karena dipakai anggota,
-| pengunjung, maupun admin — lihat "Panduan Bahasa UI" di CLAUDE.md.
-| Aturan yang tidak tercantum di sini kembali ke bahasa Inggris (fallback).
-*/
-
 return [
     'accepted' => ':Attribute perlu disetujui.',
     'array' => ':Attribute belum sesuai.',
@@ -55,7 +45,6 @@ return [
     'uploaded' => ':Attribute tidak berhasil diunggah. Kemungkinan ukurannya terlalu besar.',
     'url' => 'Format :attribute belum benar.',
 
-    // Nama isian yang tampil di pesan (nama kolom basis data tidak boleh muncul).
     'attributes' => [
         'nama' => 'nama',
         'email' => 'email',

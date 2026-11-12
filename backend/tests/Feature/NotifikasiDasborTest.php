@@ -10,9 +10,7 @@ use App\Notifications\RevisiDiverifikasi;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
-/**
- * F10 — Notifikasi Dalam Aplikasi & Dasbor (PRD §8.3).
- */
+// Notifikasi Dalam Aplikasi & Dasbor
 class NotifikasiDasborTest extends TestCase
 {
     use RefreshDatabase;
@@ -22,7 +20,6 @@ class NotifikasiDasborTest extends TestCase
         return $user->createToken('api')->plainTextToken;
     }
 
-    /** Kirim satu notifikasi contoh ke pengguna. */
     private function kirimNotifikasi(User $penerima, string $tipe = 'materi_diajukan'): void
     {
         $materi = Materi::factory()->create(['judul' => 'Adab Ilmu']);
@@ -45,7 +42,6 @@ class NotifikasiDasborTest extends TestCase
         $this->kirimNotifikasi($user, 'revisi_diverifikasi');
         $this->kirimNotifikasi($orangLain);
 
-        // PRD §8.3, ROADMAP F10
         $this->withToken($this->token($user))->getJson('/api/notifikasi')
             ->assertOk()
             ->assertJsonCount(2, 'data')
@@ -60,7 +56,6 @@ class NotifikasiDasborTest extends TestCase
         $this->kirimNotifikasi($user);
         $id = $user->notifications()->first()->id;
 
-        // PRD §8.3, ROADMAP F10
         $this->withToken($this->token($user))
             ->patchJson("/api/notifikasi/{$id}/baca")
             ->assertOk()
@@ -76,7 +71,6 @@ class NotifikasiDasborTest extends TestCase
         $this->kirimNotifikasi($orangLain);
         $id = $orangLain->notifications()->first()->id;
 
-        // PRD §8.3, ROADMAP F10
         $this->withToken($this->token($user))
             ->patchJson("/api/notifikasi/{$id}/baca")
             ->assertStatus(404);
@@ -90,14 +84,12 @@ class NotifikasiDasborTest extends TestCase
 
         $token = $this->token($user);
 
-        // PRD §8.3, ROADMAP F10
         $this->withToken($token)->patchJson('/api/notifikasi/baca-semua')
             ->assertOk()
             ->assertJsonPath('jumlah', 2);
 
         $this->assertSame(0, $user->notifications()->whereNull('read_at')->count());
 
-        // Tidak ada lagi yang tersisa saat dipanggil ulang.
         $this->withToken($token)->patchJson('/api/notifikasi/baca-semua')
             ->assertOk()
             ->assertJsonPath('jumlah', 0);
@@ -108,15 +100,14 @@ class NotifikasiDasborTest extends TestCase
         $user = User::factory()->create();
         $orangLain = User::factory()->create();
 
-        Materi::factory()->create(['penulis_id' => $user->id]); // draf
+        Materi::factory()->create(['penulis_id' => $user->id]);
         Materi::factory()->diajukan()->create(['penulis_id' => $user->id]);
         Materi::factory()->terbit()->create(['penulis_id' => $user->id]);
         Materi::factory()->create(['penulis_id' => $user->id, 'status' => Materi::STATUS_DITOLAK]);
-        Materi::factory()->terbit()->create(['penulis_id' => $orangLain->id]); // tidak dihitung
+        Materi::factory()->terbit()->create(['penulis_id' => $orangLain->id]);
 
         $this->kirimNotifikasi($user);
 
-        // ROADMAP F10 (dasbor anggota)
         $this->withToken($this->token($user))->getJson('/api/dasbor')
             ->assertOk()
             ->assertJsonPath('data.materi.draf', 1)
@@ -133,29 +124,26 @@ class NotifikasiDasborTest extends TestCase
 
         User::factory()->menunggu()->count(2)->create();
         User::factory()->nonaktif()->create();
-        $anggota = User::factory()->create(); // satu anggota aktif tambahan
+        $anggota = User::factory()->create();
 
-        // Semua materi diberi penulis yang sudah ada agar tidak menambah pengguna aktif.
         $materi = Materi::factory()->create(['penulis_id' => $anggota->id]);
-        // Nomor versi harus berbeda untuk materi yang sama.
         RevisiMateri::factory()->diajukan()->create(['materi_id' => $materi->id, 'nomor_versi' => 1]);
         RevisiMateri::factory()->diajukan()->create(['materi_id' => $materi->id, 'nomor_versi' => 2]);
-        RevisiMateri::factory()->create(['materi_id' => $materi->id, 'nomor_versi' => 3]); // draf
+        RevisiMateri::factory()->create(['materi_id' => $materi->id, 'nomor_versi' => 3]);
 
         Materi::factory()->terbit()->count(3)->create(['penulis_id' => $anggota->id]);
 
-        // ROADMAP F10 (dasbor admin)
         $this->withToken($this->token($admin))->getJson('/api/admin/dasbor')
             ->assertOk()
             ->assertJsonPath('data.pendaftar_menunggu', 2)
             ->assertJsonPath('data.revisi_diajukan', 2)
-            ->assertJsonPath('data.anggota_aktif', 2) // admin + satu anggota aktif
+            ->assertJsonPath('data.anggota_aktif', 2)
             ->assertJsonPath('data.materi_terbit', 3);
     }
 
+    // KP-04.5
     public function test_anggota_biasa_tidak_dapat_membuka_dasbor_admin(): void
     {
-        // KP-04.5
         $this->withToken($this->token(User::factory()->create()))
             ->getJson('/api/admin/dasbor')
             ->assertStatus(403);

@@ -1,9 +1,6 @@
 import type { ResponsData, ResponsHalaman, User } from '~/types/api'
 
-/**
- * Verifikasi pendaftaran oleh admin (F2).
- * Pendaftaran publik memakai useAuth().daftar().
- */
+// Verifikasi pendaftaran oleh admin
 export function usePendaftaran() {
   const api = useApi()
 

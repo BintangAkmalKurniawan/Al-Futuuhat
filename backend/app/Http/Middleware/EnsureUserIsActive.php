@@ -6,9 +6,7 @@ use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
-/**
- * Hanya pengguna berstatus `aktif` yang boleh memakai API anggota (PRD §8.1).
- */
+// Hanya pengguna aktif
 class EnsureUserIsActive
 {
     public function handle(Request $request, Closure $next): Response

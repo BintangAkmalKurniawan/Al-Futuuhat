@@ -6,10 +6,7 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Jabatan dalam kepengurusan (Ketua, Koordinator, ...) — PRD §10.
-     * `urutan` menentukan urutan tampil pada struktur organisasi (KP-01.4).
-     */
+    // Jabatan dalam kepengurusan (Ketua, Koordinator, ...)
     public function up(): void
     {
         Schema::create('jabatan', function (Blueprint $table) {

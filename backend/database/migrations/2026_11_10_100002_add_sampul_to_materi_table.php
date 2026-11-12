@@ -6,10 +6,7 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Gambar sampul materi (KF-18): dipakai kartu artikel publik dan daftar
-     * materi di dalam aplikasi. Isinya path di disk `public`, bukan URL.
-     */
+    // Gambar sampul materi
     public function up(): void
     {
         Schema::table('materi', function (Blueprint $table) {

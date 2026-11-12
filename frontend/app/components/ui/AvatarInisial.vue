@@ -1,6 +1,5 @@
 <template>
-  <!-- Avatar inisial (KNF-02: foto anggota tidak dipakai sebagai avatar).
-       Warna dipilih tetap dari id, jadi satu orang selalu berwarna sama. -->
+  <!-- Avatar inisial -->
   <span
     class="grid shrink-0 place-items-center rounded-full font-medium text-tombol-teks select-none"
     :class="[kelasUkuran[ukuran], WARNA[indeksWarna]]"
@@ -15,7 +14,6 @@
 <script setup lang="ts">
 interface Props {
   nama: string | null | undefined
-  /** Dipakai untuk memilih warna; biasanya user.id. */
   id?: number | null
   ukuran?: 'mini' | 'kecil' | 'sedang' | 'besar'
 }
@@ -34,8 +32,6 @@ const kelasUkuran: Record<NonNullable<Props['ukuran']>, string> = {
   besar: 'h-11 w-11',
 }
 
-// Data struktur publik tidak mengirim id, jadi warna diambil dari hash nama
-// (DESIGN.md §9.4). Hash sederhana: jumlah kode karakter, dibagi 5.
 const indeksWarna = computed(() => {
   if (props.id) return props.id % WARNA.length
   if (!props.nama) return 0

@@ -13,10 +13,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
-/**
- * Draf 2.8 — kontak organisasi (KF-22), notifikasi komentar (KF-23),
- * profil sendiri (KF-24), dan statistik admin (KF-25).
- */
+// Kontak, notifikasi komentar, profil, dan statistik
 class FiturKenyamananTest extends TestCase
 {
     use RefreshDatabase;
@@ -44,8 +41,6 @@ class FiturKenyamananTest extends TestCase
         return $materi;
     }
 
-    // ------------------------------------------------------------ KF-22
-
     public function test_admin_mengatur_kontak_dan_pengunjung_membacanya(): void
     {
         $admin = User::factory()->admin()->create();
@@ -62,8 +57,8 @@ class FiturKenyamananTest extends TestCase
         $this->getJson('/api/publik/beranda')
             ->assertOk()
             ->assertJsonPath('data.kontak.alamat', 'Jl. Masjid No. 1, Bandung')
-            ->assertJsonPath('data.kontak.whatsapp', '6281234567890') // dirapikan ke format wa.me
-            ->assertJsonPath('data.kontak.instagram', 'alfutuuhat'); // tanpa "@"
+            ->assertJsonPath('data.kontak.whatsapp', '6281234567890')
+            ->assertJsonPath('data.kontak.instagram', 'alfutuuhat');
     }
 
     public function test_kontak_tidak_valid_ditolak(): void
@@ -76,8 +71,6 @@ class FiturKenyamananTest extends TestCase
             ->assertStatus(422)
             ->assertJsonValidationErrors(['kontak_whatsapp', 'kontak_email', 'kontak_instagram']);
     }
-
-    // ------------------------------------------------------------ KF-23
 
     public function test_penulis_diberi_tahu_saat_materinya_dikomentari(): void
     {
@@ -102,7 +95,6 @@ class FiturKenyamananTest extends TestCase
         $materi = $this->materiMilik($penulis);
         $induk = Komentar::factory()->create(['materi_id' => $materi->id, 'user_id' => $budi->id]);
 
-        // Penulis membalas komentar Budi: Budi diberi tahu, penulis tidak (komentarnya sendiri).
         $this->sebagai($penulis)
             ->postJson("/api/materi/{$materi->id}/komentar", ['isi' => '<p>Terima kasih.</p>', 'parent_id' => $induk->id])
             ->assertCreated();
@@ -110,7 +102,6 @@ class FiturKenyamananTest extends TestCase
         $this->assertSame('balasan', $budi->notifications()->sole()->data['jenis']);
         $this->assertSame(0, $penulis->notifications()->count());
 
-        // Citra membalas komentar penulis sendiri: penulis cukup satu notifikasi (balasan).
         $indukPenulis = Komentar::factory()->create(['materi_id' => $materi->id, 'user_id' => $penulis->id]);
         $this->sebagai($this->anggota('Citra'))
             ->postJson("/api/materi/{$materi->id}/komentar", ['isi' => '<p>Setuju.</p>', 'parent_id' => $indukPenulis->id])
@@ -119,8 +110,6 @@ class FiturKenyamananTest extends TestCase
         $this->assertSame(1, $penulis->notifications()->count());
         $this->assertSame('balasan', $penulis->notifications()->sole()->data['jenis']);
     }
-
-    // ------------------------------------------------------------ KF-24
 
     public function test_anggota_mengubah_profil_dan_foto_sendiri_tanpa_mengubah_email(): void
     {
@@ -132,7 +121,7 @@ class FiturKenyamananTest extends TestCase
             'nama' => 'Nama Baru',
             'no_hp' => '081200000000',
             'alamat' => 'Alamat baru',
-            'email' => 'coba-ganti@contoh.test', // diabaikan
+            'email' => 'coba-ganti@contoh.test',
             'foto' => UploadedFile::fake()->image('foto.jpg'),
         ], ['Accept' => 'application/json'])
             ->assertOk()
@@ -170,10 +159,8 @@ class FiturKenyamananTest extends TestCase
         ])->assertOk();
 
         $this->assertTrue(Hash::check('sandibaru123', $user->fresh()->password));
-        $this->assertSame(1, $user->tokens()->count()); // hanya sesi yang sedang dipakai
+        $this->assertSame(1, $user->tokens()->count());
     }
-
-    // ------------------------------------------------------------ KF-25
 
     public function test_membuka_materi_menambah_jumlah_dibaca_tanpa_mengubah_waktu_diperbarui(): void
     {
@@ -201,8 +188,8 @@ class FiturKenyamananTest extends TestCase
             ->assertOk()
             ->assertJsonPath('data.materi_terpopuler.0.id', $populer->id)
             ->assertJsonPath('data.materi_terpopuler.0.jumlah_dibaca', 10)
-            ->assertJsonPath('data.anggota_teraktif.0.nama', 'Citra') // 2 komentar
+            ->assertJsonPath('data.anggota_teraktif.0.nama', 'Citra')
             ->assertJsonPath('data.anggota_teraktif.0.total', 2)
-            ->assertJsonPath('data.anggota_teraktif.1.nama', 'Budi'); // 1 materi
+            ->assertJsonPath('data.anggota_teraktif.1.nama', 'Budi');
     }
 }

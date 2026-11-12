@@ -9,7 +9,6 @@
     </p>
 
     <div class="flex items-center gap-1">
-      <!-- Angka halaman dalam lingkaran 36 px; halaman aktif memakai bg-permukaan. -->
       <button
         v-for="halaman in daftarHalaman"
         :key="halaman"
@@ -37,10 +36,6 @@ const props = defineProps<{ meta: MetaHalaman }>()
 
 const emit = defineEmits<{ (e: 'ganti-halaman', halaman: number): void }>()
 
-/**
- * Tampilkan maksimal 5 nomor di sekitar halaman aktif, agar daftar panjang
- * tidak membuat baris tombol berjubel.
- */
 const daftarHalaman = computed(() => {
   const total = props.meta.last_page
   const aktif = props.meta.current_page

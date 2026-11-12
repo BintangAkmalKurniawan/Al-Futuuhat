@@ -10,10 +10,7 @@ use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
-/**
- * KF-21 — dokumentasi program: foto, video MP4, dan tautan YouTube
- * (KP-21.3, KP-21.4, KP-21.6).
- */
+// Dokumentasi program
 class DokumentasiProgramTest extends TestCase
 {
     use RefreshDatabase;
@@ -37,7 +34,7 @@ class DokumentasiProgramTest extends TestCase
         );
     }
 
-    // ------------------------------------------------------------ KP-21.3
+    // KP-21.3
 
     public function test_admin_mengunggah_foto_video_dan_tautan_youtube(): void
     {
@@ -137,7 +134,7 @@ class DokumentasiProgramTest extends TestCase
         $this->assertDatabaseCount('dokumentasi_program', 1);
     }
 
-    // ------------------------------------------------------------ KP-21.4
+    // KP-21.4
 
     public function test_menghapus_dokumentasi_menghapus_berkasnya(): void
     {
@@ -154,7 +151,7 @@ class DokumentasiProgramTest extends TestCase
         Storage::disk('public')->assertMissing($path);
     }
 
-    // ------------------------------------------------------------ KP-21.6
+    // KP-21.6
 
     public function test_pengunjung_melihat_dokumentasi_terbaru_di_atas_dan_dapat_menyaring(): void
     {
@@ -169,7 +166,7 @@ class DokumentasiProgramTest extends TestCase
             'path' => 'program/dokumentasi/video.mp4',
             'youtube_id' => null,
         ]);
-        DokumentasiProgram::factory()->create(['program_id' => $lainnya->id]); // milik program lain
+        DokumentasiProgram::factory()->create(['program_id' => $lainnya->id]);
 
         $this->getJson('/api/publik/program/kajian-rutin/dokumentasi')
             ->assertOk()
@@ -182,7 +179,6 @@ class DokumentasiProgramTest extends TestCase
             ->assertJsonCount(1, 'data')
             ->assertJsonPath('data.0.id', $fotoLama->id);
 
-        // Penyaring video mencakup berkas MP4 dan tautan YouTube.
         $this->getJson('/api/publik/program/kajian-rutin/dokumentasi?jenis=video')
             ->assertJsonCount(2, 'data')
             ->assertJsonPath('data.1.id', $youtube->id);

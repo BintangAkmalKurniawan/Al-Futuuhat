@@ -1,13 +1,10 @@
 <template>
-  <!-- Perbandingan dua versi materi (KP-10.7, KP-11.2, DESIGN.md §5 PerbandinganVersi).
-       Kiri: versi publik terakhir. Kanan: versi yang diajukan / akan diajukan.
-       Kata yang dihapus hanya tampil di kiri (dicoret), kata yang ditambah hanya
-       tampil di kanan (disorot). Di bawah `md` kedua kolom menjadi dua tab. -->
+  <!-- Perbandingan dua versi materi -->
   <div>
-    <!-- Ponsel: pilih kolom lewat tab. -->
+    <!-- Ponsel -->
     <AppTabs v-model="sisi" :tabs="tabSisi" class="mb-2 md:hidden" />
 
-    <!-- Layar lebar: judul kolom. -->
+    <!-- Layar lebar -->
     <div class="hidden grid-cols-2 gap-8 pb-3 md:grid">
       <p v-for="kolom in tabSisi" :key="kolom.kunci" class="text-[13px] font-medium text-teks-kuat">
         {{ kolom.label }}
@@ -22,7 +19,7 @@
 
       <div class="grid gap-8 md:grid-cols-2">
         <div v-for="kolom in (['kiri', 'kanan'] as const)" :key="kolom" :class="kolom !== sisi && 'hidden md:block'">
-          <!-- Judul & ringkasan & isi: teks dengan sorotan per kata. -->
+          <!-- Judul & ringkasan & isi -->
           <p
             v-if="bagian.kunci !== 'sampul' && bagian.kunci !== 'kategori'"
             :class="kelasTeks[bagian.kunci as KunciTeks]"
@@ -37,7 +34,7 @@
             <span v-else class="font-sans text-[13px] text-teks-redup">(kosong)</span>
           </p>
 
-          <!-- Sampul: gambar berdampingan. -->
+          <!-- Sampul -->
           <template v-else-if="bagian.kunci === 'sampul'">
             <img
               v-if="versi(kolom).sampul"
@@ -48,7 +45,7 @@
             <span v-else class="text-[13px] text-teks-redup">Tanpa sampul</span>
           </template>
 
-          <!-- Kategori: chip yang dilepas dicoret di kiri, yang baru disorot di kanan. -->
+          <!-- Kategori -->
           <div v-else class="flex flex-wrap gap-2">
             <span
               v-for="item in versi(kolom).kategori ?? []"
@@ -83,15 +80,12 @@ interface Potongan {
 }
 
 const props = defineProps<{
-  /** Versi publik terakhir. */
   kiri: Revisi
-  /** Versi yang diajukan atau akan diajukan. */
   kanan: Revisi
   labelKiri?: string
   labelKanan?: string
 }>()
 
-// Kolom yang tampil di ponsel; nilainya 'kiri' atau 'kanan' (model AppTabs bertipe string).
 const sisi = ref<string>('kanan')
 
 const tabSisi = computed(() => [
@@ -109,11 +103,7 @@ function versi(kolom: Kolom): Revisi {
   return kolom === 'kiri' ? props.kiri : props.kanan
 }
 
-/**
- * Isi materi dibandingkan sebagai teks polos per paragraf: setiap blok
- * (paragraf, judul, butir daftar, kutipan) menjadi satu baris, dan gambar
- * diganti tanda "[gambar]". Format (tebal, miring) tidak ikut dibandingkan.
- */
+// Teks polos
 function teksPolos(html: string | null | undefined): string {
   const dokumen = new DOMParser().parseFromString(html ?? '', 'text/html')
 
@@ -125,7 +115,7 @@ function teksPolos(html: string | null | undefined): string {
   return baris.map((teks) => teks.trim()).filter(Boolean).join('\n\n')
 }
 
-/** Selisih per kata antara dua teks (pustaka `diff`, fungsi diffWords). */
+// Bandingkan per kata
 function banding(lama: string, baru: string): Potongan[] {
   return diffWords(lama, baru).map((bagian) => ({
     teks: bagian.value,
@@ -133,14 +123,13 @@ function banding(lama: string, baru: string): Potongan[] {
   }))
 }
 
-// Selisih dihitung sekali per bagian teks.
 const selisih = computed<Record<KunciTeks, Potongan[]>>(() => ({
   judul: banding(props.kiri.judul ?? '', props.kanan.judul ?? ''),
   ringkasan: banding(props.kiri.ringkasan ?? '', props.kanan.ringkasan ?? ''),
   isi: banding(teksPolos(props.kiri.konten_html), teksPolos(props.kanan.konten_html)),
 }))
 
-/** Kolom kiri tidak memuat kata tambahan; kolom kanan tidak memuat kata yang dihapus. */
+// Potongan per kolom
 function potonganKolom(kunci: KunciBagian, kolom: Kolom): Potongan[] {
   const dibuang = kolom === 'kiri' ? 'tambah' : 'hapus'
 
@@ -169,7 +158,6 @@ const kategoriBerubah = computed(
 
 const isiBerubah = computed(() => props.kiri.konten_html !== props.kanan.konten_html)
 
-// HTML berbeda tetapi teks polosnya sama: perubahan hanya pada format/gambar.
 const hanyaFormat = computed(() => isiBerubah.value && !berbeda('isi'))
 
 const daftarBagian = computed<{ kunci: KunciBagian; label: string; berubah: boolean }[]>(() => [

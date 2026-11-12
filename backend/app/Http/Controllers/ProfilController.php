@@ -11,22 +11,15 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 
-/**
- * Profil milik pengguna yang sedang masuk (KF-24): data diri dan kata sandi.
- * Email dan peran tidak dapat diubah di sini.
- */
+// Profil pengguna
 class ProfilController extends Controller
 {
-    /** GET /api/profil */
     public function show(Request $request): JsonResponse
     {
         return response()->json(['data' => new UserResource($request->user()->load('anggota'))]);
     }
 
-    /**
-     * POST /api/profil — multipart karena dapat memuat foto
-     * (POST, bukan PUT: PHP tidak membaca body multipart pada PUT).
-     */
+    // Ubah profil
     public function update(UbahProfilRequest $request): JsonResponse
     {
         $data = $request->validated();
@@ -38,7 +31,7 @@ class ProfilController extends Controller
             $user->update(['nama' => $data['nama']]);
 
             if ($anggota === null) {
-                return; // akun tanpa data keanggotaan: cukup nama
+                return;
             }
 
             $foto = $anggota->foto;
@@ -56,7 +49,6 @@ class ProfilController extends Controller
             ]);
         });
 
-        // Foto lama dihapus setelah datanya tersimpan.
         if ($fotoLama !== null && $fotoLama !== $anggota?->foto) {
             Storage::disk('public')->delete($fotoLama);
         }
@@ -67,9 +59,7 @@ class ProfilController extends Controller
         ]);
     }
 
-    /**
-     * PUT /api/profil/password — token di perangkat lain dicabut, perangkat ini tetap masuk.
-     */
+    // Ganti kata sandi
     public function gantiKataSandi(GantiKataSandiRequest $request): JsonResponse
     {
         $user = $request->user();

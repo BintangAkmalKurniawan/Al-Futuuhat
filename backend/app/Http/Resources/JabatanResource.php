@@ -5,9 +5,7 @@ namespace App\Http\Resources;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-/**
- * Jabatan kepengurusan. Aman dipakai di endpoint publik.
- */
+// Jabatan kepengurusan
 class JabatanResource extends JsonResource
 {
     /**

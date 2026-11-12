@@ -5,9 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-/**
- * Satu catatan perubahan struktur organisasi (KP-07.7) — PRD §10.
- */
+// Satu catatan perubahan struktur organisasi
 class RiwayatStruktur extends Model
 {
     public const AKSI_TAMBAH = 'tambah';

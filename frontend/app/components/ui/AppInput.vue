@@ -19,7 +19,6 @@
       :class="{ 'input-galat': error, 'input-ro': readonly }"
     />
 
-    <!-- Galat 422 dari backend ditampilkan tepat di bawah isian (KP-02.5). -->
     <p v-if="error" :id="`${id}-error`" class="pesan-galat" role="alert">
       {{ error }}
     </p>
@@ -39,7 +38,6 @@ interface Props {
   error?: string
   required?: boolean
   disabled?: boolean
-  /** Isian terkunci yang tetap terbaca jelas (mis. email anggota di layar 21). */
   readonly?: boolean
 }
 
@@ -52,7 +50,6 @@ const props = withDefaults(defineProps<Props>(), {
 
 const model = defineModel<string>({ default: '' })
 
-// id unik agar label, isian, dan pesan galat saling terhubung.
 const id = useId()
 const idDeskripsi = computed(() => {
   if (props.error) return `${id}-error`

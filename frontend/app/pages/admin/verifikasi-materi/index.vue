@@ -1,6 +1,5 @@
 <template>
-  <!-- Antrean verifikasi: pengajuan publikasi (KP-11.1) dan penarikan materi
-       dari publik (KP-20.4) dalam dua tab (DESIGN.md §6.3 no. 23). -->
+  <!-- Antrean verifikasi -->
   <div>
     <header class="pb-7">
       <h1 class="font-serif text-halaman font-bold text-teks-kuat">Pemeriksaan materi</h1>
@@ -13,12 +12,12 @@
       {{ galat }}
     </AppAlert>
 
-    <!-- Kerangka memuat berbentuk baris tabel. -->
+    <!-- Kerangka memuat -->
     <div v-if="memuat" class="animate-pulse space-y-5 pt-6">
       <div v-for="n in 4" :key="n" class="h-4 w-full rounded-full bg-permukaan" />
     </div>
 
-    <!-- ---------------------------------------------------------- Publikasi -->
+    <!-- Publikasi -->
     <template v-else-if="tab === 'publikasi'">
       <AppEmptyState
         v-if="antreanPublikasi.length === 0"
@@ -68,7 +67,7 @@
       </template>
     </template>
 
-    <!-- ---------------------------------------------------------- Penarikan -->
+    <!-- Penarikan -->
     <template v-else>
       <AppEmptyState
         v-if="antreanPenarikan.length === 0"
@@ -123,7 +122,7 @@
       </template>
     </template>
 
-    <!-- Konfirmasi setuju / tolak penarikan (KP-20.5, KP-20.6). -->
+    <!-- Konfirmasi keputusan penarikan -->
     <AppModal v-model:open="modalKeputusan" :title="judulKeputusan" :deskripsi="deskripsiKeputusan">
       <p class="text-sm text-teks-kuat">{{ dipilih?.materi?.judul }}</p>
       <p v-if="dipilih?.alasan" class="mt-1 text-sm text-teks-lembut">Alasan penulis: “{{ dipilih.alasan }}”</p>
@@ -160,7 +159,6 @@ const router = useRouter()
 const { antrean, antreanPenarikan: ambilPenarikan, putuskanPenarikan } = useVerifikasi()
 const { tampilkan } = usePesanToast()
 
-// Tab tersimpan di URL (?tab=penarikan) supaya tautan notifikasi bisa langsung ke sana.
 const tab = ref(route.query.tab === 'penarikan' ? 'penarikan' : 'publikasi')
 
 const antreanPublikasi = ref<Revisi[]>([])
@@ -174,7 +172,6 @@ const halamanPenarikan = ref(1)
 const memuat = ref(true)
 const galat = ref('')
 
-// Dialog keputusan penarikan.
 const modalKeputusan = ref(false)
 const dipilih = ref<Penarikan | null>(null)
 const keputusan = ref<KeputusanVerifikasi>('disetujui')
@@ -203,15 +200,14 @@ const deskripsiKeputusan = computed(() =>
     : 'Materi akan diturunkan dari halaman umum. Penulis dapat mengajukan versi barunya kemudian.',
 )
 
-// Subteks baris publikasi: pengajuan pertama atau materi yang pernah terbit lalu ditarik (KP-11.1).
+// Subteks baris publikasi
 function keteranganPublikasi(item: Revisi): string {
   return item.materi?.diterbitkan_pada ? 'Pernah tayang, kemudian diturunkan' : 'Pertama kali diajukan'
 }
 
-// Penanda agar respons lama tidak menimpa hasil permintaan terbaru.
 let permintaanTerakhir = 0
 
-/** Muat kedua antrean sekaligus, supaya angka di kedua tab selalu tersedia. */
+// Muat antrean
 async function muat() {
   const nomor = ++permintaanTerakhir
   memuat.value = true
@@ -247,7 +243,6 @@ function mintaKeputusan(item: Penarikan, pilihan: KeputusanVerifikasi) {
 async function putuskanSekarang() {
   if (!dipilih.value || memproses.value) return
 
-  // KP-20.6: catatan wajib saat menolak.
   if (keputusan.value === 'ditolak' && !catatan.value.trim()) {
     galatCatatan.value = 'Mohon isi catatan untuk penulis.'
     return

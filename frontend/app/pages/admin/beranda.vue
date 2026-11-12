@@ -7,7 +7,7 @@
       </p>
     </header>
 
-    <!-- Kerangka memuat: bentuknya sama dengan formulir. -->
+    <!-- Kerangka memuat -->
     <div v-if="memuat" class="animate-pulse space-y-6">
       <div class="h-11 rounded-lg bg-permukaan" />
       <div class="h-56 rounded-lg bg-permukaan" />
@@ -53,7 +53,7 @@
         </div>
       </section>
 
-      <!-- Visi & misi (KF-26): tampil di halaman Tentang kami. -->
+      <!-- Visi & misi -->
       <section class="mt-8 border-t border-garis pt-6">
         <h2 class="text-sm font-medium text-teks-kuat">Visi dan misi</h2>
         <p class="mt-1 text-[13px] text-teks-redup">
@@ -79,7 +79,7 @@
         </div>
       </section>
 
-      <!-- Kontak organisasi (KF-22): tampil di bagian bawah halaman publik. -->
+      <!-- Kontak organisasi -->
       <section class="mt-8 border-t border-garis pt-6">
         <h2 class="text-sm font-medium text-teks-kuat">Kontak organisasi</h2>
         <p class="mt-1 text-[13px] text-teks-redup">
@@ -148,10 +148,8 @@ const diperbaruiPada = ref<string | null>(null)
 
 const galatIsian = ref<{ cerita_judul?: string; cerita_isi?: string; visi?: string; misi?: string }>({})
 
-// Kontak organisasi (KF-22).
 const kontak = reactive({ alamat: '', whatsapp: '', email: '', instagram: '' })
 
-// Visi & misi (KF-26).
 const visi = ref('')
 const misi = ref('')
 const galatKontak = ref<Record<string, string | undefined>>({})
@@ -169,7 +167,6 @@ async function muat() {
     visi.value = respons.data.visi ?? ''
     misi.value = respons.data.misi ?? ''
     kontak.alamat = respons.data.kontak?.alamat ?? ''
-    // Nomor tersimpan berawalan 62; ditampilkan apa adanya.
     kontak.whatsapp = respons.data.kontak?.whatsapp ?? ''
     kontak.email = respons.data.kontak?.email ?? ''
     kontak.instagram = respons.data.kontak?.instagram ?? ''
@@ -186,7 +183,6 @@ async function simpan() {
 
   const data = new FormData()
   data.append('cerita_judul', judul.value.trim())
-  // HTML Quill selalu memakai &nbsp;; rapikan seperti saat menyimpan materi.
   data.append('cerita_isi', rapikanSpasiHtml(html.value))
   data.append('visi', visi.value.trim())
   data.append('misi', misi.value.trim())
@@ -218,7 +214,6 @@ async function simpan() {
       kontak_instagram: isian.kontak_instagram?.[0],
     }
 
-    // Galat yang tidak tertampung pada isian mana pun ditampilkan sebagai toast.
     if (Object.keys(isian).length === 0) {
       tampilkan(pesanGalat(galatServer), 'bahaya')
     }

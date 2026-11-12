@@ -34,7 +34,6 @@ return [
 
     'max_age' => 0,
 
-    // false karena autentikasi memakai token Bearer, bukan cookie (PRD §13)
     'supports_credentials' => false,
 
 ];

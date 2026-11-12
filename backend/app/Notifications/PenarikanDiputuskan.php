@@ -6,10 +6,7 @@ use App\Models\Materi;
 use App\Models\PenarikanMateri;
 use Illuminate\Notifications\Notification;
 
-/**
- * Untuk penulis: keputusan admin atas pengajuan penarikan (PRD §8.4,
- * KP-20.5, KP-20.6).
- */
+// Notifikasi keputusan penarikan
 class PenarikanDiputuskan extends Notification
 {
     public function __construct(

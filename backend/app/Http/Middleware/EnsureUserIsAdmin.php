@@ -6,9 +6,7 @@ use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
-/**
- * Hanya admin yang boleh memakai endpoint /admin (KP-04.5).
- */
+// Hanya admin
 class EnsureUserIsAdmin
 {
     public function handle(Request $request, Closure $next): Response

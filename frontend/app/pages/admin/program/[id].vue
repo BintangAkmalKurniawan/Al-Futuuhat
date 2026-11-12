@@ -1,5 +1,5 @@
 <template>
-  <!-- Kelola satu program: tab Informasi (formulir) dan Dokumentasi (KF-21). -->
+  <!-- Kelola satu program -->
   <div class="mx-auto max-w-4xl">
     <NuxtLink
       to="/admin/program"
@@ -75,11 +75,9 @@ const { tampilkan } = usePesanToast()
 const program = ref<ProgramAdmin | null>(null)
 const memuat = ref(true)
 const galat = ref('')
-// Dinaikkan setelah simpan agar formulir dibuat ulang dengan data terbaru.
 const kunciForm = ref(0)
 const galeri = ref<{ muatUlang: () => Promise<void> } | null>(null)
 
-// Tab tersimpan di URL (?tab=dokumentasi); halaman tambah program mengarah ke sini.
 const tab = ref(route.query.tab === 'dokumentasi' ? 'dokumentasi' : 'informasi')
 
 const daftarTab = computed(() => [
@@ -109,7 +107,7 @@ async function muat() {
   }
 }
 
-/** Perbarui angka foto/video pada tab tanpa memuat ulang seluruh halaman. */
+// Muat jumlah dokumentasi
 async function muatJumlah() {
   try {
     const respons = await detailAdmin(String(route.params.id))
@@ -119,7 +117,6 @@ async function muatJumlah() {
       program.value.jumlah_video = respons.data.jumlah_video
     }
   } catch {
-    // Angka tab hanya pelengkap; abaikan bila gagal.
   }
 }
 

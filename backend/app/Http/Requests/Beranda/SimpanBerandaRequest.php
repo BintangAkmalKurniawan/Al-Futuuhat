@@ -4,14 +4,12 @@ namespace App\Http\Requests\Beranda;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-/**
- * Validasi konten beranda yang diatur admin (KF-18, KNF-03).
- */
+// Validasi konten beranda yang diatur admin
 class SimpanBerandaRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return true; // hak admin dicek middleware `admin`
+        return true;
     }
 
     /**
@@ -24,7 +22,6 @@ class SimpanBerandaRequest extends FormRequest
             'cerita_isi' => ['nullable', 'string'],
             'visi' => ['nullable', 'string', 'max:1000'],
             'misi' => ['nullable', 'string', 'max:3000'],
-            // Kontak organisasi (KF-22); semuanya boleh dikosongkan.
             'kontak_alamat' => ['nullable', 'string', 'max:255'],
             'kontak_whatsapp' => ['nullable', 'string', 'regex:/^[0-9+\s-]{8,20}$/'],
             'kontak_email' => ['nullable', 'email', 'max:255'],

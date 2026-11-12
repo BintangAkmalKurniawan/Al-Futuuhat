@@ -1,6 +1,5 @@
 <template>
-  <!-- Baris tulisan, dipisah garis tipis (DESIGN.md §5). Sampul artikel (KF-18)
-       tampil kecil di kanan agar barisnya tidak polos. -->
+  <!-- Baris tulisan -->
   <article class="border-b border-garis py-7">
     <div class="flex items-start gap-5">
       <div class="min-w-0 flex-1">
@@ -15,7 +14,7 @@
               :versi="versiChip"
               :label="labelChip"
             />
-            <!-- Keterangan tambahan di samping chip, mis. "Versi publik: v2". -->
+            <!-- Keterangan tambahan -->
             <span v-if="catatanChip" class="text-teks-redup">{{ catatanChip }}</span>
           </template>
         </div>
@@ -46,13 +45,13 @@
             </span>
           </template>
 
-          <!-- Aksi tambahan, mis. Edit/Hapus di halaman Materi saya. -->
+          <!-- Aksi tambahan -->
           <div v-if="$slots.aksi" class="ml-auto flex items-center gap-3">
             <slot name="aksi" />
           </div>
         </div>
 
-        <!-- Kategori materi; pilnya menuju arsip tersaring (KF-19, KP-19.4). -->
+        <!-- Kategori materi -->
         <ChipKategori
           v-if="tampilKategori && materi.kategori?.length"
           :daftar="materi.kategori"
@@ -61,7 +60,7 @@
         />
       </div>
 
-      <!-- Sampul kecil di kanan; dilewati bila materi belum punya sampul. -->
+      <!-- Sampul kecil di kanan -->
       <NuxtLink
         v-if="materi.sampul"
         :to="tautan"
@@ -85,7 +84,6 @@ interface Props {
     slug: string
     judul: string
     ringkasan: string | null
-    /** URL gambar sampul (KF-18); kosong bila penulis belum mengunggahnya. */
     sampul?: string | null
     status?: StatusMateri
     penulis?: { id?: number; nama: string } | null
@@ -93,23 +91,17 @@ interface Props {
     diperbarui_pada?: string | null
     dibuat_pada?: string | null
     menit_baca?: number | null
-    /** Kategori materi (KF-19); tampil bila `tampilKategori` diaktifkan. */
     kategori?: Kategori[]
-    /** Revisi terakhir, dipakai untuk nomor versi di chip. */
     revisi_terakhir?: { nomor_versi: number; status: string } | null
     nomor_versi?: number | null
   }
   tampilStatus?: boolean
-  /** Tampilkan pil kategori di bawah baris meta (dipakai arsip `/materi`). */
   tampilKategori?: boolean
-  /** Menimpa warna/label status, mis. materi terbit yang punya draf revisi baru. */
   statusChip?: StatusMateri
   labelChip?: string
   catatanChip?: string
   jumlahKomentar?: number | null
-  /** Alamat tujuan; bawaan halaman materi anggota. */
   ke?: string
-  /** Untuk publikasi: tanggal terbit yang ditampilkan. */
   tanggal?: string | null
 }
 
@@ -135,7 +127,6 @@ const tanggalTampil = computed(
     null,
 )
 
-// Nomor versi pada chip diambil dari revisi terakhir bila ada (KP-16.4).
 const versiChip = computed(
   () => props.materi.revisi_terakhir?.nomor_versi ?? props.materi.nomor_versi ?? null,
 )

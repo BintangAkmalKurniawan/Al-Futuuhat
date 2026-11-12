@@ -1,6 +1,5 @@
 <template>
-  <!-- Sampul artikel (KF-18): gambar kartu di daftar materi dan halaman artikel
-       pengunjung. Terkunci bila materi sudah pernah terbit (KP-12.4). -->
+  <!-- Sampul artikel -->
   <div>
     <p class="text-xs font-medium tracking-wider text-teks-redup uppercase">Sampul artikel</p>
 
@@ -27,7 +26,7 @@
         </p>
 
         <div v-else class="mt-2 flex flex-wrap gap-2">
-          <!-- Masukan berkas disembunyikan; tombolnya yang tampil ke pengguna. -->
+          <!-- Masukan berkas disembunyikan -->
           <input
             ref="masukan"
             type="file"
@@ -59,9 +58,7 @@
 
 <script setup lang="ts">
 interface Props {
-  /** Sampul terkunci (materi sudah pernah terbit). */
   nonaktif?: boolean
-  /** Galat 422 dari backend untuk isian `sampul`. */
   error?: string
 }
 
@@ -70,7 +67,6 @@ const props = withDefaults(defineProps<Props>(), {
   error: '',
 })
 
-// Path berkas di server (dikirim ke backend) dan URL pratinjaunya.
 const path = defineModel<string | null>('path', { default: null })
 const url = defineModel<string | null>('url', { default: null })
 
@@ -86,12 +82,11 @@ function bukaPemilih() {
   masukan.value?.click()
 }
 
-/** Cek jenis dan ukuran di klien lebih dulu (KNF-03); backend tetap memeriksa ulang. */
+// Pilih berkas sampul
 async function pilihBerkas(event: Event) {
   const el = event.target as HTMLInputElement
   const berkas = el.files?.[0] ?? null
 
-  // Isian dikosongkan agar berkas yang sama bisa dipilih lagi setelah gagal.
   el.value = ''
 
   if (!berkas) return
@@ -121,7 +116,7 @@ async function pilihBerkas(event: Event) {
   }
 }
 
-/** Lepas sampul: hanya menghapus rujukannya di formulir, disimpan saat simpan ditekan. */
+// Lepas sampul
 function lepas() {
   galatKlien.value = ''
   path.value = null

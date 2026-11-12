@@ -5,9 +5,7 @@ namespace App\Http\Resources;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-/**
- * Notifikasi dalam aplikasi (tabel `notifications` bawaan Laravel).
- */
+// Notifikasi dalam aplikasi (tabel `notifications` bawaan Laravel)
 class NotifikasiResource extends JsonResource
 {
     /**

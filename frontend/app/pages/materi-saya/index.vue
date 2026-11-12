@@ -1,5 +1,5 @@
 <template>
-  <!-- Daftar materi milik sendiri (DESIGN.md §6.5, layar 11). -->
+  <!-- Daftar materi milik sendiri -->
   <div class="grid grid-cols-[minmax(0,1fr)] gap-12 lg:grid-cols-[minmax(0,1fr)_320px] lg:gap-16">
     <div>
       <header class="flex flex-wrap items-start justify-between gap-4 pb-6">
@@ -13,7 +13,7 @@
         </AppButton>
       </header>
 
-      <!-- Ponsel: kotak cari di atas daftar. Di layar lebar kotak ini ada di sidebar. -->
+      <!-- Ponsel -->
       <div class="mb-6 lg:hidden">
         <SearchPill v-model="kataKunci" placeholder="Cari materi saya" realtime @cari="cari" />
       </div>
@@ -24,7 +24,6 @@
         {{ galat }}
       </AppAlert>
 
-      <!-- Kerangka memuat berbentuk seperti baris tulisan. -->
       <div v-if="memuat" class="space-y-7 pt-7">
         <div v-for="n in 3" :key="n" class="animate-pulse space-y-3">
           <div class="h-3 w-40 rounded-full bg-permukaan" />
@@ -44,7 +43,6 @@
         <div class="border-t border-garis">
           <StoryRow v-for="item in daftarMateri" :key="item.id" :materi="item" :ke="keBaris(item)" :status-chip="statusBaris(item)" :label-chip="labelBaris(item)" :catatan-chip="catatanBaris(item)" tampil-status>
             <template #aksi>
-              <!-- Aksi per baris mengikuti status materi/revisi (DESIGN.md §7, Draf 2.3). -->
               <AppButton v-if="aksi(item, 'ubah')" variant="sekunder" size="sm" :loading="memproses === item.id" @click="ubahSekarang(item)"> Ubah </AppButton>
 
               <NuxtLink v-if="aksi(item, 'lihat')" :to="`/materi/${item.slug}`" class="btn btn-sekunder btn-sm"> Lihat </NuxtLink>
@@ -69,7 +67,6 @@
     </div>
 
     <aside class="space-y-8 lg:sticky lg:top-24 lg:self-start">
-      <!-- Satu kotak pencarian, sama seperti arsip materi (DESIGN.md §6.5). -->
       <div class="hidden lg:block">
         <SearchPill v-model="kataKunci" placeholder="Cari materi saya" realtime @cari="cari" />
       </div>
@@ -91,7 +88,6 @@
       </section>
     </aside>
 
-    <!-- Konfirmasi "Ajukan publikasi", dengan perbandingan bila pernah terbit (KP-10.7). -->
     <DialogAjukanPublikasi
       v-if="akanDiajukan"
       v-model:open="modalAjukan"
@@ -102,7 +98,7 @@
       @diajukan="setelahAksi($event.message)"
     />
 
-    <!-- Ajukan penarikan dari publik (KP-20.1). -->
+    <!-- Ajukan penarikan dari publik -->
     <ModalTarikMateri
       v-if="akanDitarik"
       v-model:open="modalTarik"
@@ -129,7 +125,6 @@
 import { PenLine } from "@lucide/vue";
 import type { DasborAnggota, MateriRingkas, MetaHalaman, StatusMateri } from "~/types/api";
 
-// KP-08.6: admin hanya mengelola, tidak menulis materi → dialihkan ke /admin.
 definePageMeta({ layout: "anggota", middleware: ["auth", "bukan-admin"] });
 useHead({ title: "Materi Saya" });
 
@@ -167,7 +162,6 @@ const akanDiajukan = ref<MateriRingkas | null>(null);
 const modalTarik = ref(false);
 const akanDitarik = ref<MateriRingkas | null>(null);
 
-// Id materi yang aksinya sedang berjalan (Ubah, Batalkan pengajuan/penarikan).
 const memproses = ref<number | null>(null);
 
 const modalHapus = ref(false);
@@ -175,7 +169,6 @@ const akanDihapus = ref<MateriRingkas | null>(null);
 const galatHapus = ref("");
 const memuatHapus = ref(false);
 
-// Angka di tab diambil dari ringkasan dasbor agar tidak perlu hitung sendiri.
 const daftarTab = computed(() => [
   { kunci: "semua", label: "Semua", jumlah: ringkasan.value?.materi.total },
   { kunci: "draf", label: "Belum tayang", jumlah: ringkasan.value?.materi.draf },
@@ -185,7 +178,6 @@ const daftarTab = computed(() => [
 ]);
 
 const kosong = computed(() => {
-  // Saat mencari, pesan kosong berlaku untuk semua tab.
   if (kataKunci.value.trim()) {
     return {
       judul: "Materinya tidak ketemu.",
@@ -221,15 +213,12 @@ const kosong = computed(() => {
   return teks[tab.value] ?? semua;
 });
 
-/**
- * Materi terbit yang revisi terakhirnya masih draf: yang ditampilkan adalah
- * status revisi itu, bukan status materi (DESIGN.md §7).
- */
+// Cek draf revisi
 function adaDrafRevisi(item: MateriRingkas) {
   return item.status === "terbit" && item.revisi_terakhir?.status === "draf";
 }
 
-/** Status yang dipakai baris: materi terbit mengikuti status revisi terakhirnya. */
+// Status yang dipakai baris
 function statusBaris(item: MateriRingkas): StatusMateri {
   if (adaDrafRevisi(item)) return "draf";
   if (item.status === "terbit" && item.revisi_terakhir?.status === "diajukan") return "diajukan";
@@ -241,12 +230,12 @@ function labelBaris(item: MateriRingkas) {
   return adaDrafRevisi(item) ? "Perubahan belum tayang" : undefined;
 }
 
-/** Ada pengajuan penarikan yang menunggu keputusan admin (KF-20). */
+// Cek penarikan menunggu
 function menungguPenarikan(item: MateriRingkas) {
   return item.penarikan?.status === "diajukan";
 }
 
-// Keterangan di samping chip, mis. "Versi publik: v2 · Menunggu penarikan" (DESIGN.md §7).
+// Keterangan baris
 function catatanBaris(item: MateriRingkas) {
   const bagian: string[] = [];
 
@@ -256,13 +245,7 @@ function catatanBaris(item: MateriRingkas) {
   return bagian.length ? bagian.join(" · ") : undefined;
 }
 
-/**
- * Tombol per baris (DESIGN.md §7, Draf 2.3):
- * - terbit       → Ubah + Ajukan tarik materi (atau Batalkan penarikan bila menunggu)
- * - diajukan     → Lihat + Batalkan pengajuan
- * - ditolak      → Ubah (membuat revisi baru)
- * - draf         → Ubah + Ajukan publikasi (bila revisi terakhir masih draf)
- */
+// Tombol per baris
 function daftarAksi(item: MateriRingkas): AksiBaris[] {
   const revisi = item.revisi_terakhir?.status;
 
@@ -310,7 +293,7 @@ async function muat() {
   }
 }
 
-// Jumlah di tab selalu disegarkan setelah ada perubahan status materi.
+// Muat ringkasan
 async function muatRingkasan() {
   try {
     const respons = await api.get<ResponsData<DasborAnggota>>("/dasbor");
@@ -328,7 +311,7 @@ function mulaiDariAwal() {
   }
 }
 
-/** Simpan kata kunci dan tab di URL agar tetap ada saat halaman dimuat ulang. */
+// Sinkronkan URL
 function sinkronUrl() {
   router.replace({
     query: {
@@ -338,7 +321,7 @@ function sinkronUrl() {
   });
 }
 
-/** Dipanggil kotak cari: realtime (dijeda) maupun saat Enter ditekan. */
+// Cari
 function cari() {
   sinkronUrl();
   mulaiDariAwal();
@@ -349,7 +332,7 @@ function bersihkanPencarian() {
   cari();
 }
 
-/** Setelah ajukan/tarik berhasil: tampilkan pesan dan segarkan daftar + angka tab. */
+// Setelah aksi
 async function setelahAksi(pesan: string) {
   tampilkan(pesan, "sukses");
   await Promise.all([mulaiDariAwal(), muatRingkasan()]);
@@ -357,7 +340,6 @@ async function setelahAksi(pesan: string) {
 
 async function mintaAjukan(item: MateriRingkas) {
   akanDiajukan.value = item;
-  // Tunggu dialog terpasang (v-if) sebelum dibuka.
   await nextTick();
   modalAjukan.value = true;
 }
@@ -368,10 +350,7 @@ async function mintaTarik(item: MateriRingkas) {
   modalTarik.value = true;
 }
 
-/**
- * "Ubah": revisi draf langsung dibuka di editor. Bila revisi terakhir sudah
- * disetujui/ditolak, revisi baru dibuat dulu (KF-12) lalu editor dibuka.
- */
+// Ubah materi
 async function ubahSekarang(item: MateriRingkas) {
   if (item.revisi_terakhir?.status === "draf") {
     await navigateTo(`/materi-saya/${item.id}/edit`);
@@ -390,7 +369,7 @@ async function ubahSekarang(item: MateriRingkas) {
   }
 }
 
-/** Batalkan pengajuan publikasi yang belum diputuskan admin (KP-10.6). */
+// Batal ajukan
 async function batalAjukanSekarang(item: MateriRingkas) {
   memproses.value = item.id;
 
@@ -404,7 +383,7 @@ async function batalAjukanSekarang(item: MateriRingkas) {
   }
 }
 
-/** Batalkan pengajuan penarikan yang belum diputuskan admin (KP-20.3). */
+// Batal tarik
 async function batalTarikSekarang(item: MateriRingkas) {
   memproses.value = item.id;
 
@@ -436,7 +415,6 @@ async function hapusSekarang() {
     modalHapus.value = false;
     tampilkan(respons.message, "sukses");
 
-    // Bila baris terakhir di halaman ini dihapus, mundur satu halaman.
     if (daftarMateri.value.length === 1 && halaman.value > 1) {
       halaman.value -= 1;
     } else {
@@ -458,7 +436,6 @@ watch(tab, () => {
 watch(halaman, muat);
 
 onMounted(() => {
-  // Pesan dari halaman lain (baru.vue, edit.vue) yang mengalihkan ke sini.
   const sukses = route.query.sukses;
   const pesan: Record<string, string> = {
     disimpan: "Materimu sudah disimpan. Semua anggota sudah bisa membacanya.",

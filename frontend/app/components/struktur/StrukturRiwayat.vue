@@ -1,6 +1,5 @@
 <template>
-  <!-- Tab Riwayat admin (Draf 2.5, KP-07.8): pilih periode, lalu lihat
-       perbandingan dengan periode sebelumnya dan log perubahannya. -->
+  <!-- Tab Riwayat admin -->
   <div>
     <div class="flex flex-wrap items-end gap-3 border-t border-garis pt-6">
       <div v-if="periode.length > 0" class="w-full max-w-xs">
@@ -50,7 +49,6 @@ async function muat() {
   try {
     const respons = await daftarPeriode()
     periode.value = respons.data
-    // Periode saat ini ada di urutan pertama (backend mengurutkan aktif lebih dulu).
     periodeId.value = respons.data[0]?.id ?? null
   } catch (galatServer) {
     galat.value = pesanGalat(galatServer)

@@ -1,5 +1,5 @@
 <template>
-  <!-- Kelola satu anggota (KF-06): ubah data, status akun, dan kata sandi. -->
+  <!-- Kelola satu anggota -->
   <div>
     <NuxtLink to="/admin/anggota" class="crumb">
       <ChevronLeft class="h-4 w-4" aria-hidden="true" />
@@ -17,7 +17,6 @@
     </AppAlert>
 
     <template v-else-if="anggota">
-      <!-- Avatar + nama + lencana status sebaris (DESIGN.md §6.3 no. 21). -->
       <div class="flex flex-wrap items-center gap-3.5 pt-2">
         <AvatarInisial :nama="anggota.nama" :id="anggota.id" ukuran="besar" />
         <h1 class="font-serif text-halaman font-bold text-teks-kuat">{{ anggota.nama }}</h1>
@@ -31,7 +30,7 @@
       </p>
 
       <div class="mt-7 grid gap-12 lg:grid-cols-[minmax(0,1fr)_340px]">
-        <!-- Kolom kiri: formulir data anggota. -->
+        <!-- Kolom kiri -->
         <div>
           <AppAlert v-if="galatSimpan" variant="bahaya" title="Gagal menyimpan" class="mb-6">
             {{ galatSimpan }}
@@ -63,7 +62,6 @@
                   required
                 />
 
-                <!-- KP-06.5: pilihan peran disembunyikan pada akun sendiri. -->
                 <AppSelect
                   v-if="!diriSendiri"
                   v-model="form.role"
@@ -93,7 +91,7 @@
           </form>
         </div>
 
-        <!-- Kolom kanan: aksi berisiko dipisah ke kartu (DESIGN.md §6.3 no. 21). -->
+        <!-- Kolom kanan -->
         <aside class="lg:sticky lg:top-24 lg:self-start">
           <div class="sidecard">
             <h4>Atur ulang kata sandi</h4>
@@ -133,7 +131,7 @@
       </div>
     </template>
 
-    <!-- Modal atur ulang kata sandi (KP-06.4) -->
+    <!-- Modal atur ulang kata sandi -->
     <AppModal
       v-model:open="modalSandi"
       title="Atur ulang kata sandi"
@@ -278,7 +276,7 @@ function kosongkan(objek: Record<string, string[]>) {
   for (const kunci of Object.keys(objek)) delete objek[kunci]
 }
 
-/** Tombol "Batal": kembalikan isian ke data anggota yang terakhir dimuat. */
+// Tombol "Batal"
 function batal() {
   kosongkan(galatData)
   galatSimpan.value = ''
@@ -286,7 +284,7 @@ function batal() {
   if (anggota.value) isiForm(anggota.value)
 }
 
-/** Buka modal kata sandi dengan isian yang bersih. */
+// Buka modal kata sandi
 function bukaModalSandi() {
   sandi.password = ''
   sandi.password_confirmation = ''
@@ -340,7 +338,6 @@ async function simpanSandi() {
   kosongkan(galatSandiData)
   galatSandi.value = ''
 
-  // Validasi cepat di klien; backend tetap memeriksa ulang.
   if (sandi.password.length < 8) {
     galatSandiData.password = ['Kata sandi minimal 8 karakter.']
     return

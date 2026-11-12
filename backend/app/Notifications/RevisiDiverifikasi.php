@@ -6,9 +6,7 @@ use App\Models\Materi;
 use App\Models\RevisiMateri;
 use Illuminate\Notifications\Notification;
 
-/**
- * Pemberitahuan ke penulis saat revisinya diverifikasi admin (KP-11.5).
- */
+// Notifikasi keputusan revisi
 class RevisiDiverifikasi extends Notification
 {
     public function __construct(

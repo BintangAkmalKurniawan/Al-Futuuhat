@@ -1,7 +1,5 @@
 <template>
-  <!-- Sampul bawaan untuk artikel tanpa gambar: dibentuk dari tulisannya sendiri
-       (huruf pertama judul + kategori). Arah gradasi bergantung pada id supaya
-       kartu-kartu tanpa sampul tidak terlihat seragam. Hanya memakai token warna. -->
+  <!-- Sampul bawaan -->
   <div class="relative flex h-full w-full flex-col justify-between overflow-hidden p-5" :class="latar" aria-hidden="true">
     <span class="relative text-[11px] font-medium tracking-[.08em] text-aksen uppercase">
       {{ kategori || 'Artikel' }}
@@ -9,7 +7,6 @@
 
     <img :src="logo" alt="" class="relative h-6 w-auto self-start opacity-70" />
 
-    <!-- Huruf pertama judul sebagai ornamen besar. -->
     <span
       class="pointer-events-none absolute -right-2 -bottom-10 font-serif text-[180px] leading-none font-bold text-teks-kuat/10 select-none"
     >

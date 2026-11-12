@@ -1,6 +1,5 @@
 <template>
-  <!-- Label status materi/revisi (DESIGN.md §7). Warna tidak pernah sendiri:
-       selalu ada teks agar tetap terbaca tanpa membedakan warna. -->
+  <!-- Label status materi/revisi -->
   <span class="chip" :class="kelas">
     {{ teks }}
   </span>
@@ -11,9 +10,7 @@ import type { StatusMateri, StatusRevisi } from '~/types/api'
 
 interface Props {
   status: StatusMateri | StatusRevisi
-  /** Nomor versi revisi. Tidak lagi ditampilkan di chip (nomor versi hanya di Riwayat perubahan). */
   versi?: number | null
-  /** Menimpa kata label, mis. "Perubahan belum tayang" untuk materi tayang yang punya draf baru. */
   label?: string
 }
 
@@ -37,6 +34,5 @@ const KELAS: Record<StatusMateri | StatusRevisi, string> = {
 
 const kelas = computed(() => KELAS[props.status] ?? 'chip-draf')
 
-// Panduan Bahasa UI: nomor versi tidak ditampilkan di chip, cukup di Riwayat perubahan.
 const teks = computed(() => props.label ?? LABEL[props.status] ?? props.status)
 </script>

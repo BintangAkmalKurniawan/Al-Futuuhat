@@ -12,7 +12,7 @@
     </div>
 
     <template v-else-if="data">
-      <!-- Revisi draf: editor penuh; semua bagian dapat diubah (KP-09.1, Draf 2.3). -->
+      <!-- Revisi draf -->
       <FormMateri
         v-if="sedangUbah"
         ref="formRef"
@@ -33,7 +33,7 @@
         :galat-isian="galatIsian"
         @simpan="kirim"
       >
-        <!-- Materi sedang terbit: perubahan hanya tersimpan sebagai draf (KP-12.4, KP-12.6). -->
+        <!-- Materi sedang terbit -->
         <template v-if="sedangTerbit" #pemberitahuan>
           <AppAlert variant="aksen" title="Materi ini sedang tayang untuk umum" class="mt-6">
             Perubahan yang kamu buat aman tersimpan, tapi pengunjung masih melihat versi lama.
@@ -74,7 +74,7 @@
         </template>
       </FormMateri>
 
-      <!-- Revisi bukan draf: hanya baca. -->
+      <!-- Revisi bukan draf -->
       <template v-else>
         <div class="mx-auto w-full max-w-baca">
           <div class="flex flex-wrap items-center gap-3">
@@ -85,7 +85,6 @@
           </div>
 
           <div class="pb-6">
-            <!-- Alasan hanya-baca tampil di atas judul (DESIGN.md §6.2 no. 14). -->
             <AppAlert v-if="data.revisi" variant="aksen" :title="judulKunci" class="mt-6">
               {{ pesanTidakDapatDiubah }}
             </AppAlert>
@@ -117,12 +116,10 @@
             </template>
           </div>
 
-          <!-- Bilah aksi melekat di bawah layar, sama seperti editor draf. -->
           <div class="decide">
             <span class="text-[13px] text-teks-redup">{{ teksSimpanHanyaBaca }}</span>
             <span class="tumbuh" />
 
-            <!-- KP-10.6: pengajuan yang belum diputuskan dapat dibatalkan. -->
             <AppButton
               v-if="data.revisi?.status === 'diajukan'"
               variant="sekunder"
@@ -133,7 +130,6 @@
               Batalkan pengajuan
             </AppButton>
 
-            <!-- Draf 2.3: "Buat revisi" digabung ke "Ubah" (DESIGN.md §7). -->
             <AppButton v-if="bisaBuatRevisi" size="sm" :loading="memuatAksi" @click="buatRevisiSekarang">
               Ubah
             </AppButton>
@@ -153,7 +149,6 @@
         </div>
       </template>
 
-      <!-- Konfirmasi ajukan publikasi, dengan perbandingan bila pernah terbit (KP-10.7). -->
       <DialogAjukanPublikasi
         v-model:open="modalAjukan"
         :materi-id="data.materi.id"
@@ -163,7 +158,7 @@
         @diajukan="setelahAjukan"
       />
 
-      <!-- Ajukan penarikan dari publik (KP-20.1). -->
+      <!-- Ajukan penarikan dari publik -->
       <ModalTarikMateri v-model:open="modalTarik" :materi-id="data.materi.id" @diajukan="setelahTarik" />
     </template>
 
@@ -194,7 +189,6 @@
 import { ArrowLeft } from '@lucide/vue'
 import type { DataEditor, PayloadMateri } from '~/types/api'
 
-// KP-08.6: admin hanya mengelola, tidak menulis materi → dialihkan ke /admin.
 definePageMeta({ layout: 'anggota', middleware: ['auth', 'bukan-admin'] })
 useHead({ title: 'Ubah Materi' })
 
@@ -203,7 +197,6 @@ const { dataEditor, ubah, hapus, batalAjukan, buatRevisi, batalTarik } = useMate
 const { tampilkan } = usePesanToast()
 const id = route.params.id as string
 
-// FormMateri mengekspos kirim() agar tombol "Simpan" di bilah aksi bisa memicunya.
 const formRef = ref<{ kirim: () => void; tandaiTersimpan: () => void } | null>(null)
 
 const data = ref<DataEditor | null>(null)
@@ -225,7 +218,6 @@ const modalHapus = ref(false)
 const memuatHapus = ref(false)
 const galatHapus = ref('')
 
-// Aksi status: ajukan, tarik, batalkan, dan revisi baru.
 const modalAjukan = ref(false)
 const modalTarik = ref(false)
 const memuatAksi = ref(false)
@@ -236,7 +228,6 @@ const sedangTerbit = computed(() => data.value?.materi.status === 'terbit')
 
 const menungguPenarikan = computed(() => data.value?.materi.penarikan?.status === 'diajukan')
 
-// KP-10.1: publikasi hanya dapat diajukan bila materi tidak sedang terbit.
 const bisaAjukan = computed(() => sedangUbah.value && !sedangTerbit.value)
 
 const bisaBuatRevisi = computed(
@@ -266,7 +257,6 @@ const pesanTidakDapatDiubah = computed(() => {
   return 'Isi materi ini belum bisa diubah.'
 })
 
-/** Judul besar pada pemberitahuan hanya-baca (DESIGN.md §6.2 no. 14). */
 const judulKunci = computed(() => {
   const status = data.value?.revisi?.status
 
@@ -277,7 +267,6 @@ const judulKunci = computed(() => {
   return 'Isi materi ini belum bisa diubah'
 })
 
-// Awalan keterangan simpan di bilah aksi, mis. "Draf · Tersimpan" (layar 13).
 const keteranganSimpan = computed(() => {
   const status = data.value?.revisi?.status
   if (!status) return ''
@@ -285,7 +274,6 @@ const keteranganSimpan = computed(() => {
   return status === 'disetujui' ? 'Tayang untuk umum' : labelStatusRevisi(status)
 })
 
-// Tampilan hanya-baca tidak menyimpan apa pun, jadi keterangannya diganti.
 const teksSimpanHanyaBaca = computed(() => {
   const status = data.value?.revisi?.status
 
@@ -328,7 +316,6 @@ async function kirim(payload: PayloadMateri) {
       judul: isian.judul?.[0],
       ringkasan: isian.ringkasan?.[0],
       sampul: isian.sampul?.[0],
-      // Kategori memakai kunci `kategori` atau `kategori.0` (KF-19).
       kategori: isian.kategori?.[0] ?? isian['kategori.0']?.[0],
       konten: isian.konten?.[0] ?? isian['konten.ops']?.[0] ?? isian.konten_html?.[0],
       catatan_revisi: isian.catatan_revisi?.[0],
@@ -348,16 +335,13 @@ function setelahAjukan(respons: { message: string; data: DataEditor }) {
   tampilkan(respons.message, 'sukses')
 }
 
-/** Respons tarik berisi data penarikan saja, jadi data editor dimuat ulang. */
+// Setelah tarik
 async function setelahTarik(respons: { message: string }) {
   tampilkan(respons.message, 'sukses')
   await muat()
 }
 
-/**
- * Jalankan satu aksi status (batal ajukan, buat revisi, batal tarik) dengan
- * penanda memuat dan pesan galat yang sama.
- */
+// Jalankan aksi status
 async function jalankanAksi(aksi: () => Promise<{ message: string; data?: unknown }>, bawaan: string) {
   memuatAksi.value = true
 

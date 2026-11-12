@@ -1,6 +1,5 @@
 <template>
-  <!-- Dasbor admin (DESIGN.md §6.3 no. 17): empat kartu angka,
-       lalu panel "Pendaftar terbaru" dan "Antrean verifikasi publikasi". -->
+  <!-- Dasbor admin -->
   <div>
     <header class="pb-1">
       <h1 class="font-serif text-halaman font-bold text-teks-kuat">Dasbor</h1>
@@ -23,7 +22,7 @@
     </div>
 
     <div class="mt-9 grid gap-10 lg:grid-cols-2">
-      <!-- Panel kiri: tiga pendaftar yang masih menunggu verifikasi. -->
+      <!-- Panel kiri -->
       <section>
         <PanelJudul judul="Pendaftar terbaru" tautan="Lihat semua" ke="/admin/pendaftaran" />
 
@@ -61,7 +60,7 @@
         </template>
       </section>
 
-      <!-- Panel kanan: antrean pengajuan publikasi, terlama di atas. -->
+      <!-- Panel kanan -->
       <section>
         <PanelJudul
           judul="Materi menunggu pemeriksaan"
@@ -102,7 +101,7 @@
       </section>
     </div>
 
-    <!-- Statistik (KF-25): bahan laporan pengurus. -->
+    <!-- Statistik -->
     <div class="mt-12 grid gap-10 lg:grid-cols-2">
       <section>
         <PanelJudul judul="Materi paling banyak dibaca" />
@@ -175,7 +174,6 @@ const kartu = computed(() => [
     ke: '/admin/pendaftaran',
   },
   {
-    // Antrean gabungan publikasi + penarikan (KF-11, KF-20).
     label: 'Menunggu pemeriksaan',
     nilai: (ringkasan.value?.revisi_diajukan ?? 0) + (ringkasan.value?.penarikan_diajukan ?? 0),
     keterangan: `${ringkasan.value?.revisi_diajukan ?? 0} minta tayang · ${ringkasan.value?.penarikan_diajukan ?? 0} minta diturunkan`,
@@ -193,7 +191,7 @@ const kartu = computed(() => [
   },
 ])
 
-// Keterangan baris antrean: penulis · versi · tanggal pengajuan.
+// Keterangan antrean
 function metaAntrean(item: Revisi): string {
   const penulis = item.materi?.penulis?.nama ?? 'Anggota'
   const revisi = item.materi?.status === 'terbit' ? ' · versi baru' : ''
@@ -208,7 +206,6 @@ async function muatRingkasan() {
     const respons = await api.get<ResponsData<DasborAdmin>>('/admin/dasbor')
     ringkasan.value = respons.data
   } catch {
-    // Ringkasan gagal dimuat: kartu tetap tampil dengan angka nol.
     ringkasan.value = null
   } finally {
     memuat.value = false
@@ -241,7 +238,6 @@ async function muatAntrean() {
   }
 }
 
-// Statistik (KF-25); gagal dimuat → panel menampilkan keadaan kosong.
 const { statistik: ambilStatistik } = useProfil()
 const statistik = ref<StatistikAdmin | null>(null)
 const memuatStatistik = ref(true)

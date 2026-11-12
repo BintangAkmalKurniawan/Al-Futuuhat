@@ -1,8 +1,6 @@
 import type { Peran, ResponsData, ResponsHalaman, StatusAkun, User } from '~/types/api'
 
-/**
- * Pengelolaan data anggota oleh admin (F3).
- */
+// Data anggota
 export function useAnggota() {
   const api = useApi()
 

@@ -1,20 +1,19 @@
 <template>
-  <!-- Arsip materi anggota: tab status + baris tulisan + sidebar filter (§6.5). -->
+  <!-- Arsip materi anggota -->
   <div class="grid grid-cols-[minmax(0,1fr)] gap-12 lg:grid-cols-[minmax(0,1fr)_320px] lg:gap-16">
     <div>
       <header class="pb-6">
         <h1 class="font-serif text-halaman font-bold text-teks-kuat">Arsip materi</h1>
       </header>
 
-      <!-- Ponsel: kotak cari di atas daftar. Di layar lebar kotak ini ada di sidebar. -->
+      <!-- Ponsel -->
       <div class="mb-6 lg:hidden">
         <SearchPill v-model="kataKunci" placeholder="Cari materi atau penulis" realtime @cari="kataKunciDicari = $event" />
       </div>
 
       <AppTabs v-model="tab" :tabs="daftarTab" class="mb-2" />
 
-      <!-- Ponsel: penyaring kategori sebagai satu baris pil yang dapat digulir
-           (KF-19, KP-19.4). Di layar lebar penyaring ini ada di sidebar. -->
+      <!-- Ponsel -->
       <div v-if="daftarKategori.length" class="mt-4 lg:hidden">
         <FilterKategori v-model="kategori" :daftar="daftarKategori" gulir />
       </div>
@@ -23,7 +22,6 @@
         {{ galat }}
       </AppAlert>
 
-      <!-- Kerangka memuat berbentuk seperti baris tulisan. -->
       <div v-if="memuat" class="space-y-7 pt-7">
         <div v-for="n in 3" :key="n" class="animate-pulse space-y-3">
           <div class="h-3 w-40 rounded-full bg-permukaan" />
@@ -49,13 +47,13 @@
       </template>
     </div>
 
-    <!-- Sidebar: satu kotak pencarian (judul, isi, dan nama penulis) + legenda status. -->
+    <!-- Sidebar -->
     <aside class="space-y-8 lg:sticky lg:top-24 lg:self-start">
       <div class="hidden lg:block">
         <SearchPill v-model="kataKunci" placeholder="Cari materi atau penulis" realtime @cari="kataKunciDicari = $event" />
       </div>
 
-      <!-- Penyaring kategori versi sidebar; di ponsel sudah ada versi gulir di atas daftar. -->
+      <!-- Penyaring kategori versi sidebar -->
       <section v-if="daftarKategori.length" class="hidden border-t border-garis pt-6 lg:block">
         <h2 class="text-sm font-medium text-teks-kuat">Kategori</h2>
         <FilterKategori v-model="kategori" :daftar="daftarKategori" class="mt-3" />
@@ -85,7 +83,6 @@ const router = useRouter();
 const { arsip } = useMateri();
 const { daftar: daftarKategoriApi } = useKategori();
 
-// Tab status sesuai DESIGN.md §6.5.
 const daftarTab = [
   { kunci: "semua", label: "Semua" },
   { kunci: "draf", label: "Belum tayang" },
@@ -101,15 +98,12 @@ const legenda: { status: StatusMateri; label: string; arti: string }[] = [
   { status: "terbit", label: "Tayang untuk umum", arti: "Tayang untuk umum — bisa dibaca siapa saja" },
 ];
 
-// Nilai status dari URL hanya dipakai bila termasuk status yang dikenal.
 const statusUrl = typeof route.query.status === "string" ? route.query.status : "";
 const tab = ref(daftarTab.some((item) => item.kunci === statusUrl) ? statusUrl : "semua");
 
-// Kata kunci isian pencarian; disalin ke kataKunciDicari setelah jeda ketikan.
 const kataKunci = ref(typeof route.query.q === "string" ? route.query.q : "");
 const kataKunciDicari = ref(kataKunci.value);
 
-// Kategori terpilih (slug); kosong berarti semua kategori (KF-19, KP-19.4).
 const kategori = ref(typeof route.query.kategori === "string" ? route.query.kategori : "");
 const daftarKategori = ref<Kategori[]>([]);
 
@@ -151,7 +145,7 @@ async function muat() {
   }
 }
 
-/** Daftar kategori untuk penyaring. Bila gagal, daftar materi tetap tampil. */
+// Daftar kategori untuk penyaring
 async function muatKategori() {
   try {
     daftarKategori.value = (await daftarKategoriApi()).data;
@@ -160,7 +154,7 @@ async function muatKategori() {
   }
 }
 
-/** Simpan filter di URL agar bisa dibagikan dan tetap ada saat halaman dimuat ulang. */
+// Sinkronkan URL
 function sinkronUrl() {
   router.replace({
     query: {
@@ -171,7 +165,7 @@ function sinkronUrl() {
   });
 }
 
-/** Kembali ke halaman satu lalu muat ulang daftar. */
+// Mulai ulang
 function mulaiUlang() {
   if (halaman.value !== 1) {
     halaman.value = 1;
@@ -187,15 +181,11 @@ function bersihkanFilter() {
   kategori.value = "";
 }
 
-// Satu pengawas untuk seluruh penyaring: berapa pun yang berubah, URL disamakan
-// lalu daftar dimuat ulang sekali.
 watch([kataKunciDicari, tab, kategori], () => {
   sinkronUrl();
   mulaiUlang();
 });
 
-// Pil kategori pada baris materi menuju /materi?kategori=slug. Vue Router tidak
-// memasang ulang halaman ini, jadi pilihan kategori disamakan dengan URL.
 watch(
   () => route.query.kategori,
   (nilai) => {

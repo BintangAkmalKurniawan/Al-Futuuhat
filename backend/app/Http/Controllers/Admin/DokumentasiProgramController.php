@@ -10,15 +10,10 @@ use App\Models\Program;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Storage;
 
-/**
- * Unggah dan hapus dokumentasi program oleh admin (KP-21.3, KP-21.4).
- */
+// Unggah dan hapus dokumentasi program oleh admin
 class DokumentasiProgramController extends Controller
 {
-    /**
-     * POST /api/admin/program/{program}/dokumentasi — satu berkas atau satu
-     * tautan per permintaan, sehingga batas ukuran berlaku per berkas.
-     */
+    // Unggah dokumentasi
     public function store(UnggahDokumentasiRequest $request, Program $program): JsonResponse
     {
         $data = $request->validated();
@@ -37,9 +32,7 @@ class DokumentasiProgramController extends Controller
         ], 201);
     }
 
-    /**
-     * DELETE /api/admin/dokumentasi/{dokumentasi} — berkasnya ikut dihapus dari server.
-     */
+    // Hapus dokumentasi
     public function destroy(DokumentasiProgram $dokumentasi): JsonResponse
     {
         $path = $dokumentasi->path;

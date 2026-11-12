@@ -8,10 +8,7 @@ use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 
-/**
- * Komentar dihapus, disiarkan ke kanal privat materi (KP-15.2).
- * Data hanya berisi id, agar peramban lain menghapus komentar tersebut dari daftar.
- */
+// Siaran komentar dihapus
 class KomentarDihapus implements ShouldBroadcastNow
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;

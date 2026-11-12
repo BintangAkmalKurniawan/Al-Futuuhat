@@ -6,14 +6,7 @@ use App\Models\Divisi;
 use App\Models\Jabatan;
 use Illuminate\Database\Seeder;
 
-/**
- * Data awal struktur organisasi — PRD §10:
- * 6 divisi, jabatan Ketua (urutan 1) dan Koordinator (urutan 2).
- * Jabatan lain ditambahkan admin lewat menu Jabatan (PRD §16 no. 7).
- *
- * Memakai firstOrCreate supaya seeder boleh dijalankan ulang tanpa
- * menimpa perubahan yang sudah dilakukan admin.
- */
+// Struktur awal
 class StrukturAwalSeeder extends Seeder
 {
     public function run(): void

@@ -10,8 +10,13 @@
     <h1 class="mt-6 font-serif text-halaman font-bold text-teks-kuat">Pendaftaran terkirim</h1>
 
     <p class="mx-auto mt-4 max-w-md font-serif text-dek text-teks-lembut">
-      Terima kasih sudah mendaftar! 🎉 Pendaftaranmu lagi dicek admin. Begitu disetujui, kamu
-      bisa langsung masuk.
+      Terima kasih sudah mendaftar! 🎉 Cek emailmu dan klik tautan konfirmasinya. Setelah itu,
+      pendaftaranmu lanjut dicek admin.
+    </p>
+
+    <p class="mt-4 text-sm text-teks-lembut">
+      Belum dapat email?
+      <NuxtLink to="/verifikasi-email" class="text-aksen hover:underline">Kirim ulang</NuxtLink>
     </p>
 
     <div class="mt-8 flex flex-wrap justify-center gap-3">

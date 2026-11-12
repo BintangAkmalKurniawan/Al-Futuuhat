@@ -1,10 +1,7 @@
 <template>
-  <!-- Penyaring kategori: pil "Semua" + satu pil per kategori (KF-19, KP-19.4).
-       Di sidebar: membungkus ke baris berikutnya dan diringkas bila kategorinya
-       banyak, dengan tombol "Selengkapnya" dan kotak cari. Di ponsel (`gulir`):
-       satu baris yang dapat digulir mendatar, semua pil tampil tanpa peringkas. -->
+  <!-- Penyaring kategori -->
   <div role="group" aria-label="Saring menurut kategori">
-    <!-- Kotak cari pil: hanya di sidebar, dan baru muncul setelah daftar dibuka. -->
+    <!-- Kotak cari pil -->
     <div v-if="bisaDiringkas && terbuka" class="relative mb-2">
       <Search
         class="pointer-events-none absolute top-1/2 left-3 h-3.5 w-3.5 -translate-y-1/2 text-teks-redup"
@@ -45,7 +42,7 @@
       Kategori tidak ditemukan.
     </p>
 
-    <!-- Peringkas daftar: muncul sendiri saat jumlah kategori melewati `ringkas`. -->
+    <!-- Peringkas daftar -->
     <button
       v-if="bisaDiringkas"
       type="button"
@@ -66,21 +63,17 @@ import type { Kategori } from '~/types/api'
 const props = withDefaults(
   defineProps<{
     daftar: Kategori[]
-    /** Satu baris yang dapat digulir mendatar (dipakai di ponsel), tanpa peringkas. */
     gulir?: boolean
-    /** Jumlah pil yang tampil sebelum tombol "Selengkapnya". */
     ringkas?: number
   }>(),
   { gulir: false, ringkas: 8 },
 )
 
-/** Slug kategori terpilih; teks kosong berarti semua kategori. */
 const model = defineModel<string>({ required: true })
 
 const terbuka = ref(false)
 const cari = ref('')
 
-// Peringkas hanya untuk pil yang membungkus; baris gulir ponsel sudah muat semua.
 const bisaDiringkas = computed(() => !props.gulir && props.daftar.length > props.ringkas)
 
 const hasilCari = computed(() => {
@@ -89,22 +82,19 @@ const hasilCari = computed(() => {
   return kata ? props.daftar.filter((item) => item.nama.toLowerCase().includes(kata)) : props.daftar
 })
 
-/** Pil sebelum peringkas dibuka: hanya `ringkas` pil pertama. */
 const dasar = computed(() =>
   terbuka.value ? hasilCari.value : hasilCari.value.slice(0, props.ringkas),
 )
 
-/** Pil yang ditampilkan; pil yang sedang dipilih selalu ikut tampil (KP-19.4). */
 const terlihat = computed(() => {
   const terpilih = hasilCari.value.find((item) => item.slug === model.value)
 
   return terpilih && !dasar.value.includes(terpilih) ? [...dasar.value, terpilih] : dasar.value
 })
 
-/** Jumlah pil yang masih tersembunyi, dipakai sebagai angka pada tombol. */
 const sisa = computed(() => Math.max(hasilCari.value.length - dasar.value.length, 0))
 
-/** Buka-tutup daftar penuh; kotak cari dikosongkan saat ditutup. */
+// Buka-tutup daftar penuh
 function alihkan() {
   terbuka.value = !terbuka.value
 
@@ -115,8 +105,7 @@ const kelasAkar = computed(() =>
   props.gulir ? 'flex flex-nowrap gap-2 overflow-x-auto pb-1' : 'flex flex-wrap gap-2',
 )
 
-// Tampilan pil mengikuti `.seg button` di main.css, tetapi tiap pilihan
-// berdiri sendiri supaya jumlah kategori berapa pun tetap rapi membungkus.
+// Kelas pil
 function kelasPil(aktif: boolean) {
   return [
     'inline-flex h-8 shrink-0 items-center rounded-full px-3.5 text-[13px]',

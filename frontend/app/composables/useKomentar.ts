@@ -1,8 +1,6 @@
 import type { Komentar, ResponsHalaman } from '~/types/api'
 
-/**
- * Forum diskusi materi (F9): daftar, balasan, kirim komentar/balasan, dan hapus.
- */
+// Forum diskusi materi
 export function useKomentar() {
   const api = useApi()
 
@@ -11,17 +9,10 @@ export function useKomentar() {
       query: { page },
     })
 
-  /**
-   * Balasan satu komentar induk (KP-14.5). Daftar komentar tidak lagi memuat
-   * balasan, jadi permintaan ini dikirim saat pembaca membukanya.
-   */
+  // Balasan satu komentar induk
   const balasan = (komentarId: number | string) =>
     api.get<ResponsHalaman<Komentar>>(`/komentar/${komentarId}/balasan`)
 
-  /**
-   * Komentar dikirim sebagai multipart karena gambar opsional.
-   * Minimal salah satu dari teks atau gambar harus ada.
-   */
   const kirim = (
     materiId: number | string,
     data: { isi?: string; gambar?: File | null; parent_id?: number | null },

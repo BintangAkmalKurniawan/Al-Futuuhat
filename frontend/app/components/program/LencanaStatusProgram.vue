@@ -1,5 +1,5 @@
 <template>
-  <!-- Status program (KP-21.1): aktif = masih berjalan, selesai = sudah berhenti. -->
+  <!-- Status program -->
   <AppBadge :variant="status === 'aktif' ? 'sukses' : 'netral'">
     {{ status === 'aktif' ? 'Berjalan' : 'Selesai' }}
   </AppBadge>

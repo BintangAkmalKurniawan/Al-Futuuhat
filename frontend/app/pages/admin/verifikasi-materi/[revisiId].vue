@@ -1,5 +1,5 @@
 <template>
-  <!-- Tinjau revisi: bandingkan versi publik dengan revisi diajukan (KP-11.2, DESIGN.md §6.3 no. 24). -->
+  <!-- Tinjau revisi -->
   <div>
     <NuxtLink to="/admin/verifikasi-materi" class="crumb">
       <ChevronLeft class="h-4 w-4" aria-hidden="true" />
@@ -10,7 +10,7 @@
       {{ galat }}
     </AppAlert>
 
-    <!-- Kerangka memuat: judul, baris meta, lalu dua kolom banding. -->
+    <!-- Kerangka memuat -->
     <div v-if="memuat" class="animate-pulse space-y-5">
       <div class="h-7 w-2/3 rounded-full bg-permukaan" />
       <div class="h-3.5 w-1/2 rounded-full bg-permukaan" />
@@ -33,8 +33,7 @@
         </template>
       </p>
 
-      <!-- Materi pernah terbit: perbandingan yang sama dengan dialog penulis (KP-11.2, KP-10.7).
-           Belum pernah terbit: cukup satu kolom berisi revisi yang diajukan. -->
+      <!-- Materi pernah terbit -->
       <div class="mt-6 rounded-lg border border-garis p-6">
         <PerbandinganVersi
           v-if="versiTerbit"
@@ -61,7 +60,7 @@
         </template>
       </div>
 
-      <!-- Bilah keputusan menempel di bawah. -->
+      <!-- Bilah keputusan -->
       <div class="decide">
         <span class="text-[13px] text-teks-redup">{{ catatanKeputusan }}</span>
         <span class="tumbuh" />
@@ -79,7 +78,7 @@
         </AppButton>
       </div>
 
-      <!-- Dialog tolak: catatan wajib diisi (KP-11.4, layar 25). -->
+      <!-- Dialog tolak -->
       <AppModal
         v-model:open="modalTolak"
         title="Tolak pengajuan ini?"
@@ -128,13 +127,10 @@ const catatan = ref('')
 const galatCatatan = ref('')
 const memproses = ref(false)
 
-// KP-11.6: hanya revisi berstatus diajukan yang boleh diputuskan.
 const bisaDiputuskan = computed(() => revisi.value?.status === 'diajukan')
 
 const nomorVersi = computed(() => revisi.value?.nomor_versi ?? 0)
 
-// Draf 2.3: materi yang diajukan tidak sedang terbit (sudah ditarik bila pernah terbit),
-// jadi persetujuan selalu menerbitkannya kembali untuk umum (KP-11.3).
 const catatanKeputusan = computed(() =>
   versiTerbit.value
     ? 'Jika disetujui, versi ini akan langsung tayang untuk umum menggantikan versi sebelumnya.'
@@ -185,7 +181,6 @@ async function setujui() {
 async function tolak() {
   if (!revisi.value || memproses.value) return
 
-  // KP-11.4: catatan wajib diisi sebelum penolakan dikirim.
   if (!catatan.value.trim()) {
     galatCatatan.value = 'Mohon isi catatan untuk penulis.'
     return
@@ -199,7 +194,6 @@ async function tolak() {
     tampilkan(respons.message, 'sukses')
     await navigateTo('/admin/verifikasi-materi')
   } catch (galatServer) {
-    // Galat validasi catatan dari server ditampilkan di dalam dialog.
     galatCatatan.value = galatIsian(galatServer, 'catatan') || pesanGalat(galatServer)
   } finally {
     memproses.value = false

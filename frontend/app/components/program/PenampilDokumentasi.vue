@@ -1,7 +1,6 @@
 <template>
-  <!-- Penampil satu dokumentasi dalam dialog lebar: foto, video MP4, atau YouTube. -->
+  <!-- Penampil dokumentasi -->
   <AppModal v-model:open="terbuka" :title="judul" lebar>
-    <!-- Isi hanya dirender selama dialog terbuka, supaya video berhenti saat ditutup. -->
     <template v-if="item && terbuka">
       <div class="overflow-hidden rounded-sm bg-kanvas">
         <img
@@ -11,7 +10,7 @@
           class="mx-auto max-h-[65vh] w-auto object-contain"
         />
 
-        <!-- preload="metadata": berkas video baru diunduh penuh saat diputar. -->
+        <!-- Preload="metadata" -->
         <video
           v-else-if="item.jenis === 'video'"
           :key="item.id"

@@ -1,6 +1,5 @@
 <template>
   <div>
-    <!-- Anggota dapat memilih periode lama (KP-01.3); riwayat mengikuti periode terpilih. -->
     <BaganStruktur varian="halaman" tampil-tools @periode="periode = $event" />
 
     <section v-if="periode" class="mt-14 border-t border-garis pt-10">

@@ -13,23 +13,17 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Validation\ValidationException;
 
-/**
- * Pengelolaan data anggota oleh admin (KF-06).
- */
+// Pengelolaan data anggota oleh admin
 class AnggotaController extends Controller
 {
-    /**
-     * GET /api/admin/anggota?q=&status=&page= (KP-06.1).
-     */
     public function index(Request $request): AnonymousResourceCollection
     {
         $q = trim((string) $request->query('q', ''));
         $status = $request->query('status');
 
         $anggota = User::query()
-            ->with('anggota') // KNF-09: eager loading
+            ->with('anggota')
             ->when($q !== '', function ($query) use ($q) {
-                // ilike = pencarian tanpa membedakan huruf besar/kecil (PostgreSQL)
                 $query->where(function ($sub) use ($q) {
                     $sub->where('nama', 'ilike', "%{$q}%")
                         ->orWhere('email', 'ilike', "%{$q}%");
@@ -43,9 +37,6 @@ class AnggotaController extends Controller
         return UserResource::collection($anggota);
     }
 
-    /**
-     * GET /api/admin/anggota/{user}.
-     */
     public function show(User $user): JsonResponse
     {
         return response()->json([
@@ -53,14 +44,11 @@ class AnggotaController extends Controller
         ]);
     }
 
-    /**
-     * PUT /api/admin/anggota/{user} — ubah data dan peran (KP-06.2, KP-06.5).
-     */
+    // Ubah data dan peran
     public function update(UpdateAnggotaRequest $request, User $user): JsonResponse
     {
         $data = $request->validated();
 
-        // KP-06.5: admin tidak boleh menurunkan peran dirinya sendiri.
         if ($user->is($request->user()) && $data['role'] !== User::ROLE_ADMIN) {
             throw ValidationException::withMessages([
                 'role' => 'Anda tidak dapat menurunkan peran Anda sendiri.',
@@ -83,12 +71,9 @@ class AnggotaController extends Controller
         ]);
     }
 
-    /**
-     * PATCH /api/admin/anggota/{user}/status — aktif/nonaktif (KP-06.3, KP-06.5).
-     */
+    // Ubah status aktif
     public function updateStatus(UpdateStatusAnggotaRequest $request, User $user): JsonResponse
     {
-        // KP-06.5: admin tidak boleh menonaktifkan dirinya sendiri.
         if ($user->is($request->user())) {
             throw ValidationException::withMessages([
                 'status' => 'Anda tidak dapat mengubah status akun Anda sendiri.',
@@ -100,7 +85,6 @@ class AnggotaController extends Controller
         $user->update(['status' => $status]);
 
         if ($status === User::STATUS_NONAKTIF) {
-            // KP-06.3: token lama dihapus agar akun langsung tidak bisa memakai API.
             $user->tokens()->delete();
         }
 
@@ -112,14 +96,11 @@ class AnggotaController extends Controller
         ]);
     }
 
-    /**
-     * PATCH /api/admin/anggota/{user}/password — atur ulang kata sandi (KP-06.4).
-     */
+    // Atur ulang kata sandi
     public function updatePassword(UpdatePasswordRequest $request, User $user): JsonResponse
     {
         $user->update(['password' => $request->validated()['password']]);
 
-        // Keamanan: paksa login ulang dengan kata sandi baru.
         $user->tokens()->delete();
 
         return response()->json(['message' => 'Kata sandi baru telah disimpan. Sampaikan kata sandi tersebut kepada anggota.']);

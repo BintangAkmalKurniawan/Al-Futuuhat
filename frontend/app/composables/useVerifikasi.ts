@@ -7,10 +7,7 @@ import type {
   ResponsHalaman,
 } from '~/types/api'
 
-/**
- * Verifikasi oleh admin: pengajuan publikasi (KF-11) dan penarikan materi
- * dari publik (KF-20). Kedua antrean berisi yang masih menunggu, terlama di atas.
- */
+// Verifikasi oleh admin
 export function useVerifikasi() {
   const api = useApi()
 
@@ -26,11 +23,11 @@ export function useVerifikasi() {
       catatan,
     })
 
-  /** Antrean penarikan materi yang menunggu (KP-20.4). */
+  // Antrean penarikan
   const antreanPenarikan = (page = 1) =>
     api.get<ResponsHalaman<Penarikan>>('/admin/penarikan-materi', { query: { page } })
 
-  /** Setujui/tolak penarikan; catatan wajib saat menolak (KP-20.5, KP-20.6). */
+  // Setujui/tolak penarikan
   const putuskanPenarikan = (id: number | string, keputusan: KeputusanVerifikasi, catatan?: string) =>
     api.post<{ message: string; data: Penarikan }>(`/admin/penarikan/${id}/verifikasi`, {
       keputusan,

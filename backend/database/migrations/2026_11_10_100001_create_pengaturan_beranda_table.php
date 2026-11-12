@@ -6,17 +6,14 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Konten beranda yang diatur admin: poster dan cerita Al-Futuuhat (KF-18).
-     * Tabel ini hanya dipakai satu baris pengaturan.
-     */
+    // Konten beranda yang diatur admin
     public function up(): void
     {
         Schema::create('pengaturan_beranda', function (Blueprint $table) {
             $table->id();
-            $table->string('poster')->nullable(); // path di disk `public`
+            $table->string('poster')->nullable();
             $table->string('cerita_judul')->nullable();
-            $table->text('cerita_isi')->nullable(); // HTML dari editor Quill
+            $table->text('cerita_isi')->nullable();
             $table->timestamps();
         });
     }

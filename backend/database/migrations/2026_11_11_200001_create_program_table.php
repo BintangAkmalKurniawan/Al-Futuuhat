@@ -4,9 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-/**
- * Program: kegiatan rutin Al-Futuuhat yang dikelola admin (KF-21).
- */
+// Program
 return new class extends Migration
 {
     public function up(): void
@@ -16,10 +14,10 @@ return new class extends Migration
             $table->string('nama', 150)->unique();
             $table->string('slug')->unique();
             $table->string('ringkasan', 300)->nullable();
-            $table->string('jadwal', 150)->nullable(); // teks bebas, mis. "Setiap Jumat malam"
-            $table->string('sampul')->nullable(); // path gambar di disk `public`
-            $table->text('deskripsi'); // HTML Quill yang sudah disanitasi
-            $table->string('status')->default('aktif'); // aktif | selesai
+            $table->string('jadwal', 150)->nullable();
+            $table->string('sampul')->nullable();
+            $table->text('deskripsi');
+            $table->string('status')->default('aktif');
             $table->timestamps();
 
             $table->index('status');

@@ -7,13 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-/**
- * Periode kepengurusan — PRD §10.
- *
- * Draf 2.5 (KP-07.1): periode tidak lagi dibuat manual. Satu periode per tahun
- * kalender; periode tahun berjalan dibuat otomatis oleh saatIni() ketika admin
- * mengubah susunan pengurus untuk pertama kalinya di tahun itu.
- */
+// Periode kepengurusan
 class PeriodeKepengurusan extends Model
 {
     /** @use HasFactory<PeriodeKepengurusanFactory> */
@@ -43,37 +37,23 @@ class PeriodeKepengurusan extends Model
         return $this->hasMany(RiwayatStruktur::class, 'periode_id');
     }
 
-    /** Periode yang sedang berlaku (tanpa membuat periode baru). */
+    // Periode aktif
     public static function aktif(): ?self
     {
         return self::where('is_aktif', true)->first();
     }
 
-    /**
-     * True bila periode aktif ini berasal dari tahun lalu, sehingga perubahan
-     * susunan berikutnya akan memulai periode tahun berjalan.
-     */
+    // Cek periode akan berganti
     public function akanBerganti(): bool
     {
         return $this->is_aktif && $this->tahun_mulai < (int) now()->year;
     }
 
-    /**
-     * Periode tempat perubahan susunan pengurus dicatat (KP-07.1).
-     *
-     * - Periode aktif masih tahun berjalan (atau lebih baru) → dipakai apa adanya.
-     * - Belum ada periode aktif, atau periode aktif dari tahun lalu → dibuat periode
-     *   tahun berjalan (mis. "2027"); periode lama dinonaktifkan dan susunan
-     *   pengurusnya disalin sebagai titik awal; pembuatannya dicatat di riwayat.
-     *
-     * WAJIB dipanggil di dalam DB::transaction() agar periode baru, salinan
-     * pengurus, dan perubahan yang memicunya tersimpan atau batal bersama.
-     */
+    // Periode saat ini
     public static function saatIni(User $admin): self
     {
         $tahun = (int) now()->year;
 
-        // lockForUpdate: dua admin yang menyimpan bersamaan tidak membuat dua periode.
         $lama = self::where('is_aktif', true)->lockForUpdate()->first();
 
         if ($lama !== null && $lama->tahun_mulai >= $tahun) {
@@ -92,7 +72,6 @@ class PeriodeKepengurusan extends Model
         if ($lama !== null) {
             $lama->update(['is_aktif' => false]);
 
-            // Susunan periode lama menjadi titik awal periode baru.
             foreach ($lama->kepengurusan()->get() as $baris) {
                 $baru->kepengurusan()->create([
                     'anggota_id' => $baris->anggota_id,
@@ -114,9 +93,7 @@ class PeriodeKepengurusan extends Model
         return $baru;
     }
 
-    /**
-     * Periode tepat sebelum periode ini (pembanding riwayat, KP-07.8).
-     */
+    // Periode sebelumnya
     public function sebelumnya(): ?self
     {
         return self::query()

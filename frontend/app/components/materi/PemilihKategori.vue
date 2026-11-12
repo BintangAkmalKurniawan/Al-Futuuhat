@@ -1,14 +1,9 @@
 <template>
-  <!-- Pemilih kategori di editor materi: pilihan ganda, minimal satu (KF-19,
-       KP-19.2). Ikut terkunci setelah materi pernah terbit (KP-19.3). Bila
-       kategorinya banyak: kotak cari + tombol "Selengkapnya". -->
+  <!-- Pemilih kategori -->
   <div>
-    <!-- Label mengikuti gaya label AppInput/IsianSampul di atasnya. -->
     <p class="text-xs font-medium tracking-wider text-teks-redup uppercase">Kategori</p>
 
-    <!-- Kotak cari: muncul sendiri saat jumlah kategori melewati `ringkas`.
-         Sengaja bukan `SearchPill` karena komponen itu membungkus dirinya dalam
-         <form>, sedangkan pemilih ini sudah berada di dalam <form> editor. -->
+    <!-- Kotak cari -->
     <div v-if="!memuat && bisaDiringkas" class="relative mt-2">
       <Search
         class="pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-teks-redup"
@@ -24,7 +19,7 @@
       />
     </div>
 
-    <!-- Kerangka memuat berbentuk pil. -->
+    <!-- Kerangka memuat -->
     <div v-if="memuat" class="mt-2 flex animate-pulse flex-wrap gap-2">
       <div v-for="n in 4" :key="n" class="h-8 w-20 rounded-full bg-permukaan" />
     </div>
@@ -48,7 +43,7 @@
         Kategorinya tidak ketemu.
       </p>
 
-      <!-- Peringkas daftar pil. -->
+      <!-- Peringkas daftar pil -->
       <button
         v-if="bisaDiringkas"
         type="button"
@@ -85,13 +80,10 @@ import type { Kategori } from '~/types/api'
 const props = withDefaults(
   defineProps<{
     daftar: Kategori[]
-    /** Materi sudah pernah terbit: pilihan tidak dapat diubah (KP-19.3). */
     nonaktif?: boolean
-    /** Sedang mengambil daftar kategori dari API. */
     memuat?: boolean
     galatMuat?: string
     error?: string
-    /** Jumlah pil yang tampil sebelum tombol "Selengkapnya". */
     ringkas?: number
   }>(),
   { nonaktif: false, memuat: false, galatMuat: '', error: '', ringkas: 8 },
@@ -99,13 +91,11 @@ const props = withDefaults(
 
 const emit = defineEmits<{ (e: 'muat-ulang'): void }>()
 
-/** Id kategori terpilih. */
 const terpilih = defineModel<number[]>({ required: true })
 
 const terbuka = ref(false)
 const cari = ref('')
 
-// Kotak cari dan peringkas baru perlu saat kategorinya sudah banyak.
 const bisaDiringkas = computed(() => props.daftar.length > props.ringkas)
 
 const hasilCari = computed(() => {
@@ -114,12 +104,10 @@ const hasilCari = computed(() => {
   return kata ? props.daftar.filter((item) => item.nama.toLowerCase().includes(kata)) : props.daftar
 })
 
-/** Pil sebelum peringkas dibuka: hanya `ringkas` pil pertama. */
 const dasar = computed(() =>
   terbuka.value ? hasilCari.value : hasilCari.value.slice(0, props.ringkas),
 )
 
-/** Pil yang ditampilkan; pil yang sudah dipilih selalu ikut tampil. */
 const terlihat = computed(() => {
   const terpilihBelumTampil = props.daftar.filter(
     (item) => terpilih.value.includes(item.id) && !dasar.value.includes(item),
@@ -128,10 +116,9 @@ const terlihat = computed(() => {
   return [...dasar.value, ...terpilihBelumTampil]
 })
 
-/** Jumlah pil yang masih tersembunyi, dipakai sebagai angka pada tombol. */
 const sisa = computed(() => Math.max(hasilCari.value.length - dasar.value.length, 0))
 
-/** Buka-tutup daftar penuh; kotak cari dikosongkan saat ditutup. */
+// Buka-tutup daftar penuh
 function alihkan() {
   terbuka.value = !terbuka.value
 

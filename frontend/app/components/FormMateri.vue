@@ -1,9 +1,7 @@
 <template>
-  <!-- Badan editor (DESIGN.md §6.4): judul dan ringkasan tanpa kotak, garis,
-       lalu isi Quill. Header halaman berasal dari layout (hanya navigasi);
-       status materi, keterangan simpan, dan tombol aksi diletakkan di badan ini. -->
+  <!-- Badan editor -->
   <form novalidate class="mx-auto w-full max-w-baca" @submit.prevent="kirim">
-    <!-- Chip status materi; tidak tampil untuk materi baru yang belum berstatus. -->
+    <!-- Chip status materi -->
     <div v-if="status" class="flex flex-wrap items-center gap-3">
       <StatusChip :status="status" :versi="versi" />
     </div>
@@ -13,7 +11,7 @@
         {{ galatUmum }}
       </AppAlert>
 
-      <!-- Pemberitahuan dari halaman induk, mis. "Materi ini sedang terbit" (F15). -->
+      <!-- Pemberitahuan dari halaman induk -->
       <slot name="pemberitahuan" />
 
       <div class="pt-6 lg:pt-8">
@@ -48,7 +46,7 @@
         </p>
       </div>
 
-      <!-- Sampul artikel (KF-18); disimpan per versi, selalu dapat diubah (KP-18.4). -->
+      <!-- Sampul artikel -->
       <div class="mt-6">
         <IsianSampul
           v-model:path="sampulPath"
@@ -57,7 +55,7 @@
         />
       </div>
 
-      <!-- Kategori materi (KF-19); disimpan per versi, selalu dapat diubah (KP-19.3). -->
+      <!-- Kategori materi -->
       <div class="mt-6">
         <PemilihKategori
           v-model="terpilihKategori"
@@ -69,7 +67,7 @@
         />
       </div>
 
-      <!-- Petunjuk visibilitas materi (KP-08.5). -->
+      <!-- Petunjuk visibilitas materi -->
       <p class="mt-6 text-right text-[13px] text-teks-redup">
         Begitu disimpan, semua anggota bisa langsung membacanya
       </p>
@@ -102,8 +100,6 @@
       </div>
     </div>
 
-    <!-- Bilah aksi melekat di bawah layar: keterangan simpan di kiri,
-         tombol halaman (Simpan, Ajukan publikasi, ...) dari slot di kanan. -->
     <div class="decide">
       <span class="text-[13px] text-teks-redup">{{ teksStatus }}</span>
       <span class="tumbuh" />
@@ -127,20 +123,15 @@ interface GalatIsian {
 interface Props {
   judulAwal?: string
   ringkasanAwal?: string | null
-  /** Path sampul tersimpan (bukan URL) untuk dikirim balik saat menyimpan. */
   sampulAwalPath?: string | null
-  /** URL sampul tersimpan, hanya untuk pratinjau. */
   sampulAwalUrl?: string | null
-  /** Id kategori tersimpan (KP-19.2); kosong untuk materi baru. */
   kategoriAwal?: number[]
   kontenAwal?: KontenQuill | null
   htmlAwal?: string | null
   catatanAwal?: string | null
   tampilkanCatatan?: boolean
-  /** Status yang tampil sebagai chip di atas judul. */
   status?: StatusMateri | StatusRevisi | null
   versi?: number | null
-  /** Awalan keterangan simpan di bilah aksi bawah, mis. "Draf". */
   keterangan?: string
   memuat?: boolean
   galatUmum?: string
@@ -169,15 +160,12 @@ const emit = defineEmits<{ simpan: [payload: PayloadMateri] }>()
 const judul = ref(props.judulAwal)
 const ringkasan = ref(props.ringkasanAwal ?? '')
 const catatan = ref(props.catatanAwal ?? '')
-// Sampul disimpan sebagai path; URL-nya hanya untuk pratinjau di isian sampul.
 const sampulPath = ref<string | null>(props.sampulAwalPath)
 const sampulUrl = ref<string | null>(props.sampulAwalUrl)
 const konten = ref<KontenQuill>(props.kontenAwal ?? { ops: [] })
 const html = ref(props.htmlAwal ?? '')
-// Kategori terpilih (id); wajib minimal satu (KF-19, KP-19.2).
 const terpilihKategori = ref<number[]>([...props.kategoriAwal])
 
-// Galat dari validasi cepat di klien, digabung dengan galat 422 dari backend.
 const galatJudulKlien = ref('')
 const galatKategoriKlien = ref('')
 const galatEditorKlien = ref('')
@@ -188,8 +176,6 @@ const galatSampul = computed(() => props.galatIsian?.sampul ?? '')
 const galatKategori = computed(() => props.galatIsian?.kategori || galatKategoriKlien.value)
 const galatEditor = computed(() => props.galatIsian?.konten || galatEditorKlien.value)
 const galatCatatan = computed(() => props.galatIsian?.catatan_revisi ?? '')
-
-/* ---------- Daftar kategori untuk pemilih ---------- */
 
 const { daftar: daftarKategoriApi } = useKategori()
 
@@ -212,8 +198,6 @@ async function muatKategori() {
 
 onMounted(muatKategori)
 
-/* ---------- Status simpan di header editor ---------- */
-
 const kotor = ref(false)
 
 watch(
@@ -229,7 +213,6 @@ const statusSimpan = computed<'tersimpan' | 'menyimpan' | 'belum'>(() => {
   return kotor.value ? 'belum' : 'tersimpan'
 })
 
-// Keterangan di bilah aksi bawah, mis. "Draf · Tersimpan" atau "Materi baru · Belum tersimpan".
 const teksStatus = computed(() => {
   const teks = {
     tersimpan: 'Sudah disimpan',
@@ -242,12 +225,10 @@ const teksStatus = computed(() => {
   return props.keterangan ? `${props.keterangan} · ${keadaan}` : keadaan
 })
 
-/** Dipanggil halaman setelah simpan berhasil. */
+// Tandai tersimpan
 function tandaiTersimpan() {
   kotor.value = false
 }
-
-/* ---------- Tinggi judul & ringkasan mengikuti isi ---------- */
 
 const judulEl = ref<HTMLTextAreaElement | null>(null)
 const ringkasanEl = ref<HTMLTextAreaElement | null>(null)
@@ -267,7 +248,7 @@ function sesuaikanSemua() {
 watch([judul, ringkasan], () => nextTick(sesuaikanSemua))
 onMounted(() => nextTick(sesuaikanSemua))
 
-/* ---------- Kirim ---------- */
+// Kirim
 
 function kirim() {
   galatJudulKlien.value = ''
@@ -281,13 +262,11 @@ function kirim() {
     sah = false
   }
 
-  // Kategori wajib minimal satu; backend memeriksa ulang hal yang sama (KP-19.2).
   if (terpilihKategori.value.length === 0) {
     galatKategoriKlien.value = 'Pilih minimal satu kategori ya.'
     sah = false
   }
 
-  // Isi kosong ditolak sebelum dikirim; backend tetap memeriksa ulang.
   if (kontenKosong(konten.value)) {
     galatEditorKlien.value = 'Isi materinya masih kosong.'
     sah = false
@@ -301,13 +280,10 @@ function kirim() {
     sampul: sampulPath.value,
     kategori: [...terpilihKategori.value],
     konten: konten.value,
-    // HTML dari Quill selalu memakai &nbsp;; rapikan sebelum disimpan supaya
-    // teks tetap bisa dipotong per kata di halaman baca (lihat rapikanSpasiHtml).
     konten_html: rapikanSpasiHtml(html.value),
     catatan_revisi: props.tampilkanCatatan ? catatan.value.trim() || null : undefined,
   })
 }
 
-// Tombol aksi berasal dari slot halaman induk, jadi kirim() diekspos.
 defineExpose({ kirim, tandaiTersimpan })
 </script>

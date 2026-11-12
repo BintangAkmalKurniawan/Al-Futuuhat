@@ -6,10 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Facades\Storage;
 
-/**
- * Program untuk halaman admin (KP-21.1). Berbeda dari Resource publik,
- * PIC dikirim beserta `anggota_id` agar formulir dapat menampilkan pilihan lama.
- */
+// Program untuk halaman admin
 class ProgramAdminResource extends JsonResource
 {
     /**

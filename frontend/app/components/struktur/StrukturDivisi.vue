@@ -1,5 +1,5 @@
 <template>
-  <!-- Kelola divisi (KF-07). Deskripsi divisi tampil di halaman beranda. -->
+  <!-- Kelola divisi -->
   <div>
     <div class="flex flex-wrap items-start justify-between gap-4 border-t border-garis pt-6">
       <p class="max-w-xl text-[13px] text-teks-lembut">
@@ -12,7 +12,7 @@
       {{ galat }}
     </AppAlert>
 
-    <!-- Kerangka memuat berbentuk kartu. -->
+    <!-- Kerangka memuat -->
     <div v-if="memuat" class="mt-6 grid animate-pulse gap-5 sm:grid-cols-2 lg:grid-cols-3">
       <div v-for="n in 3" :key="n" class="h-32 rounded-lg bg-permukaan" />
     </div>

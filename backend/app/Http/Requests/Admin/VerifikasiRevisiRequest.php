@@ -6,9 +6,7 @@ use App\Models\VerifikasiMateri;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
-/**
- * Keputusan admin atas pengajuan publikasi (KF-11).
- */
+// Keputusan admin atas pengajuan publikasi
 class VerifikasiRevisiRequest extends FormRequest
 {
     public function authorize(): bool
@@ -26,7 +24,6 @@ class VerifikasiRevisiRequest extends FormRequest
                 'required',
                 Rule::in([VerifikasiMateri::KEPUTUSAN_DISETUJUI, VerifikasiMateri::KEPUTUSAN_DITOLAK]),
             ],
-            // KP-11.4: catatan wajib saat menolak.
             'catatan' => ['nullable', 'string', 'required_if:keputusan,ditolak'],
         ];
     }

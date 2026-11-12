@@ -1,6 +1,5 @@
 <template>
-  <!-- Formulir tambah/ubah program (KP-21.1, KP-21.2). Dikirim sebagai multipart
-       karena sampul berupa berkas; sampul dikirim bersama formulir saat Simpan. -->
+  <!-- Formulir tambah/ubah program -->
   <form novalidate @submit.prevent="simpan">
     <AppAlert v-if="galatUmum" variant="bahaya" title="Gagal menyimpan" class="mb-6">
       {{ galatUmum }}
@@ -156,7 +155,6 @@ const form = reactive<{
   pic: [...(props.program?.pic ?? [])],
 })
 
-// Delta tidak disimpan backend; hanya dipakai editor selama formulir terbuka.
 const konten = ref<KontenQuill>({ ops: [] })
 
 const opsiStatus = [
@@ -167,8 +165,6 @@ const opsiStatus = [
 const menyimpan = ref(false)
 const galatUmum = ref('')
 const galat = ref<Record<string, string | undefined>>({})
-
-// ------------------------------------------------------------ Sampul
 
 const masukanSampul = ref<HTMLInputElement | null>(null)
 const sampulTersimpan = ref<string | null>(props.program?.sampul ?? null)
@@ -193,12 +189,12 @@ function bersihkanPratinjau() {
   pratinjauSampul.value = ''
 }
 
-/** Cek jenis dan ukuran di klien lebih dulu (KNF-03); backend tetap memeriksa ulang. */
+// Pilih sampul
 function pilihSampul(event: Event) {
   const el = event.target as HTMLInputElement
   const berkas = el.files?.[0] ?? null
 
-  el.value = '' // agar berkas yang sama bisa dipilih lagi setelah gagal
+  el.value = ''
 
   if (!berkas) return
 
@@ -220,7 +216,7 @@ function pilihSampul(event: Event) {
   hapusSampul.value = false
 }
 
-/** Batalkan berkas yang baru dipilih, atau tandai sampul tersimpan untuk dihapus saat Simpan. */
+// Hapus sampul
 function tandaiHapusSampul() {
   if (sampul.value) {
     bersihkanPratinjau()
@@ -231,7 +227,7 @@ function tandaiHapusSampul() {
   hapusSampul.value = !hapusSampul.value
 }
 
-// ------------------------------------------------------------ Simpan
+// Simpan
 
 async function simpan() {
   menyimpan.value = true
@@ -244,7 +240,6 @@ async function simpan() {
   data.append('jadwal', form.jadwal.trim())
   data.append('status', form.status)
   data.append('deskripsi', rapikanSpasiHtml(form.deskripsi))
-  // Array dikirim sebagai pic[]=1&pic[]=2 agar terbaca Laravel sebagai array.
   for (const orang of form.pic) data.append('pic[]', String(orang.anggota_id))
   if (sampul.value) data.append('sampul', sampul.value)
   if (hapusSampul.value) data.append('hapus_sampul', '1')
@@ -261,7 +256,6 @@ async function simpan() {
   } catch (galatServer) {
     const isian = galatValidasi(galatServer)
 
-    // Galat PIC bisa bernama `pic` atau `pic.0`, `pic.1`, dst.
     const kunciPic = Object.keys(isian).find((kunci) => kunci === 'pic' || kunci.startsWith('pic.'))
 
     galat.value = {

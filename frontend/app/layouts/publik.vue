@@ -1,6 +1,6 @@
 <template>
   <div class="flex min-h-screen flex-col bg-kanvas text-teks">
-    <!-- Header 57 px: wordmark di kiri, menu di kanan (DESIGN.md §4). -->
+    <!-- Header 57 px -->
     <header class="sticky top-0 z-30 border-b border-garis bg-kanvas/95 backdrop-blur">
       <div class="mx-auto flex h-[57px] w-full max-w-halaman items-center gap-6 px-6">
         <NuxtLink to="/" class="shrink-0">
@@ -92,7 +92,7 @@
     </main>
 
     <footer class="border-t border-garis">
-      <!-- Kontak organisasi yang diatur admin (KF-22); kolom kosong tidak ditampilkan. -->
+      <!-- Kontak organisasi -->
       <div
         v-if="adaKontak"
         class="mx-auto flex w-full max-w-halaman flex-wrap gap-x-6 gap-y-2 px-6 pt-8 text-[13px] text-teks-lembut"
@@ -140,7 +140,6 @@
 </template>
 
 <script setup lang="ts">
-// Logo resmi (tulisan putih, latar transparan) menggantikan wordmark teks.
 import logo from '~/assets/logo.png'
 import { AtSign, Mail, MapPin, Menu, MessageCircle, X } from '@lucide/vue'
 import type { KontakOrganisasi } from '~/types/api'
@@ -151,7 +150,6 @@ const route = useRoute()
 const tahun = new Date().getFullYear()
 const laciTerbuka = ref(false)
 
-// Kontak organisasi (KF-22) diambil dari konten beranda; gagal dimuat = disembunyikan.
 const kontak = ref<KontakOrganisasi | null>(null)
 const adaKontak = computed(() => Boolean(kontak.value && Object.values(kontak.value).some(Boolean)))
 
@@ -162,9 +160,6 @@ onMounted(() => {
     .catch(() => {})
 })
 
-// Menu pengunjung: beranda (/), artikel, program, dan bagian bergabung.
-// Struktur kepengurusan tidak lagi punya menu sendiri karena sudah tampil
-// di beranda; tempatnya diganti halaman Program (KF-21, KP-21.7).
 const menu = [
   { label: 'Beranda', to: '/' },
   { label: 'Tentang kami', to: '/tentang' },
@@ -173,8 +168,7 @@ const menu = [
   { label: 'Cara bergabung', to: '/#bergabung' },
 ]
 
-// Tautan berbagian (#bergabung) hanya aktif saat bagian itu dibuka; sedangkan
-// beranda hanya aktif saat tidak sedang membuka bagian mana pun.
+// Menu aktif
 function sedangAktif(to: string) {
   const [jalur, bagian] = to.split('#')
 

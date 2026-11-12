@@ -21,12 +21,10 @@ class RevisiMateriFactory extends Factory
         return [
             'materi_id' => Materi::factory(),
             'nomor_versi' => 1,
-            // Draf 2.3: bagian materi per versi. Bawaannya disalin dari materi induk
-            // (kunci `materi_id` di atas sudah berisi id saat fungsi ini dipanggil).
             'judul' => fn (array $atribut) => Materi::find($atribut['materi_id'])?->judul ?? fake()->sentence(4),
             'ringkasan' => fn (array $atribut) => Materi::find($atribut['materi_id'])?->ringkasan,
             'sampul' => fn (array $atribut) => Materi::find($atribut['materi_id'])?->sampul,
-            'konten' => ['ops' => [['insert' => $paragraf."\n"]]], // bentuk Delta Quill sederhana
+            'konten' => ['ops' => [['insert' => $paragraf."\n"]]],
             'konten_html' => '<p>'.$paragraf.'</p>',
             'catatan_revisi' => null,
             'status' => RevisiMateri::STATUS_DRAF,

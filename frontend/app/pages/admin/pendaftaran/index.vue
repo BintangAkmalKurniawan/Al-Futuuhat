@@ -1,5 +1,5 @@
 <template>
-  <!-- Verifikasi pendaftaran (KF-05, DESIGN.md §6.6). -->
+  <!-- Verifikasi pendaftaran -->
   <div>
     <header class="pb-6">
       <h1 class="font-serif text-halaman font-bold text-teks-kuat">Pemeriksaan pendaftaran</h1>
@@ -8,8 +8,7 @@
       </p>
     </header>
 
-    <!-- Bilah alat: filter segmen status (DESIGN.md §6.6 no. 18).
-         Kotak cari menyusul setelah endpoint menerima parameter q. -->
+    <!-- Bilah alat -->
     <div class="mt-6 mb-2 flex flex-wrap items-center gap-3">
       <FilterSegmen v-model="status" :opsi="opsiStatus" label="Filter status pendaftar" />
     </div>
@@ -18,7 +17,7 @@
       {{ galat }}
     </AppAlert>
 
-    <!-- Kerangka memuat berbentuk baris tabel. -->
+    <!-- Kerangka memuat -->
     <div v-if="memuat" class="animate-pulse space-y-5 pt-6">
       <div v-for="n in 4" :key="n" class="h-4 w-full rounded-full bg-permukaan" />
     </div>
@@ -50,7 +49,12 @@
                   <span class="judul text-[15px]">{{ item.nama }}</span>
                 </span>
               </td>
-              <td>{{ item.email }}</td>
+              <td>
+                {{ item.email }}
+                <span v-if="!item.email_terkonfirmasi" class="block text-xs text-teks-redup">
+                  Belum dikonfirmasi
+                </span>
+              </td>
               <td>{{ formatTanggal(item.terdaftar_pada) }}</td>
               <td>
                 <AppBadge :variant="varianStatusAkun(item.status)">
@@ -94,7 +98,6 @@ const meta = ref<MetaHalaman | null>(null)
 const memuat = ref(true)
 const galat = ref('')
 
-// Penanda agar respons lama tidak menimpa hasil permintaan terbaru.
 let permintaanTerakhir = 0
 
 async function muat() {

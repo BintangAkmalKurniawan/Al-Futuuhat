@@ -5,15 +5,12 @@ namespace App\Http\Requests\Kategori;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
-/**
- * Validasi formulir kategori materi (KF-19, KP-19.1).
- * Admin hanya mengisi nama; slug dibentuk otomatis dari nama.
- */
+// Validasi formulir kategori materi
 class SimpanKategoriRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return true; // hak admin dicek lewat middleware `admin`
+        return true;
     }
 
     /**

@@ -15,26 +15,17 @@ use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
-/**
- * Menyusun pengurus periode saat ini (KF-07).
- *
- * Draf 2.5: admin tidak memilih periode. Setiap perubahan dicatat pada periode
- * saat ini — dibuat otomatis bila tahun sudah berganti (KP-07.1) — periode lama
- * hanya dapat dibaca (KP-07.6), dan setiap perubahan masuk riwayat (KP-07.7).
- */
+// Susunan pengurus
 class KepengurusanController extends Controller
 {
-    /**
-     * GET /api/admin/kepengurusan — susunan pengurus periode aktif untuk tab Pengurus.
-     */
+    // Daftar pengurus periode aktif
     public function index(): AnonymousResourceCollection
     {
         $periode = PeriodeKepengurusan::aktif();
 
         $kepengurusan = Kepengurusan::query()
-            ->with(['anggota.user', 'divisi', 'jabatan']) // KNF-09: eager loading
+            ->with(['anggota.user', 'divisi', 'jabatan'])
             ->where('kepengurusan.periode_id', $periode?->id)
-            // Pengurus inti (tanpa divisi) lebih dulu, lalu sesuai urutan jabatan.
             ->join('jabatan', 'jabatan.id', '=', 'kepengurusan.jabatan_id')
             ->orderByRaw('kepengurusan.divisi_id NULLS FIRST')
             ->orderBy('jabatan.urutan')
@@ -42,14 +33,10 @@ class KepengurusanController extends Controller
             ->get(['kepengurusan.*']);
 
         return KepengurusanResource::collection($kepengurusan)->additional([
-            // Kepala tab Pengurus: "Periode saat ini: 2026/2027" (null bila belum ada).
             'periode' => $periode ? new PeriodeResource($periode) : null,
         ]);
     }
 
-    /**
-     * POST /api/admin/kepengurusan.
-     */
     public function store(KepengurusanRequest $request): JsonResponse
     {
         $data = $request->validated();
@@ -75,9 +62,6 @@ class KepengurusanController extends Controller
         ], 201);
     }
 
-    /**
-     * PUT /api/admin/kepengurusan/{kepengurusan}.
-     */
     public function update(KepengurusanRequest $request, Kepengurusan $kepengurusan): JsonResponse
     {
         $this->tolakPeriodeLama($kepengurusan);
@@ -93,7 +77,6 @@ class KepengurusanController extends Controller
             $baris->update($data);
             $sesudah = $baris->unsetRelations()->ringkasan();
 
-            // Ubah tanpa perbedaan apa pun tidak dicatat.
             if ($sebelum !== $sesudah) {
                 $keterangan = $baris->wasChanged('anggota_id')
                     ? "Mengganti {$sebelum['nama']} (".Kepengurusan::teksPosisi($sebelum).") dengan {$sesudah['nama']} (".Kepengurusan::teksPosisi($sesudah).').'
@@ -111,9 +94,6 @@ class KepengurusanController extends Controller
         ]);
     }
 
-    /**
-     * DELETE /api/admin/kepengurusan/{kepengurusan}.
-     */
     public function destroy(Request $request, Kepengurusan $kepengurusan): JsonResponse
     {
         $this->tolakPeriodeLama($kepengurusan);
@@ -133,9 +113,9 @@ class KepengurusanController extends Controller
         return response()->json(['message' => 'Pengurus dihapus dari susunan.']);
     }
 
-    // ------------------------------------------------------------ Pembantu
+    // Pembantu
 
-    /** KP-07.6: baris milik periode yang sudah tidak aktif tidak boleh diubah. */
+    // Tolak perubahan periode lama
     private function tolakPeriodeLama(Kepengurusan $kepengurusan): void
     {
         if (! $kepengurusan->periode()->value('is_aktif')) {
@@ -145,11 +125,7 @@ class KepengurusanController extends Controller
         }
     }
 
-    /**
-     * Bila saatIni() baru saja memulai periode tahun berjalan, baris yang diminta
-     * masih milik periode lama (kini arsip). Perubahan diterapkan pada salinannya
-     * di periode baru — dicari lewat anggota yang sama.
-     */
+    // Cari baris di periode saat ini
     private function barisDiPeriode(Kepengurusan $kepengurusan, PeriodeKepengurusan $periode): Kepengurusan
     {
         if ($kepengurusan->periode_id === $periode->id) {
@@ -159,7 +135,7 @@ class KepengurusanController extends Controller
         return $periode->kepengurusan()->where('anggota_id', $kepengurusan->anggota_id)->firstOrFail();
     }
 
-    /** KP-07.4: satu anggota hanya sekali dalam satu periode. */
+    // Cek anggota belum menjabat
     private function pastikanBelumMenjabat(PeriodeKepengurusan $periode, int $anggotaId, ?int $abaikanId = null): void
     {
         $sudah = $periode->kepengurusan()

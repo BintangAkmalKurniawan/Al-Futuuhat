@@ -6,9 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Facades\Storage;
 
-/**
- * Komentar forum. Dipakai juga sebagai data event real-time (KF-15).
- */
+// Komentar forum
 class KomentarResource extends JsonResource
 {
     /**
@@ -27,8 +25,6 @@ class KomentarResource extends JsonResource
                 'nama' => $this->user->nama,
             ]),
             'balasan' => $this->whenLoaded('balasan', fn () => self::collection($this->balasan)),
-            // Jumlah balasan dikirim tanpa balasannya; balasan diambil terpisah
-            // lewat GET /komentar/{komentar}/balasan saat pembaca membukanya.
             'jumlah_balasan' => $this->whenCounted('balasan'),
             'dibuat_pada' => $this->created_at?->toIso8601String(),
         ];

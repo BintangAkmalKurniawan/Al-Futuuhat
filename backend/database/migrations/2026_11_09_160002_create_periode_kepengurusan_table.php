@@ -6,10 +6,7 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Periode kepengurusan, mis. "2026/2027" — PRD §10, KF-07.
-     * Hanya satu periode boleh aktif (dijaga di controller, KP-07.1).
-     */
+    // Periode kepengurusan
     public function up(): void
     {
         Schema::create('periode_kepengurusan', function (Blueprint $table) {
@@ -20,7 +17,6 @@ return new class extends Migration
             $table->boolean('is_aktif')->default(false);
             $table->timestamps();
 
-            // Beranda publik mencari periode aktif (KP-01.2)
             $table->index('is_aktif');
         });
     }

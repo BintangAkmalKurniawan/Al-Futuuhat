@@ -1,5 +1,5 @@
 <template>
-  <!-- Ajukan penarikan materi dari publik, alasan wajib (KP-20.1, DESIGN.md §7). -->
+  <!-- Ajukan penarikan materi -->
   <AppModal
     v-model:open="terbuka"
     title="Turunkan materi ini dari halaman umum?"
@@ -33,14 +33,12 @@ const terbuka = defineModel<boolean>('open', { default: false })
 
 const { tarik } = useMateri()
 
-// Sama dengan batas di backend (AjukanPenarikanRequest, KP-20.1).
 const BATAS = 1000
 
 const alasan = ref('')
 const galat = ref('')
 const memuat = ref(false)
 
-// Isian dikosongkan setiap kali dialog dibuka.
 watch(terbuka, (buka) => {
   if (!buka) return
 
@@ -49,7 +47,6 @@ watch(terbuka, (buka) => {
 })
 
 async function kirim() {
-  // Pemeriksaan cepat di klien; backend tetap memeriksa ulang (422).
   if (!alasan.value.trim()) {
     galat.value = 'Tulis dulu alasannya ya.'
     return

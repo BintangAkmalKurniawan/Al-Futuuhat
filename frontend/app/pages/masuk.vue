@@ -7,11 +7,19 @@
       </p>
     </header>
 
+    <AppAlert v-if="sandiDiganti && !pesan" variant="sukses" title="Kata sandimu sudah diganti" class="mt-6">
+      Silakan masuk pakai kata sandi baru.
+    </AppAlert>
+
     <AppAlert v-if="pesan" :variant="varianPesan" :title="judulPesan" class="mt-6">
       {{ pesan }}
 
       <p v-if="catatanAdmin" class="mt-2">
         <span class="font-medium">Catatan dari admin:</span> {{ catatanAdmin }}
+      </p>
+
+      <p v-if="belumKonfirmasi" class="mt-2">
+        <NuxtLink to="/verifikasi-email" class="font-medium underline">Kirim ulang email konfirmasi</NuxtLink>
       </p>
     </AppAlert>
 
@@ -34,6 +42,10 @@
         required
       />
 
+      <p class="-mt-2 text-right text-sm">
+        <NuxtLink to="/lupa-kata-sandi" class="text-aksen hover:underline">Lupa kata sandi?</NuxtLink>
+      </p>
+
       <AppButton type="submit" class="w-full" :loading="memuat">Masuk</AppButton>
 
       <p class="text-center text-sm text-teks-lembut">
@@ -49,6 +61,8 @@ definePageMeta({ layout: 'publik', middleware: ['guest'] })
 useHead({ title: 'Masuk' })
 
 const { login } = useAuth()
+const route = useRoute()
+const sandiDiganti = computed(() => route.query.sandi === 'diganti')
 
 const email = ref('')
 const password = ref('')
@@ -56,10 +70,12 @@ const galat = reactive<Record<string, string>>({})
 const pesan = ref('')
 const statusAkun = ref<string | null>(null)
 const catatanAdmin = ref<string | null>(null)
+const belumKonfirmasi = ref(false)
 const memuat = ref(false)
 
-// Empat jenis pesan login (KP-04): kredensial salah, menunggu, ditolak, nonaktif.
 const judulPesan = computed(() => {
+  if (belumKonfirmasi.value) return 'Emailmu belum dikonfirmasi'
+
   switch (statusAkun.value) {
     case 'menunggu':
       return 'Pendaftaranmu lagi dicek admin'
@@ -88,12 +104,12 @@ async function kirim() {
   pesan.value = ''
   statusAkun.value = null
   catatanAdmin.value = null
+  belumKonfirmasi.value = false
   memuat.value = true
 
   try {
     const pengguna = await login(email.value, password.value)
 
-    // KP-04.4: admin ke /admin, anggota ke /dasbor.
     await navigateTo(pengguna.role === 'admin' ? '/admin' : '/dasbor')
   } catch (galatServer) {
     const isian = galatValidasi(galatServer)
@@ -107,6 +123,7 @@ async function kirim() {
     if (data?.status_akun) {
       statusAkun.value = data.status_akun
       catatanAdmin.value = data.catatan ?? null
+      belumKonfirmasi.value = data.email_terkonfirmasi === false
       pesan.value = data.message
     } else if (Object.keys(isian).length === 0) {
       pesan.value = data?.message || 'Belum bisa masuk. Coba lagi ya.'

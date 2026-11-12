@@ -1,6 +1,5 @@
 <template>
-  <!-- Galeri dokumentasi satu program (KP-21.6): penyaring Semua/Foto/Video,
-       grid gambar kecil, paginasi, dan penampil. Dipakai halaman publik dan admin. -->
+  <!-- Galeri dokumentasi satu program -->
   <div>
     <FilterSegmen v-model="jenis" :opsi="opsiJenis" label="Saring dokumentasi" />
 
@@ -8,7 +7,7 @@
       {{ galat }}
     </AppAlert>
 
-    <!-- Kerangka memuat berbentuk grid gambar. -->
+    <!-- Kerangka memuat -->
     <div v-else-if="memuat" class="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
       <div v-for="n in 8" :key="n" class="aspect-[4/3] animate-pulse rounded-sm bg-permukaan" />
     </div>
@@ -35,9 +34,6 @@
               loading="lazy"
               class="h-full w-full object-cover transition-transform duration-300 ease-halus group-hover:scale-[1.02]"
             />
-            <!-- Video MP4 tidak punya gambar kecil dari server: peramban diminta
-                 menampilkan bingkai di detik 0,5 (#t=0.5). preload="metadata"
-                 membuat peramban hanya mengunduh bagian awal berkas, bukan seluruhnya. -->
             <video
               v-else-if="item.jenis === 'video'"
               :src="`${item.url}#t=0.5`"
@@ -52,7 +48,6 @@
               <Film class="h-7 w-7" aria-hidden="true" />
             </span>
 
-            <!-- Tanda putar untuk video MP4 dan YouTube. -->
             <span
               v-if="item.jenis !== 'foto'"
               class="absolute inset-0 grid place-items-center bg-kanvas/25"
@@ -68,7 +63,7 @@
             {{ item.keterangan }}
           </p>
 
-          <!-- Khusus admin: hapus satu dokumentasi (KP-21.4). -->
+          <!-- Khusus admin -->
           <button
             v-if="bisaHapus"
             type="button"
@@ -116,7 +111,6 @@ const props = withDefaults(
     slug: string
     jumlahFoto?: number
     jumlahVideo?: number
-    /** Admin: tampilkan tombol hapus pada setiap butir. */
     bisaHapus?: boolean
   }>(),
   { jumlahFoto: undefined, jumlahVideo: undefined, bisaHapus: false },
@@ -168,7 +162,6 @@ async function muat() {
 
     if (nomor !== nomorPermintaan) return
 
-    // Halaman terakhir kosong setelah butir terakhirnya dihapus: mundur satu halaman.
     if (respons.data.length === 0 && halaman.value > 1) {
       halaman.value -= 1
       return
@@ -214,7 +207,6 @@ async function hapusSekarang() {
   }
 }
 
-// Ganti penyaring → kembali ke halaman 1. Satu perubahan = satu muat ulang.
 watch(jenis, () => {
   if (halaman.value === 1) muat()
   else halaman.value = 1
@@ -223,7 +215,7 @@ watch(halaman, muat)
 
 onMounted(muat)
 
-/** Dipanggil halaman admin setelah unggahan baru selesai. */
+// Muat ulang galeri
 async function muatUlang() {
   if (halaman.value === 1) await muat()
   else halaman.value = 1

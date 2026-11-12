@@ -1,5 +1,5 @@
 <template>
-  <!-- Tinjau satu pendaftar (KF-05). -->
+  <!-- Tinjau satu pendaftar -->
   <div>
     <NuxtLink to="/admin/pendaftaran" class="crumb">
       <ChevronLeft class="h-4 w-4" aria-hidden="true" />
@@ -17,7 +17,7 @@
     </AppAlert>
 
     <template v-else-if="pendaftar">
-      <!-- Judul + lencana status sebaris (DESIGN.md §6.3 no. 19). -->
+      <!-- Judul dan status -->
       <div class="flex flex-wrap items-center gap-3.5 pt-2">
         <h1 class="font-serif text-halaman font-bold text-teks-kuat">{{ pendaftar.nama }}</h1>
         <AppBadge :variant="varianStatusAkun(pendaftar.status)">
@@ -31,11 +31,16 @@
 
       <div class="mt-7 grid gap-12 lg:grid-cols-[minmax(0,1fr)_340px]">
         <div>
-          <!-- Daftar data pendaftar; alasan bergabung ditulis dengan serif. -->
+          <!-- Daftar data pendaftar -->
           <dl class="dl">
             <div>
               <dt>Email</dt>
-              <dd>{{ pendaftar.email }}</dd>
+              <dd class="flex flex-wrap items-center gap-2">
+                {{ pendaftar.email }}
+                <AppBadge :variant="pendaftar.email_terkonfirmasi ? 'sukses' : 'peringatan'">
+                  {{ pendaftar.email_terkonfirmasi ? 'Sudah dikonfirmasi' : 'Belum dikonfirmasi' }}
+                </AppBadge>
+              </dd>
             </div>
             <div>
               <dt>Nomor HP</dt>
@@ -57,19 +62,20 @@
             </div>
           </dl>
 
-          <!-- Bilah keputusan menempel di bawah kolom kiri (DESIGN.md §6.3 no. 19). -->
           <div class="decide">
             <span class="text-[13px] text-teks-redup">{{ catatanKeputusan }}</span>
             <span class="tumbuh" />
 
             <template v-if="bisaPutuskan">
               <AppButton variant="bahaya" @click="bukaModalTolak">Tolak</AppButton>
-              <AppButton @click="modalSetuju = true">Setujui pendaftaran</AppButton>
+              <AppButton :disabled="!pendaftar.email_terkonfirmasi" @click="modalSetuju = true">
+                Setujui pendaftaran
+              </AppButton>
             </template>
           </div>
         </div>
 
-        <!-- Foto pendaftar: persegi, satu kolom kanan (DESIGN.md §6.3 no. 19). -->
+        <!-- Foto pendaftar -->
         <div>
           <a
             v-if="pendaftar.anggota?.foto"
@@ -172,12 +178,14 @@ const memuatKeputusan = ref(false)
 
 const bisaPutuskan = computed(() => pendaftar.value?.status === 'menunggu')
 
-// Keterangan di bilah keputusan; berganti bila pendaftar sudah diputuskan.
-const catatanKeputusan = computed(() =>
-  bisaPutuskan.value
-    ? 'Data pribadi ini hanya terlihat oleh pengurus.'
-    : 'Pendaftar ini sudah diputuskan. Tidak ada tindakan yang tersedia.',
-)
+const catatanKeputusan = computed(() => {
+  if (!bisaPutuskan.value) return 'Pendaftar ini sudah diputuskan. Tidak ada tindakan yang tersedia.'
+  if (!pendaftar.value?.email_terkonfirmasi) {
+    return 'Email pendaftar belum dikonfirmasi. Pendaftaran dapat disetujui setelah pendaftar mengonfirmasi emailnya.'
+  }
+
+  return 'Data pribadi ini hanya terlihat oleh pengurus.'
+})
 
 function bukaModalTolak() {
   galatCatatan.value = ''
@@ -203,7 +211,6 @@ async function putuskanSekarang(keputusan: 'disetujui' | 'ditolak') {
   galatModal.value = ''
   galatCatatan.value = ''
 
-  // KP-05.4: catatan wajib saat menolak (dicek juga di backend).
   if (keputusan === 'ditolak' && catatan.value.trim() === '') {
     galatCatatan.value = 'Mohon isi alasan penolakan.'
     return

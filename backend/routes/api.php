@@ -15,6 +15,7 @@ use App\Http\Controllers\Admin\VerifikasiMateriController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BerandaController;
 use App\Http\Controllers\DasborController;
+use App\Http\Controllers\KataSandiController;
 use App\Http\Controllers\KategoriController;
 use App\Http\Controllers\KomentarController;
 use App\Http\Controllers\MateriController;
@@ -26,53 +27,56 @@ use App\Http\Controllers\ProgramPublikController;
 use App\Http\Controllers\StrukturController;
 use App\Http\Controllers\UnggahGambarController;
 use App\Http\Controllers\UnggahSampulController;
+use App\Http\Controllers\VerifikasiEmailController;
 use Illuminate\Support\Facades\Route;
 
-/*
-|--------------------------------------------------------------------------
-| Rute API — sesuai PRD §11
-|--------------------------------------------------------------------------
-| P   = publik
-| A   = anggota aktif (termasuk admin)
-| Adm = admin
-*/
+// Publik
+Route::post('/register', [AuthController::class, 'register'])->middleware('throttle:5,1');
+Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:login');
 
-// ---------------------------------------------------------------- Publik (P)
-Route::post('/register', [AuthController::class, 'register']);
-Route::post('/login', [AuthController::class, 'login']);
+// Lupa kata sandi
+Route::middleware('throttle:5,1')->group(function () {
+    Route::post('/lupa-kata-sandi', [KataSandiController::class, 'kirimTautan']);
+    Route::post('/atur-ulang-kata-sandi', [KataSandiController::class, 'aturUlang']);
+});
+
+// Verifikasi email
+Route::get('/email/verifikasi/{id}/{hash}', [VerifikasiEmailController::class, 'verifikasi'])
+    ->middleware('throttle:10,1')
+    ->name('verifikasi.email');
+Route::post('/email/kirim-ulang', [VerifikasiEmailController::class, 'kirimUlang'])->middleware('throttle:5,1');
 
 Route::get('/divisi', [StrukturController::class, 'divisi']);
-// Draf 2.5 (KP-01.2): pengunjung hanya melihat struktur periode saat ini.
 Route::get('/publik/struktur', [StrukturController::class, 'publik']);
 
-// Publikasi untuk pengunjung (KF-17): hanya materi terbit, isi versi publik.
+// Artikel publik
 Route::get('/publik/materi', [MateriPublikController::class, 'index']);
 Route::get('/publik/materi/{materi:slug}', [MateriPublikController::class, 'show']);
 
-// Konten beranda (KF-18): poster + cerita Al-Futuuhat.
+// Konten beranda
 Route::get('/publik/beranda', [BerandaController::class, 'publik']);
 
-// Kategori materi (KF-19): daftar penyaring, dibaca anggota maupun pengunjung.
+// Kategori materi
 Route::get('/kategori', [KategoriController::class, 'index']);
 
-// Program kegiatan rutin (KF-21): penjelasan + dokumentasi, hanya baca.
+// Program
 Route::get('/publik/program', [ProgramPublikController::class, 'index']);
 Route::get('/publik/program/{program:slug}', [ProgramPublikController::class, 'show']);
 Route::get('/publik/program/{program:slug}/dokumentasi', [ProgramPublikController::class, 'dokumentasi']);
 
-// -------------------------------------------------------- Anggota aktif (A)
+// Anggota aktif
 Route::middleware(['auth:sanctum', 'aktif'])->group(function () {
     // Akun
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/me', [AuthController::class, 'me']);
     Route::get('/dasbor', [DasborController::class, 'index']);
 
-    // Profil sendiri (KF-24). POST karena multipart (foto).
+    // Profil
     Route::get('/profil', [ProfilController::class, 'show']);
     Route::post('/profil', [ProfilController::class, 'update']);
     Route::put('/profil/password', [ProfilController::class, 'gantiKataSandi']);
 
-    // Struktur organisasi per periode + riwayat perubahan (KP-01.3, KP-07.8).
+    // Struktur organisasi
     Route::get('/periode', [StrukturController::class, 'periode']);
     Route::get('/periode/{periode}/struktur', [StrukturController::class, 'struktur']);
     Route::get('/periode/{periode}/riwayat', [StrukturController::class, 'riwayat']);
@@ -90,7 +94,7 @@ Route::middleware(['auth:sanctum', 'aktif'])->group(function () {
     Route::post('/materi/{materi}/ajukan', [MateriController::class, 'ajukan']);
     Route::post('/materi/{materi}/batal-ajukan', [MateriController::class, 'batalAjukan']);
     Route::post('/materi/{materi}/revisi', [MateriController::class, 'buatRevisi']);
-    // Penarikan materi dari publik oleh penulis (KF-20)
+    // Penarikan materi
     Route::post('/materi/{materi}/tarik', [PenarikanMateriController::class, 'store']);
     Route::post('/materi/{materi}/batal-tarik', [PenarikanMateriController::class, 'batal']);
     Route::post('/unggah-gambar', [UnggahGambarController::class, 'store']);
@@ -107,22 +111,21 @@ Route::middleware(['auth:sanctum', 'aktif'])->group(function () {
     Route::patch('/notifikasi/baca-semua', [NotifikasiController::class, 'bacaSemua']);
     Route::patch('/notifikasi/{id}/baca', [NotifikasiController::class, 'baca']);
 
-    // ------------------------------------------------------------- Admin (Adm)
+    // Admin
     Route::middleware('admin')->group(function () {
-        // Pendaftaran (KF-05)
+        // Pendaftaran
         Route::get('/admin/pendaftaran', [PendaftaranController::class, 'index']);
         Route::get('/admin/pendaftaran/{user}', [PendaftaranController::class, 'show']);
         Route::patch('/admin/pendaftaran/{user}', [PendaftaranController::class, 'update']);
 
-        // Data anggota (KF-06)
+        // Data anggota
         Route::get('/admin/anggota', [AnggotaController::class, 'index']);
         Route::get('/admin/anggota/{user}', [AnggotaController::class, 'show']);
         Route::put('/admin/anggota/{user}', [AnggotaController::class, 'update']);
         Route::patch('/admin/anggota/{user}/status', [AnggotaController::class, 'updateStatus']);
         Route::patch('/admin/anggota/{user}/password', [AnggotaController::class, 'updatePassword']);
 
-        // Struktur organisasi (KF-07). Draf 2.5: periode dibuat otomatis
-        // (KP-07.1), jadi tidak ada lagi rute tambah/ubah/hapus/aktifkan periode.
+        // Struktur organisasi
         Route::post('/admin/divisi', [AdminDivisiController::class, 'store']);
         Route::put('/admin/divisi/{divisi}', [AdminDivisiController::class, 'update']);
         Route::delete('/admin/divisi/{divisi}', [AdminDivisiController::class, 'destroy']);
@@ -137,26 +140,26 @@ Route::middleware(['auth:sanctum', 'aktif'])->group(function () {
         Route::put('/admin/kepengurusan/{kepengurusan}', [KepengurusanController::class, 'update']);
         Route::delete('/admin/kepengurusan/{kepengurusan}', [KepengurusanController::class, 'destroy']);
 
-        // Verifikasi publikasi materi (KF-11)
+        // Verifikasi materi
         Route::get('/admin/verifikasi-materi', [VerifikasiMateriController::class, 'index']);
         Route::get('/admin/revisi/{revisi}', [VerifikasiMateriController::class, 'show']);
         Route::post('/admin/revisi/{revisi}/verifikasi', [VerifikasiMateriController::class, 'verifikasi']);
 
-        // Verifikasi penarikan materi dari publik (KF-20)
+        // Verifikasi penarikan materi
         Route::get('/admin/penarikan-materi', [AdminPenarikanMateriController::class, 'index']);
         Route::post('/admin/penarikan/{penarikan}/verifikasi', [AdminPenarikanMateriController::class, 'verifikasi']);
 
-        // Konten beranda (KF-18)
+        // Konten beranda
         Route::get('/admin/beranda', [BerandaController::class, 'tampil']);
         Route::post('/admin/beranda', [BerandaController::class, 'simpan']);
 
-        // Kategori materi (KF-19)
+        // Kategori materi
         Route::get('/admin/kategori', [AdminKategoriController::class, 'index']);
         Route::post('/admin/kategori', [AdminKategoriController::class, 'store']);
         Route::put('/admin/kategori/{kategori}', [AdminKategoriController::class, 'update']);
         Route::delete('/admin/kategori/{kategori}', [AdminKategoriController::class, 'destroy']);
 
-        // Program & dokumentasi (KF-21). Ubah memakai POST karena multipart (sampul).
+        // Program dan dokumentasi
         Route::get('/admin/program', [AdminProgramController::class, 'index']);
         Route::post('/admin/program', [AdminProgramController::class, 'store']);
         Route::get('/admin/program/{program}', [AdminProgramController::class, 'show']);
@@ -167,6 +170,6 @@ Route::middleware(['auth:sanctum', 'aktif'])->group(function () {
 
         // Dasbor admin
         Route::get('/admin/dasbor', [AdminDasborController::class, 'index']);
-        Route::get('/admin/statistik', [AdminStatistikController::class, 'index']); // KF-25
+        Route::get('/admin/statistik', [AdminStatistikController::class, 'index']);
     });
 });

@@ -26,7 +26,6 @@ useHead({ title: 'Struktur Organisasi' })
 const route = useRoute()
 const router = useRouter()
 
-// Draf 2.5: tab Periode dihapus (periode otomatis, KP-07.1) dan diganti tab Riwayat.
 const daftarTab = [
   { kunci: 'pengurus', label: 'Pengurus' },
   { kunci: 'divisi', label: 'Divisi' },
@@ -34,7 +33,6 @@ const daftarTab = [
   { kunci: 'riwayat', label: 'Riwayat' },
 ]
 
-// Tab tersimpan di URL (?tab=riwayat) agar dapat dibagikan dan bertahan saat dimuat ulang.
 const tab = ref(
   daftarTab.some((item) => item.kunci === route.query.tab) ? String(route.query.tab) : 'pengurus',
 )

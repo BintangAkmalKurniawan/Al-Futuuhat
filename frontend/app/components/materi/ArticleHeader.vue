@@ -1,5 +1,5 @@
 <template>
-  <!-- Kepala artikel: judul, dek, byline, dan status (DESIGN.md §5). -->
+  <!-- Kepala artikel -->
   <header>
     <div class="flex items-start justify-between gap-6">
       <h1 class="font-serif text-judul-hp font-bold text-teks-kuat lg:text-judul">
@@ -13,8 +13,6 @@
       {{ ringkasan }}
     </p>
 
-    <!-- Kategori artikel, di bawah dek dan di atas byline (KF-19, KP-19.4).
-         Pilnya menuju daftar tersaring bila alamatnya diberikan halaman. -->
     <ChipKategori
       v-if="kategori?.length"
       :daftar="kategori"
@@ -40,13 +38,10 @@ defineProps<{
   judul: string
   ringkasan?: string | null
   penulis?: { id?: number; nama: string } | null
-  /** Meta byline, mis. "Diperbarui 9 Nov 2026 · 5 menit baca · v3". */
   meta?: string | null
   status?: StatusMateri | StatusRevisi | null
   versi?: number | null
-  /** Kategori artikel (KF-19); kosong berarti bagian ini tidak tampil. */
   kategori?: Kategori[] | null
-  /** Awalan tautan penyaring kategori, mis. `/materi` atau `/publikasi`. */
   keKategori?: string
 }>()
 </script>

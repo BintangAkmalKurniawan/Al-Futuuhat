@@ -1,15 +1,13 @@
 <template>
-  <!-- Cerita Al-Futuuhat (KF-18). Mode `ringkas` (beranda): tinggi dibatasi dengan
-       efek pudar dan tombol "Baca selengkapnya" ke /tentang bila ceritanya terpotong. -->
+  <!-- Cerita Al-Futuuhat -->
   <div>
     <h3 v-if="judul" class="max-w-baca font-serif text-subjudul font-bold text-teks-kuat">{{ judul }}</h3>
 
     <div class="relative max-w-baca" :class="judul ? 'mt-6' : ''">
       <div ref="isiEl" :class="ringkas ? 'max-h-[22rem] overflow-hidden' : ''">
-        <!-- HTML sudah disanitasi backend (KP-08.4). -->
+        <!-- HTML sudah disanitasi backend -->
         <div v-if="isi" class="prosa" v-html="isi" />
 
-        <!-- Teks bawaan selama admin belum mengisi cerita (KP-18.2). -->
         <div v-else class="space-y-6 font-serif text-badan text-teks">
           <p>
             Al-Futuuhat adalah organisasi yang menghimpun anggota untuk belajar, berkarya, dan
@@ -23,7 +21,6 @@
         </div>
       </div>
 
-      <!-- Efek pudar di bagian bawah cerita yang terpotong. -->
       <div
         v-if="terpotong"
         class="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-kanvas to-transparent"
@@ -40,16 +37,14 @@
 <script setup lang="ts">
 const props = defineProps<{
   judul?: string | null
-  /** HTML cerita dari admin; kosong = teks bawaan. */
   isi?: string | null
-  /** Beranda: potong cerita panjang dan tampilkan tombol ke /tentang. */
   ringkas?: boolean
 }>()
 
 const isiEl = ref<HTMLElement | null>(null)
 const terpotong = ref(false)
 
-// Tombol hanya muncul bila isinya memang lebih tinggi dari batas.
+// Ukur tinggi cerita
 function ukur() {
   const el = isiEl.value
   terpotong.value = Boolean(props.ringkas && el && el.scrollHeight > el.clientHeight + 4)

@@ -5,9 +5,7 @@ namespace App\Http\Resources;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-/**
- * Ringkasan satu versi untuk daftar riwayat (KF-13), tanpa isi konten.
- */
+// Ringkasan satu versi
 class RevisiRingkasResource extends JsonResource
 {
     /**

@@ -1,6 +1,5 @@
 <template>
-  <!-- Kartu program untuk daftar /program. Polanya sama dengan KartuArtikel
-       (DESIGN.md §5): sampul 16:10 di atas, lalu status, nama, ringkasan, dan meta. -->
+  <!-- Kartu program -->
   <article
     class="group flex h-full flex-col overflow-hidden rounded-lg bg-permukaan ring-1 ring-garis transition-colors duration-200 hover:ring-garis-kuat"
   >
@@ -67,7 +66,6 @@ const namaPic = computed(() =>
     .join(', '),
 )
 
-// Mis. "12 foto · 3 video"; disembunyikan bila belum ada dokumentasi.
 const ringkasDokumentasi = computed(() => {
   const bagian: string[] = []
 

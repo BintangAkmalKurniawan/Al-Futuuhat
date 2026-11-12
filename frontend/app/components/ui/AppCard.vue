@@ -1,5 +1,5 @@
 <template>
-  <!-- Panel sederhana bergaris tipis; bukan kartu berbayang (DESIGN.md §11). -->
+  <!-- Panel sederhana bergaris tipis -->
   <section class="rounded-lg bg-permukaan ring-1 ring-garis">
     <header v-if="$slots.header || title" class="border-b border-garis px-6 py-4">
       <slot name="header">

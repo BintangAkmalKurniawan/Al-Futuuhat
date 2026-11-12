@@ -5,15 +5,12 @@ namespace App\Http\Requests\Profil;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
-/**
- * Ubah profil sendiri (KF-24). Email tidak dapat diubah.
- * Nomor HP dan alamat hanya wajib bila akun punya data keanggotaan.
- */
+// Ubah profil sendiri
 class UbahProfilRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return true; // selalu profil milik pengguna yang sedang masuk
+        return true;
     }
 
     /**
@@ -33,7 +30,7 @@ class UbahProfilRequest extends FormRequest
     }
 
     /**
-     * Pesan netral karena halaman profil dipakai anggota maupun admin.
+     * Pesan validasi
      *
      * @return array<string, string>
      */

@@ -1,5 +1,5 @@
 <template>
-  <!-- Wadah pesan singkat; dipasang sekali di app.vue. -->
+  <!-- Wadah pesan singkat -->
   <div
     class="pointer-events-none fixed right-4 bottom-4 z-50 flex w-[min(22rem,calc(100vw-2rem))] flex-col gap-2"
     aria-live="polite"

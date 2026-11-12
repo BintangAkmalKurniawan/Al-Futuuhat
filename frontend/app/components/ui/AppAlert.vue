@@ -17,7 +17,6 @@ const props = withDefaults(defineProps<Props>(), {
   variant: 'info',
 })
 
-// Galat bersifat mendesak (role="alert"); informasi lain cukup role="status".
 const peran = computed(() => (props.variant === 'bahaya' ? 'alert' : 'status'))
 
 const kelasVarian: Record<NonNullable<Props['variant']>, string> = {
@@ -25,7 +24,6 @@ const kelasVarian: Record<NonNullable<Props['variant']>, string> = {
   sukses: 'border-terbit/30 bg-terbit/10 text-terbit',
   peringatan: 'border-diajukan/30 bg-diajukan/10 text-diajukan',
   bahaya: 'border-bahaya/30 bg-bahaya/10 text-bahaya',
-  // Aksen: dipakai untuk pemberitahuan penting yang netral (DESIGN.md §6.2 no. 14).
   aksen: 'border-aksen/35 bg-aksen/10 text-teks',
 }
 </script>

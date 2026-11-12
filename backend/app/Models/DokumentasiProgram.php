@@ -7,9 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-/**
- * Satu butir dokumentasi program: foto, video MP4, atau tautan YouTube (KP-21.3).
- */
+// Satu butir dokumentasi program
 class DokumentasiProgram extends Model
 {
     /** @use HasFactory<DokumentasiProgramFactory> */
@@ -36,11 +34,7 @@ class DokumentasiProgram extends Model
         return $this->belongsTo(Program::class);
     }
 
-    /**
-     * Ambil ID video (11 karakter) dari tautan YouTube, atau null bila tautan
-     * bukan video YouTube. Bentuk yang diterima:
-     * youtube.com/watch?v=ID, youtu.be/ID, youtube.com/shorts/ID, youtube.com/embed/ID.
-     */
+    // Ambil ID video YouTube
     public static function ambilIdYoutube(string $tautan): ?string
     {
         $pola = '~^(?:https?://)?(?:www\.|m\.)?'

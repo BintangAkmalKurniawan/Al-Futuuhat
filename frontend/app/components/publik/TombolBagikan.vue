@@ -1,6 +1,5 @@
 <template>
-  <!-- Bagikan halaman ini (KF-22). Ponsel: lembar bagikan bawaan perangkat.
-       Peramban tanpa fitur itu: menu kecil berisi Salin tautan dan WhatsApp. -->
+  <!-- Bagikan halaman ini -->
   <div class="relative inline-block">
     <AppButton variant="sekunder" size="sm" :aria-expanded="menuTerbuka" @click="bagikan">
       <Share2 class="h-4 w-4" aria-hidden="true" />
@@ -55,7 +54,6 @@ async function bagikan() {
     try {
       await navigator.share({ title: props.judul, url: alamat() })
     } catch {
-      // Pengguna menutup lembar bagikan: tidak perlu pesan apa pun.
     }
     return
   }

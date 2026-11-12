@@ -7,10 +7,7 @@ use App\Models\RevisiMateri;
 use App\Models\User;
 use Illuminate\Notifications\Notification;
 
-/**
- * Pemberitahuan ke semua admin aktif saat ada materi diajukan (KP-10.3).
- * Kanal `database` = notifikasi dalam aplikasi (PRD §8.3).
- */
+// Notifikasi materi diajukan
 class MateriDiajukan extends Notification
 {
     public function __construct(

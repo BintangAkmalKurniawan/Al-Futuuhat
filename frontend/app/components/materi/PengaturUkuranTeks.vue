@@ -1,5 +1,5 @@
 <template>
-  <!-- Tombol A− / A+ untuk ukuran tulisan isi artikel. -->
+  <!-- Pengatur ukuran teks -->
   <div class="inline-flex items-center gap-1 rounded-full bg-permukaan p-1" role="group" aria-label="Ukuran tulisan">
     <button
       type="button"

@@ -1,11 +1,4 @@
-/**
- * "Dengarkan artikel" dengan Web Speech API bawaan peramban (gratis, tanpa server).
- *
- * - Suara: diutamakan suara pria bahasa Indonesia ("Ardi" di Edge, "Andika" di
- *   Windows); bila tidak ada, suara Indonesia lain; nada sedikit diturunkan agar lembut.
- * - Isi dibaca per kalimat (Chrome memotong ucapan yang terlalu panjang), dengan
- *   variasi kecil: subjudul lebih pelan & rendah, kutipan sedikit lebih pelan.
- */
+// Dengarkan artikel
 export type StatusBaca = 'diam' | 'membaca' | 'jeda'
 
 interface Potongan {
@@ -14,7 +7,7 @@ interface Potongan {
   tempo: number
 }
 
-const NADA_DASAR = 0.9 // sedikit lebih rendah = terdengar lebih lembut
+const NADA_DASAR = 0.9
 const TEMPO_DASAR = 0.95
 
 export function useBacaArtikel() {
@@ -23,7 +16,6 @@ export function useBacaArtikel() {
   const kecepatan = ref(1)
 
   let suara: SpeechSynthesisVoice | null = null
-  // Penanda sesi: ucapan dari sesi lama yang selesai tidak boleh mengubah status.
   let sesi = 0
 
   function pilihSuara() {
@@ -40,11 +32,10 @@ export function useBacaArtikel() {
 
   if (didukung) {
     pilihSuara()
-    // Daftar suara di Chrome/Edge dimuat belakangan.
     window.speechSynthesis.addEventListener('voiceschanged', pilihSuara)
   }
 
-  /** Pecah HTML artikel menjadi kalimat-kalimat dengan nada/tempo sesuai jenis blok. */
+  // Pecah artikel menjadi kalimat
   function potong(judul: string, html: string): Potongan[] {
     const hasil: Potongan[] = []
     const tambah = (teks: string, nada: number, tempo: number) => {
@@ -60,7 +51,6 @@ export function useBacaArtikel() {
     const blok = dokumen.body.querySelectorAll('h2, h3, p, li, blockquote')
 
     for (const el of Array.from(blok)) {
-      // Paragraf di dalam kutipan sudah dibaca lewat blockquote.
       if (el.tagName === 'P' && el.closest('blockquote')) continue
 
       const teks = el.textContent?.replace(/\s+/g, ' ').trim() ?? ''
@@ -120,7 +110,6 @@ export function useBacaArtikel() {
     status.value = 'diam'
   }
 
-  // Suara berhenti saat pindah halaman.
   onBeforeUnmount(() => {
     berhenti()
     if (didukung) window.speechSynthesis.removeEventListener('voiceschanged', pilihSuara)

@@ -7,10 +7,7 @@ use App\Models\PenarikanMateri;
 use App\Models\User;
 use Illuminate\Notifications\Notification;
 
-/**
- * Untuk semua admin aktif: penulis mengajukan penarikan materi dari publik
- * (PRD §8.4, KP-20.1). Dikirim sinkron lewat kanal `database`.
- */
+// Notifikasi penarikan diajukan
 class PenarikanDiajukan extends Notification
 {
     public function __construct(

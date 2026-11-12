@@ -12,9 +12,6 @@ use Illuminate\Support\Str;
  */
 class UserFactory extends Factory
 {
-    /**
-     * Kata sandi yang sudah di-hash dan dipakai ulang agar tidak dihitung berulang.
-     */
     protected static ?string $password;
 
     /**
@@ -27,8 +24,8 @@ class UserFactory extends Factory
             'email' => fake()->unique()->safeEmail(),
             'password' => static::$password ??= Hash::make('password'),
             'role' => User::ROLE_ANGGOTA,
-            // Data contoh dibuat sudah aktif supaya bisa langsung dipakai demo
             'status' => User::STATUS_AKTIF,
+            'email_verified_at' => now(),
             'remember_token' => Str::random(10),
         ];
     }
@@ -44,6 +41,13 @@ class UserFactory extends Factory
     {
         return $this->state(fn (array $attributes) => [
             'status' => User::STATUS_MENUNGGU,
+        ]);
+    }
+
+    public function belumKonfirmasi(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'email_verified_at' => null,
         ]);
     }
 

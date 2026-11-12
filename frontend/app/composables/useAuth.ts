@@ -1,8 +1,6 @@
 import type { ResponsData, ResponsLogin, User } from '~/types/api'
 
-/**
- * Autentikasi: token disimpan di cookie `token`, data pengguna di state `user`.
- */
+// Autentikasi
 export function useAuth() {
   const api = useApi()
   const token = useCookie<string | null>('token')
@@ -32,13 +30,32 @@ export function useAuth() {
     return respons.data
   }
 
+  // Lupa kata sandi
+  async function lupaKataSandi(email: string) {
+    return api.post<{ message: string }>('/lupa-kata-sandi', { email })
+  }
+
+  // Atur ulang kata sandi
+  async function aturUlangKataSandi(data: {
+    token: string
+    email: string
+    password: string
+    password_confirmation: string
+  }) {
+    return api.post<{ message: string }>('/atur-ulang-kata-sandi', data)
+  }
+
+  // Kirim ulang email konfirmasi
+  async function kirimUlangVerifikasi(email: string) {
+    return api.post<{ message: string }>('/email/kirim-ulang', { email })
+  }
+
   async function logout() {
     try {
       if (token.value) {
         await api.post('/logout')
       }
     } catch {
-      // Token mungkin sudah tidak berlaku; sesi lokal tetap dibersihkan.
     } finally {
       token.value = null
       user.value = null
@@ -54,6 +71,9 @@ export function useAuth() {
     daftar,
     login,
     fetchMe,
+    lupaKataSandi,
+    aturUlangKataSandi,
+    kirimUlangVerifikasi,
     logout,
   }
 }

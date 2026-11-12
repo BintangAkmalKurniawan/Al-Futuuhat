@@ -11,14 +11,10 @@ use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
-/**
- * CRUD kategori materi (KF-19, KP-19.1).
- */
+// CRUD kategori materi
 class KategoriController extends Controller
 {
-    /**
-     * GET /api/admin/kategori — daftar + jumlah materi pemakai.
-     */
+    // Daftar kategori
     public function index(): AnonymousResourceCollection
     {
         return KategoriResource::collection(
@@ -26,9 +22,6 @@ class KategoriController extends Controller
         );
     }
 
-    /**
-     * POST /api/admin/kategori.
-     */
     public function store(SimpanKategoriRequest $request): JsonResponse
     {
         $data = $request->validated();
@@ -44,14 +37,10 @@ class KategoriController extends Controller
         ], 201);
     }
 
-    /**
-     * PUT /api/admin/kategori/{kategori}.
-     */
     public function update(SimpanKategoriRequest $request, Kategori $kategori): JsonResponse
     {
         $data = $request->validated();
 
-        // Slug mengikuti nama baru agar tautan penyaring tetap terbaca.
         $kategori->update([
             'nama' => $data['nama'],
             'slug' => $this->slugUnik($data['nama'], $kategori->id),
@@ -63,13 +52,9 @@ class KategoriController extends Controller
         ]);
     }
 
-    /**
-     * DELETE /api/admin/kategori/{kategori} — ditolak bila masih dipakai (KP-19.1).
-     */
+    // Hapus kategori
     public function destroy(Kategori $kategori): JsonResponse
     {
-        // KP-19.1: kategori yang dipakai versi publik atau versi materi mana pun
-        // tidak boleh dihapus, supaya riwayat versi tetap utuh (Draf 2.3).
         if ($kategori->materi()->exists() || $kategori->revisi()->exists()) {
             throw ValidationException::withMessages([
                 'kategori' => 'Kategori ini masih dipakai oleh materi sehingga belum dapat dihapus.',
@@ -81,9 +66,7 @@ class KategoriController extends Controller
         return response()->json(['message' => 'Kategori dihapus.']);
     }
 
-    /**
-     * Slug unik dari nama kategori (kolom `slug` bersifat unique).
-     */
+    // Buat slug unik
     private function slugUnik(string $nama, ?int $abaikanId = null): string
     {
         $dasar = Str::slug($nama) ?: 'kategori';

@@ -1,5 +1,5 @@
 <template>
-  <!-- Kelola jabatan (KF-07). Jabatan dipakai saat menyusun pengurus. -->
+  <!-- Kelola jabatan -->
   <div>
     <div class="flex flex-wrap items-start justify-between gap-4 border-t border-garis pt-6">
       <p class="max-w-xl text-[13px] text-teks-lembut">
@@ -12,7 +12,7 @@
       {{ galat }}
     </AppAlert>
 
-    <!-- Kerangka memuat berbentuk baris tabel. -->
+    <!-- Kerangka memuat -->
     <div v-if="memuat" class="animate-pulse space-y-5 pt-6">
       <div v-for="n in 3" :key="n" class="h-4 w-full rounded-full bg-permukaan" />
     </div>

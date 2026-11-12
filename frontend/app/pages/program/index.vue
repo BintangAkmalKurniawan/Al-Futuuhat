@@ -1,5 +1,5 @@
 <template>
-  <!-- Daftar program kegiatan rutin untuk pengunjung dan anggota (KF-21, KP-21.5). -->
+  <!-- Daftar program -->
   <div>
     <header class="max-w-3xl pb-8">
       <h1 class="font-serif text-halaman font-bold text-teks-kuat">Program kami</h1>
@@ -13,7 +13,7 @@
       {{ galat }}
     </AppAlert>
 
-    <!-- Kerangka memuat: bentuknya sama dengan kartu program. -->
+    <!-- Kerangka memuat -->
     <div v-else-if="memuat" class="grid gap-8 sm:grid-cols-2 xl:grid-cols-3">
       <div
         v-for="n in 6"

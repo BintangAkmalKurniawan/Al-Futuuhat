@@ -13,27 +13,16 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Support\Collection;
 
-/**
- * Struktur organisasi (KF-01, KF-07).
- *
- * Draf 2.5: pengunjung hanya melihat periode saat ini (KP-01.2); daftar periode,
- * struktur periode lama, dan riwayat perubahan hanya untuk anggota yang login
- * (KP-01.3, KP-07.8). Data pengurus hanya nama, jabatan, divisi (KP-01.5).
- */
+// Struktur organisasi
 class StrukturController extends Controller
 {
-    /**
-     * GET /api/divisi (P).
-     */
+    // Daftar divisi
     public function divisi(): AnonymousResourceCollection
     {
         return DivisiResource::collection(Divisi::orderBy('nama_divisi')->get());
     }
 
-    /**
-     * GET /api/publik/struktur (P) — struktur periode saat ini saja.
-     * `data` bernilai null bila belum ada periode sama sekali.
-     */
+    // Struktur periode saat ini
     public function publik(): JsonResponse
     {
         $periode = PeriodeKepengurusan::aktif();
@@ -41,9 +30,7 @@ class StrukturController extends Controller
         return response()->json(['data' => $periode ? $this->susun($periode) : null]);
     }
 
-    /**
-     * GET /api/periode (A) — semua periode, periode aktif paling atas.
-     */
+    // Daftar periode
     public function periode(): AnonymousResourceCollection
     {
         return PeriodeResource::collection(
@@ -51,24 +38,19 @@ class StrukturController extends Controller
         );
     }
 
-    /**
-     * GET /api/periode/{periode}/struktur (A) — termasuk periode lama (KP-01.3).
-     */
+    // Struktur satu periode
     public function struktur(PeriodeKepengurusan $periode): JsonResponse
     {
         return response()->json(['data' => $this->susun($periode)]);
     }
 
-    /**
-     * GET /api/periode/{periode}/riwayat (A) — perbandingan dengan periode
-     * sebelumnya + log perubahan, terbaru di atas (KP-07.8).
-     */
+    // Riwayat perubahan struktur
     public function riwayat(PeriodeKepengurusan $periode): JsonResponse
     {
         $sebelumnya = $periode->sebelumnya();
 
         $log = $periode->riwayat()
-            ->with('admin') // KNF-09
+            ->with('admin')
             ->latest()
             ->orderByDesc('id')
             ->get();
@@ -83,16 +65,15 @@ class StrukturController extends Controller
         ]);
     }
 
-    // ------------------------------------------------------------ Pembantu
+    // Pembantu
 
     /**
-     * Susunan satu periode: pengurus inti di atas, lalu per divisi (KP-01.4).
+     * Susunan satu periode
      *
      * @return array<string, mixed>
      */
     private function susun(PeriodeKepengurusan $periode): array
     {
-        // Satu query untuk semua pengurus periode ini, diurutkan sesuai jabatan.urutan.
         $pengurus = $periode->kepengurusan()
             ->join('jabatan', 'jabatan.id', '=', 'kepengurusan.jabatan_id')
             ->with(['anggota.user', 'jabatan', 'divisi'])
@@ -118,15 +99,14 @@ class StrukturController extends Controller
     }
 
     /**
-     * Siapa yang masuk, keluar, dan pindah jabatan/divisi dibanding periode
-     * sebelumnya. Dihitung dari data kepengurusan, dicocokkan lewat anggota.
+     * Bandingkan dengan periode sebelumnya
      *
      * @return array<string, array<int, array<string, string|null>>>
      */
     private function bandingkan(PeriodeKepengurusan $lama, PeriodeKepengurusan $baru): array
     {
         $muat = fn (PeriodeKepengurusan $periode): Collection => $periode->kepengurusan()
-            ->with(['anggota.user', 'jabatan', 'divisi']) // KNF-09
+            ->with(['anggota.user', 'jabatan', 'divisi'])
             ->get()
             ->keyBy('anggota_id');
 

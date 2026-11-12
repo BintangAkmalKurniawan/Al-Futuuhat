@@ -1,12 +1,11 @@
 <template>
-  <!-- Unggah dokumentasi program (KP-21.3). Beberapa berkas boleh dipilih sekaligus,
-       tetapi dikirim satu per satu, sehingga batas ukuran berlaku per berkas. -->
+  <!-- Unggah dokumentasi program -->
   <section class="rounded-lg bg-permukaan p-5 ring-1 ring-garis">
     <h2 class="text-sm font-medium text-teks-kuat">Tambah dokumentasi</h2>
 
     <FilterSegmen v-model="jenis" :opsi="opsiJenis" label="Jenis dokumentasi" class="mt-4" />
 
-    <!-- Foto / video: pilih berkas, lalu unggah. -->
+    <!-- Foto / video -->
     <div v-if="jenis !== 'youtube'" class="mt-5 space-y-4">
       <div class="flex flex-wrap items-center gap-3">
         <input
@@ -34,7 +33,7 @@
         :disabled="mengunggah"
       />
 
-      <!-- Antrean berkas beserta statusnya masing-masing. -->
+      <!-- Antrean berkas -->
       <ul v-if="antrean.length" class="divide-y divide-garis rounded-md ring-1 ring-garis">
         <li v-for="(butir, indeks) in antrean" :key="indeks" class="flex items-center gap-3 px-3 py-2 text-sm">
           <component :is="jenis === 'foto' ? Image : Film" class="h-4 w-4 shrink-0 text-teks-redup" aria-hidden="true" />
@@ -111,8 +110,8 @@ interface ButirAntrean {
   pesan: string
 }
 
-const BATAS_FOTO = 2 * 1024 * 1024 // KNF-03
-const BATAS_VIDEO = 50 * 1024 * 1024 // KP-21.3
+const BATAS_FOTO = 2 * 1024 * 1024
+const BATAS_VIDEO = 50 * 1024 * 1024
 
 const jenis = ref<JenisDokumentasi>('foto')
 const keterangan = ref('')
@@ -138,7 +137,6 @@ const kelasStatus: Record<StatusButir, string> = {
 
 const jumlahSiap = computed(() => antrean.value.filter((butir) => butir.status === 'menunggu').length)
 
-// Antrean dikosongkan saat jenis diganti, karena aturan berkasnya berbeda.
 watch(jenis, () => {
   if (!mengunggah.value) antrean.value = []
   galatTautan.value = ''
@@ -149,10 +147,7 @@ function ukuranBerkas(bita: number) {
   return bita >= 1024 * 1024 ? `${(bita / 1024 / 1024).toFixed(1)} MB` : `${Math.ceil(bita / 1024)} KB`
 }
 
-/**
- * Berkas diperiksa di klien lebih dulu; yang tidak memenuhi aturan langsung
- * ditandai gagal beserta alasannya dan tidak dikirim ke server.
- */
+// Periksa berkas
 function periksa(berkas: File): string {
   if (jenis.value === 'foto') {
     if (!['image/jpeg', 'image/png'].includes(berkas.type)) return 'Foto harus berformat JPG atau PNG.'
@@ -171,7 +166,6 @@ function pilihBerkas(event: Event) {
 
   el.value = ''
 
-  // Butir yang sudah berhasil dibuang agar antrean tidak terus memanjang.
   antrean.value = antrean.value.filter((butir) => butir.status !== 'berhasil')
 
   for (const berkas of daftar) {
@@ -185,7 +179,7 @@ function pilihBerkas(event: Event) {
   }
 }
 
-/** Kirim berkas satu per satu (berurutan) agar batas unggahan berlaku per berkas. */
+// Unggah semua berkas
 async function unggahSemua() {
   mengunggah.value = true
   let berhasil = 0

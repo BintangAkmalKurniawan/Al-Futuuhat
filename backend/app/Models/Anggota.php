@@ -8,9 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-/**
- * Data keanggotaan (1:1 dengan users) — PRD §10.
- */
+// Data keanggotaan
 class Anggota extends Model
 {
     /** @use HasFactory<AnggotaFactory> */
@@ -45,7 +43,7 @@ class Anggota extends Model
         return $this->belongsTo(User::class);
     }
 
-    /** Riwayat jabatan anggota ini di setiap periode. */
+    // Riwayat jabatan
     public function kepengurusan(): HasMany
     {
         return $this->hasMany(Kepengurusan::class);

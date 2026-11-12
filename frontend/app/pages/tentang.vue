@@ -1,5 +1,5 @@
 <template>
-  <!-- Tentang kami (KF-26): cerita lengkap, visi, dan misi organisasi. -->
+  <!-- Tentang kami -->
   <div class="mx-auto w-full max-w-baca">
     <header class="pb-8">
       <h1 class="font-serif text-halaman font-bold text-teks-kuat">Tentang kami</h1>
@@ -20,7 +20,7 @@
         <CeritaAlFutuuhat class="mt-6" :judul="pengaturan?.cerita_judul" :isi="ceritaIsi" />
       </section>
 
-      <!-- Visi & misi: bagian yang belum diisi admin tidak ditampilkan. -->
+      <!-- Visi & misi -->
       <section v-if="pengaturan?.visi" class="mt-14 border-t border-garis pt-10">
         <h2 class="text-[15px] text-teks-lembut">Visi</h2>
         <p class="mt-6 font-serif text-subjudul leading-snug font-bold whitespace-pre-line text-teks-kuat">
@@ -54,7 +54,6 @@ const memuat = ref(true)
 
 const ceritaIsi = computed(() => rapikanSpasiHtml(pengaturan.value?.cerita_isi ?? ''))
 
-// Misi ditulis admin satu poin per baris; baris kosong diabaikan.
 const daftarMisi = computed(() =>
   (pengaturan.value?.misi ?? '')
     .split('\n')
@@ -62,7 +61,6 @@ const daftarMisi = computed(() =>
     .filter(Boolean),
 )
 
-// Gagal memuat: halaman tetap tampil dengan cerita bawaan.
 onMounted(async () => {
   try {
     pengaturan.value = (await publik()).data

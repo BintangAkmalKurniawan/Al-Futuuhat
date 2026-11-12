@@ -7,16 +7,12 @@ use Closure;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
-/**
- * Validasi satu butir dokumentasi program (KF-21, KP-21.3).
- * Batas ukuran berlaku per berkas: foto JPG/PNG maks 2 MB (KNF-03),
- * video MP4 maks 50 MB. Satu permintaan = satu berkas.
- */
+// Validasi satu butir dokumentasi program
 class UnggahDokumentasiRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return true; // hak admin dicek middleware `admin`
+        return true;
     }
 
     /**
@@ -33,7 +29,6 @@ class UnggahDokumentasiRequest extends FormRequest
             'keterangan' => ['nullable', 'string', 'max:255'],
         ];
 
-        // Aturan isian berkas/tautan bergantung pada jenis yang dipilih.
         return match ($this->input('jenis')) {
             DokumentasiProgram::JENIS_FOTO => $aturan + [
                 'berkas' => ['required', 'file', 'image', 'mimes:jpg,jpeg,png', 'max:2048'],
@@ -69,7 +64,6 @@ class UnggahDokumentasiRequest extends FormRequest
             'jenis.in' => 'Pilih jenis dokumentasi: foto, video, atau tautan YouTube.',
             'keterangan.max' => 'Keterangan maksimal 255 karakter.',
             'berkas.required' => $video ? 'Pilih berkas video.' : 'Pilih berkas foto.',
-            // Muncul bila berkas melebihi batas unggahan PHP sebelum sempat divalidasi.
             'berkas.uploaded' => 'Berkas tidak berhasil diunggah. Kemungkinan ukurannya melebihi batas.',
             'berkas.image' => 'Berkas harus berupa gambar.',
             'berkas.mimes' => 'Foto harus berformat JPG atau PNG.',

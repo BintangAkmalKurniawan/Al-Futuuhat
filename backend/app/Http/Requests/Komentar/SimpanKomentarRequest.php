@@ -4,9 +4,7 @@ namespace App\Http\Requests\Komentar;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-/**
- * Komentar forum: teks, gambar, atau keduanya (KP-14.2).
- */
+// Komentar forum
 class SimpanKomentarRequest extends FormRequest
 {
     public function authorize(): bool
@@ -20,7 +18,6 @@ class SimpanKomentarRequest extends FormRequest
     public function rules(): array
     {
         return [
-            // Minimal salah satu: teks atau gambar.
             'isi' => ['nullable', 'string', 'required_without:gambar'],
             'gambar' => ['nullable', 'image', 'mimes:jpg,jpeg,png', 'max:2048'],
             'parent_id' => ['nullable', 'integer', 'exists:komentar,id'],

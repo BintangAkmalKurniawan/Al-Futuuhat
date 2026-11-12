@@ -10,9 +10,7 @@ use App\Models\VerifikasiMateri;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
-/**
- * KF-16 — arsip & baca materi anggota; KF-17 — publikasi untuk pengunjung.
- */
+// Arsip & baca materi anggota
 class PencarianMateriTest extends TestCase
 {
     use RefreshDatabase;
@@ -22,9 +20,6 @@ class PencarianMateriTest extends TestCase
         return $user->createToken('api')->plainTextToken;
     }
 
-    /**
-     * Materi terbit dengan satu versi disetujui.
-     */
     private function materiTerbit(User $penulis, array $data = [], string $isi = '<p>Isi materi.</p>'): RevisiMateri
     {
         $materi = Materi::factory()->terbit()->create(array_merge([
@@ -38,13 +33,13 @@ class PencarianMateriTest extends TestCase
         ]);
     }
 
+    // KP-16.1
     public function test_pencarian_judul_tidak_membedakan_huruf_besar_kecil(): void
     {
         $penulis = User::factory()->create();
         $this->materiTerbit($penulis, ['judul' => 'Panduan Sholat Berjamaah']);
         $this->materiTerbit($penulis, ['judul' => 'Adab Makan']);
 
-        // KP-16.1
         $this->withToken($this->token($penulis))
             ->getJson('/api/materi?q=SHOLAT')
             ->assertOk()
@@ -53,13 +48,13 @@ class PencarianMateriTest extends TestCase
             ->assertJsonPath('meta.total', 1);
     }
 
+    // KP-16.1
     public function test_pencarian_isi_revisi_terakhir(): void
     {
         $penulis = User::factory()->create();
         $this->materiTerbit($penulis, ['judul' => 'Bab Thaharah'], '<p>Rukun wudhu ada enam.</p>');
         $this->materiTerbit($penulis, ['judul' => 'Bab Puasa'], '<p>Puasa wajib bagi mukallaf.</p>');
 
-        // KP-16.1: kata "wudhu" hanya ada di isi materi pertama
         $this->withToken($this->token($penulis))
             ->getJson('/api/materi?q=wudhu')
             ->assertOk()
@@ -67,11 +62,11 @@ class PencarianMateriTest extends TestCase
             ->assertJsonPath('data.0.judul', 'Bab Thaharah');
     }
 
+    // KP-16.1, KP-17.5
     public function test_isi_revisi_belum_disetujui_tercari_untuk_anggota_tetapi_tidak_untuk_pengunjung(): void
     {
         $penulis = User::factory()->create();
 
-        // Materi sudah terbit (v1), lalu penulis membuat draf revisi v2.
         $revisi = $this->materiTerbit($penulis, ['judul' => 'Bab Manasik'], '<p>Isi lama.</p>');
         RevisiMateri::factory()->create([
             'materi_id' => $revisi->materi_id,
@@ -79,12 +74,10 @@ class PencarianMateriTest extends TestCase
             'konten_html' => '<p>Pembahasan istinja lengkap.</p>',
         ]);
 
-        // KP-17.5: pencarian publik hanya memakai isi versi publik.
         $this->getJson('/api/publik/materi?q=istinja')
             ->assertOk()
             ->assertJsonCount(0, 'data');
 
-        // KP-16.1: anggota mencari isi revisi terakhir, walau belum disetujui.
         $this->withToken($this->token($penulis))
             ->getJson('/api/materi?q=istinja')
             ->assertOk()
@@ -92,11 +85,11 @@ class PencarianMateriTest extends TestCase
             ->assertJsonPath('data.0.judul', 'Bab Manasik');
     }
 
+    // KP-16.1
     public function test_anggota_dapat_mencari_isi_materi_draf(): void
     {
         $penulis = User::factory()->create();
 
-        // Judul tidak memuat kata kunci, jadi hasil hanya mungkin dari isi draf.
         $draf = Materi::factory()->create(['penulis_id' => $penulis->id, 'judul' => 'Catatan Fiqih']);
         RevisiMateri::factory()->create([
             'materi_id' => $draf->id,
@@ -104,7 +97,6 @@ class PencarianMateriTest extends TestCase
             'konten_html' => '<p>Pembahasan istinja.</p>',
         ]);
 
-        // KP-16.1: draf ikut terlihat dan tercari oleh anggota.
         $this->withToken($this->token($penulis))
             ->getJson('/api/materi?q=istinja')
             ->assertOk()
@@ -112,6 +104,7 @@ class PencarianMateriTest extends TestCase
             ->assertJsonPath('data.0.judul', 'Catatan Fiqih');
     }
 
+    // KP-16.1
     public function test_filter_penulis_dan_kata_kunci_dapat_digabung(): void
     {
         $ahmad = User::factory()->create(['nama' => 'Ahmad Fauzi']);
@@ -123,12 +116,10 @@ class PencarianMateriTest extends TestCase
 
         $token = $this->token($ahmad);
 
-        // KP-16.1: filter nama penulis
         $this->withToken($token)->getJson('/api/materi?penulis=Ahmad')
             ->assertOk()
             ->assertJsonCount(2, 'data');
 
-        // KP-16.1: filter penulis + kata kunci sekaligus
         $this->withToken($token)->getJson('/api/materi?penulis=Ahmad&q=fiqih')
             ->assertOk()
             ->assertJsonCount(1, 'data')
@@ -141,23 +132,21 @@ class PencarianMateriTest extends TestCase
         $this->materiTerbit($penulis, ['judul' => 'Biskirintil']);
         $this->materiTerbit($penulis, ['judul' => 'Adab Makan']);
 
-        // Pencarian realtime: kata yang belum selesai diketik tetap menemukan hasil.
         $this->withToken($this->token($penulis))->getJson('/api/materi?q=bisk')
             ->assertOk()
             ->assertJsonCount(1, 'data')
             ->assertJsonPath('data.0.judul', 'Biskirintil');
     }
 
+    // KP-16.1
     public function test_kata_kunci_juga_mencocokkan_nama_penulis(): void
     {
         $ahmad = User::factory()->create(['nama' => 'Ahmad Fauzi']);
         $budi = User::factory()->create(['nama' => 'Budi Santoso']);
 
-        // Judul dan isi tidak memuat kata kunci; hanya nama penulis yang cocok.
         $this->materiTerbit($ahmad, ['judul' => 'Fiqih Ibadah'], '<p>Isi pertama.</p>');
         $this->materiTerbit($budi, ['judul' => 'Fiqih Muamalah'], '<p>Isi kedua.</p>');
 
-        // KP-16.1: satu gerbang pencarian mencakup nama penulis.
         $this->withToken($this->token($ahmad))->getJson('/api/materi?q=ahmad')
             ->assertOk()
             ->assertJsonCount(1, 'data')
@@ -184,7 +173,6 @@ class PencarianMateriTest extends TestCase
             'konten_html' => '<p>Perjalanan hijrah.</p>',
         ]);
 
-        // Materi anggota lain tidak boleh ikut muncul di daftar sendiri.
         $milikLain = Materi::factory()->create([
             'penulis_id' => $lain->id,
             'judul' => 'Catatan Fiqih Lain',
@@ -197,19 +185,18 @@ class PencarianMateriTest extends TestCase
 
         $token = $this->token($penulis);
 
-        // Penyaringan dari judul.
         $this->withToken($token)->getJson('/api/materi-saya?q=fiqih')
             ->assertOk()
             ->assertJsonCount(1, 'data')
             ->assertJsonPath('data.0.judul', 'Catatan Fiqih');
 
-        // Penyaringan dari isi revisi terakhir.
         $this->withToken($token)->getJson('/api/materi-saya?q=wudhu')
             ->assertOk()
             ->assertJsonCount(1, 'data')
             ->assertJsonPath('data.0.judul', 'Catatan Fiqih');
     }
 
+    // KP-16.1
     public function test_filter_status_publikasi(): void
     {
         $penulis = User::factory()->create();
@@ -227,7 +214,6 @@ class PencarianMateriTest extends TestCase
 
         $token = $this->token($penulis);
 
-        // KP-16.1: filter status publikasi.
         $this->withToken($token)->getJson('/api/materi?status=draf')
             ->assertOk()
             ->assertJsonCount(1, 'data')
@@ -239,6 +225,7 @@ class PencarianMateriTest extends TestCase
             ->assertJsonPath('data.0.judul', 'Sudah Terbit');
     }
 
+    // KP-16.2
     public function test_daftar_materi_memuat_info_ringkas_dan_jumlah_komentar(): void
     {
         $penulis = User::factory()->create(['nama' => 'Umar Khattab']);
@@ -252,7 +239,6 @@ class PencarianMateriTest extends TestCase
             'parent_id' => null,
         ]);
 
-        // KP-16.2: kartu daftar berisi judul, penulis, nomor versi, jumlah komentar
         $this->withToken($this->token($penulis))->getJson('/api/materi')
             ->assertOk()
             ->assertJsonStructure(['data' => [[
@@ -275,6 +261,7 @@ class PencarianMateriTest extends TestCase
             ->assertJsonPath('meta.total', 0);
     }
 
+    // KP-13.3, KP-16.4
     public function test_halaman_baca_anggota_menampilkan_revisi_terakhir_dan_versi_publik(): void
     {
         $penulis = User::factory()->create();
@@ -292,8 +279,6 @@ class PencarianMateriTest extends TestCase
             'konten_html' => '<p>Isi revisi terakhir.</p>',
         ]);
 
-        // KP-16.4: anggota lain melihat revisi terakhir + nomor versi publik.
-        // KP-13.3: keputusan admin tidak ikut dikirim untuk anggota lain.
         $this->withToken($this->token(User::factory()->create()))
             ->getJson("/api/materi/{$versiPublik->materi->slug}")
             ->assertOk()
@@ -306,6 +291,7 @@ class PencarianMateriTest extends TestCase
             ->assertJsonMissingPath('data.riwayat.1.verifikasi');
     }
 
+    // KP-16.1
     public function test_anggota_dapat_membuka_materi_yang_belum_terbit(): void
     {
         $penulis = User::factory()->create();
@@ -319,7 +305,6 @@ class PencarianMateriTest extends TestCase
             'konten_html' => '<p>Draf untuk diskusi.</p>',
         ]);
 
-        // KP-16.1 (revisi): anggota boleh membaca sebelum verifikasi admin.
         $this->withToken($this->token($penulis))
             ->getJson("/api/materi/{$materi->slug}")
             ->assertOk()
@@ -333,18 +318,17 @@ class PencarianMateriTest extends TestCase
         $penulis = User::factory()->create();
         $revisi = $this->materiTerbit($penulis, ['judul' => 'Materi Terbit']);
 
-        // KNF-02 / PRD §11: arsip dan halaman baca anggota hanya untuk anggota.
         $this->getJson('/api/materi')->assertUnauthorized();
         $this->getJson("/api/materi/{$revisi->materi->slug}")->assertUnauthorized();
     }
 
+    // KP-17.1
     public function test_pengunjung_hanya_melihat_materi_terbit_di_halaman_publikasi(): void
     {
         $penulis = User::factory()->create(['nama' => 'Penulis Publik']);
         $this->materiTerbit($penulis, ['judul' => 'Materi Terbit']);
         Materi::factory()->create(['penulis_id' => $penulis->id, 'judul' => 'Masih Draf']);
 
-        // KP-17.1: tanpa login hanya materi terbit, tanpa data internal.
         $this->getJson('/api/publik/materi')
             ->assertOk()
             ->assertJsonCount(1, 'data')
@@ -354,6 +338,7 @@ class PencarianMateriTest extends TestCase
             ->assertJsonMissingPath('data.0.jumlah_komentar');
     }
 
+    // KP-17.2, KP-17.4
     public function test_pengunjung_membaca_versi_publik_bukan_revisi_terakhir(): void
     {
         $penulis = User::factory()->create();
@@ -369,7 +354,6 @@ class PencarianMateriTest extends TestCase
             'konten_html' => '<p>Isi draf baru.</p>',
         ]);
 
-        // KP-17.2, KP-17.4: hanya isi versi publik, tanpa riwayat/forum/data pribadi.
         $this->getJson("/api/publik/materi/{$versiPublik->materi->slug}")
             ->assertOk()
             ->assertJsonPath('data.judul', 'Bab Zakat')
@@ -381,6 +365,7 @@ class PencarianMateriTest extends TestCase
             ->assertJsonMissingPath('data.penulis.email');
     }
 
+    // KP-17.3
     public function test_pengunjung_tidak_dapat_membuka_materi_belum_terbit(): void
     {
         $penulis = User::factory()->create();
@@ -389,7 +374,6 @@ class PencarianMateriTest extends TestCase
             'status' => Materi::STATUS_DRAF,
         ]);
 
-        // KP-17.3
         $this->getJson("/api/publik/materi/{$draf->slug}")->assertNotFound();
     }
 }
